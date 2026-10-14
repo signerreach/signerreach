@@ -140,6 +140,10 @@ All input is untrusted. Files are size-limited (default 1 MiB) and must be UTF-8
 - Each entry of `scenarios` overlays `overrides` on `signers`. The unnamed baseline scenario is always evaluated.
 - `require_survive_loss_of` is 0 or 1. When 1, the tool additionally checks that the HIGH threshold stays reachable after the loss of any single available signer.
 - `intent` is `recoverable` (default) or `irreversible`. `irreversible` changes presentation only (section 8.4). It never changes the verdict.
+- Keys are `G...` addresses; a key of another kind is `SR-SIGNER-01`. A key listed twice is refused.
+- A scenario `name` is 1 to 64 characters from letters, digits, `.`, `_` and `-`, and unique. A document holds at most 100 scenarios (a limit of this tool).
+- Only `schema` is required. Absent fields default to: `default` unknown, no signers, no scenarios, `require_survive_loss_of` 0, `intent` recoverable.
+- A status is resolved in this order: the scenario's override, then the entry in `signers`, then `default`.
 
 ## 6. Evaluation
 

@@ -9,11 +9,9 @@
 
 use std::collections::BTreeSet;
 
-use stellar_strkey::Strkey;
-
 use super::{
-    InputIssue, Issues, Json, Obj, as_str, as_threshold, as_u32, as_weight, check_schema, child,
-    item, read_document, required,
+    InputIssue, Issues, Json, Obj, as_key, as_str, as_threshold, as_u32, as_weight, check_schema,
+    child, item, read_document, required,
 };
 use crate::account::{SignerKey, Threshold, Weight};
 use crate::diagnostic::Code;
@@ -424,23 +422,6 @@ fn read_optional<T>(
 
 fn read_optional_key(obj: &mut Obj<'_>, key: &str, issues: &mut Issues) -> Option<SignerKey> {
     read_optional(obj, key, issues, as_key)
-}
-
-/// An ed25519 account key. Other key kinds are recognised and reported as such.
-fn as_key(value: &Json, path: &str, issues: &mut Issues) -> Option<SignerKey> {
-    let text = as_str(value, path, issues)?;
-    match SignerKey::from_strkey(text) {
-        Ok(key) => Some(key),
-        Err(_) => {
-            match Strkey::from_string(text) {
-                Ok(Strkey::PreAuthTx(_) | Strkey::HashX(_) | Strkey::SignedPayloadEd25519(_)) => {
-                    issues.push(Code::Signer01, path, "only ed25519 keys are supported")
-                }
-                _ => issues.input(path, "not a valid G... address"),
-            }
-            None
-        }
-    }
 }
 
 fn as_home_domain(value: &Json, path: &str, issues: &mut Issues) -> Option<String> {

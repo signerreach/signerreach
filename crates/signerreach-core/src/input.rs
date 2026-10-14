@@ -8,6 +8,7 @@
 //! and public account addresses. A document may contain something that must
 //! not be echoed (for example a secret seed pasted into the wrong field).
 
+pub mod availability;
 pub mod plan;
 pub mod snapshot;
 
@@ -15,7 +16,9 @@ use std::fmt;
 
 use serde::de::{Deserialize, Deserializer, MapAccess, SeqAccess, Visitor};
 
-use crate::account::{Threshold, Weight};
+use stellar_strkey::Strkey;
+
+use crate::account::{SignerKey, Threshold, Weight};
 use crate::diagnostic::Code;
 
 /// The largest document read, in bytes.
@@ -326,4 +329,27 @@ pub(crate) fn check_schema(root: &mut Obj<'_>, expected: &str, issues: &mut Issu
     if as_str(value, &path, issues).is_some_and(|text| text != expected) {
         issues.input(&path, format!("the schema must be `{expected}`"));
     }
+}
+
+/// An ed25519 account key from text. Other key kinds are recognised and
+/// reported as such. The text is never repeated in the message.
+pub(crate) fn key_from_text(text: &str, path: &str, issues: &mut Issues) -> Option<SignerKey> {
+    match SignerKey::from_strkey(text) {
+        Ok(key) => Some(key),
+        Err(_) => {
+            match Strkey::from_string(text) {
+                Ok(Strkey::PreAuthTx(_) | Strkey::HashX(_) | Strkey::SignedPayloadEd25519(_)) => {
+                    issues.push(Code::Signer01, path, "only ed25519 keys are supported");
+                }
+                _ => issues.input(path, "not a valid G... address"),
+            }
+            None
+        }
+    }
+}
+
+/// An ed25519 account key from a JSON string, or an issue.
+pub(crate) fn as_key(value: &Json, path: &str, issues: &mut Issues) -> Option<SignerKey> {
+    let text = as_str(value, path, issues)?;
+    key_from_text(text, path, issues)
 }
