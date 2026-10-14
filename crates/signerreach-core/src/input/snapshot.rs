@@ -5,7 +5,10 @@
 
 use stellar_strkey::Strkey;
 
-use super::{InputIssue, Issues, Json, Obj, as_bool, as_str, as_u32, item, read_document};
+use super::{
+    InputIssue, Issues, Json, Obj, as_bool, as_str, as_threshold, as_u32, as_weight, check_schema,
+    item, read_document, required,
+};
 use crate::account::{AccountState, SignerKey, Threshold, Thresholds, Weight};
 use crate::diagnostic::Code;
 
@@ -125,7 +128,7 @@ fn read_snapshot(text: &str, issues: &mut Issues) -> Option<Snapshot> {
     let json = read_document(text, issues)?;
     let mut root = Obj::open(&json, "", issues)?;
 
-    check_schema(&mut root, issues);
+    check_schema(&mut root, SNAPSHOT_SCHEMA, issues);
     let network = read_network(&mut root, issues);
     let account = read_account(&mut root, issues);
     let provenance = read_provenance(&mut root, issues);
@@ -152,15 +155,6 @@ fn read_snapshot(text: &str, issues: &mut Issues) -> Option<Snapshot> {
     })
 }
 
-/// A required field; a missing one is an input issue.
-fn required<'a>(obj: &mut Obj<'a>, key: &str, issues: &mut Issues) -> Option<&'a Json> {
-    let found = obj.field(key, issues);
-    if found.is_none() {
-        issues.input(&obj.path_of(key), "missing required field");
-    }
-    found
-}
-
 /// A required provenance field; a missing one means the freshness of the data
 /// cannot be established.
 fn required_provenance<'a>(obj: &mut Obj<'a>, key: &str, issues: &mut Issues) -> Option<&'a Json> {
@@ -173,16 +167,6 @@ fn required_provenance<'a>(obj: &mut Obj<'a>, key: &str, issues: &mut Issues) ->
         );
     }
     found
-}
-
-fn check_schema(root: &mut Obj<'_>, issues: &mut Issues) {
-    let path = root.path_of("schema");
-    let Some(value) = required(root, "schema", issues) else {
-        return;
-    };
-    if as_str(value, &path, issues).is_some_and(|text| text != SNAPSHOT_SCHEMA) {
-        issues.input(&path, format!("the schema must be `{SNAPSHOT_SCHEMA}`"));
-    }
 }
 
 fn read_network(root: &mut Obj<'_>, issues: &mut Issues) -> Option<Network> {
@@ -298,14 +282,7 @@ fn read_provenance(root: &mut Obj<'_>, issues: &mut Issues) -> Option<Provenance
 fn read_master_weight(root: &mut Obj<'_>, issues: &mut Issues) -> Option<Weight> {
     let path = root.path_of("master_weight");
     let value = required(root, "master_weight", issues)?;
-    let number = as_u32(value, &path, issues)?;
-    match Weight::new(number) {
-        Ok(weight) => Some(weight),
-        Err(error) => {
-            issues.input(&path, error.to_string());
-            None
-        }
-    }
+    as_weight(value, &path, issues)
 }
 
 fn read_thresholds(root: &mut Obj<'_>, issues: &mut Issues) -> Option<Thresholds> {
@@ -322,14 +299,7 @@ fn read_thresholds(root: &mut Obj<'_>, issues: &mut Issues) -> Option<Thresholds
 fn read_threshold(obj: &mut Obj<'_>, key: &str, issues: &mut Issues) -> Option<Threshold> {
     let path = obj.path_of(key);
     let value = required(obj, key, issues)?;
-    let number = as_u32(value, &path, issues)?;
-    match Threshold::new(number) {
-        Ok(threshold) => Some(threshold),
-        Err(error) => {
-            issues.input(&path, error.to_string());
-            None
-        }
-    }
+    as_threshold(value, &path, issues)
 }
 
 fn read_signers(root: &mut Obj<'_>, issues: &mut Issues) -> Option<Vec<(SignerKey, Weight)>> {
@@ -361,16 +331,7 @@ fn read_signers(root: &mut Obj<'_>, issues: &mut Issues) -> Option<Vec<(SignerKe
 
         let weight_path = obj.path_of("weight");
         let weight = match required(&mut obj, "weight", issues) {
-            Some(value) => match as_u32(value, &weight_path, issues) {
-                Some(number) => match Weight::new(number) {
-                    Ok(weight) => Some(weight),
-                    Err(error) => {
-                        issues.input(&weight_path, error.to_string());
-                        None
-                    }
-                },
-                None => None,
-            },
+            Some(value) => as_weight(value, &weight_path, issues),
             None => None,
         };
         obj.finish(issues);

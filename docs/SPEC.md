@@ -114,6 +114,12 @@ All input is untrusted. Files are size-limited (default 1 MiB) and must be UTF-8
 - A `set_options` operation may carry any of: `master_weight`, `low`, `medium`, `high`, `signer`, `home_domain`, `set_flags`, `clear_flags`. Only `master_weight`, the three thresholds and `signer` change the model; the others are accepted as non-administrative and do not change state.
 - `transactions` may be empty. An empty plan is a state-only check of the snapshot.
 - Any other operation type, including `account_merge`, is rejected with `SR-OP-01`.
+- `id` is 1 to 64 characters from letters, digits, `.`, `_` and `-`, and unique within the plan.
+- `signed_by` holds at most 20 distinct `G...` keys (a Stellar limit). A key of another kind is `SR-SIGNER-01`.
+- A transaction holds 1 to 100 operations (a Stellar limit) and a plan at most 1000 transactions (a limit of this tool).
+- A transaction or an operation may carry `source`, a `G...` address. It is read and kept; a source other than the analysed account is reported as `SR-TX-04` when the plan is evaluated against a snapshot.
+- A transaction that carries `fee_bump` or `preconditions` is `SR-TX-04`; their content is not read.
+- `home_domain` is at most 32 printable ASCII characters. `set_flags` and `clear_flags` use only the four account flag bits (0 to 15) and may not share a bit.
 
 ### 5.3 Availability
 

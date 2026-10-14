@@ -8,12 +8,14 @@
 //! and public account addresses. A document may contain something that must
 //! not be echoed (for example a secret seed pasted into the wrong field).
 
+pub mod plan;
 pub mod snapshot;
 
 use std::fmt;
 
 use serde::de::{Deserialize, Deserializer, MapAccess, SeqAccess, Visitor};
 
+use crate::account::{Threshold, Weight};
 use crate::diagnostic::Code;
 
 /// The largest document read, in bytes.
@@ -279,5 +281,49 @@ pub(crate) fn as_bool(value: &Json, path: &str, issues: &mut Issues) -> Option<b
             issues.input(path, "expected true or false");
             None
         }
+    }
+}
+
+/// A required field; a missing one is an input issue.
+pub(crate) fn required<'a>(obj: &mut Obj<'a>, key: &str, issues: &mut Issues) -> Option<&'a Json> {
+    let found = obj.field(key, issues);
+    if found.is_none() {
+        issues.input(&obj.path_of(key), "missing required field");
+    }
+    found
+}
+
+/// A weight from 0 to 255, or an issue.
+pub(crate) fn as_weight(value: &Json, path: &str, issues: &mut Issues) -> Option<Weight> {
+    let number = as_u32(value, path, issues)?;
+    match Weight::new(number) {
+        Ok(weight) => Some(weight),
+        Err(error) => {
+            issues.input(path, error.to_string());
+            None
+        }
+    }
+}
+
+/// A threshold from 0 to 255, or an issue.
+pub(crate) fn as_threshold(value: &Json, path: &str, issues: &mut Issues) -> Option<Threshold> {
+    let number = as_u32(value, path, issues)?;
+    match Threshold::new(number) {
+        Ok(threshold) => Some(threshold),
+        Err(error) => {
+            issues.input(path, error.to_string());
+            None
+        }
+    }
+}
+
+/// The `schema` field: required, and equal to `expected`.
+pub(crate) fn check_schema(root: &mut Obj<'_>, expected: &str, issues: &mut Issues) {
+    let path = root.path_of("schema");
+    let Some(value) = required(root, "schema", issues) else {
+        return;
+    };
+    if as_str(value, &path, issues).is_some_and(|text| text != expected) {
+        issues.input(&path, format!("the schema must be `{expected}`"));
     }
 }
