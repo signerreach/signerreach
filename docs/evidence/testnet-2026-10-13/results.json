@@ -1,0 +1,346 @@
+{
+  "meta": {
+    "started": "2026-10-13T21:49:21.116Z",
+    "horizon": "https://horizon-testnet.stellar.org",
+    "sdk": "17.2.1",
+    "protocol": 29,
+    "core": "stellar-core 29.0.0 (4eb83337380a29ad0907f4e32196ce97b8dc7649)",
+    "ledgerAtStart": 5180915,
+    "finished": "2026-10-13T21:51:17.617Z"
+  },
+  "results": [
+    {
+      "case": "1a",
+      "desc": "plan: SetOptions(high=2) signed by A (A:1,B:1; thr 1/1/1)",
+      "expected": "SUCCESS (A meets HIGH 1 in pre-state)",
+      "observed": {
+        "label": "plan",
+        "ok": true,
+        "hash": "261eedc57d15c5b00c31eb2f94eb6ef1bb86afb1fa78fb668f5787ed28156f00",
+        "ledger": 5180919,
+        "sigs": 1,
+        "nops": 1
+      },
+      "account": "GCC6475OBH5H7VC3HSDURG3HULJ6RIFLTKANKLI6Z4BIM3TNBCD3W5UE",
+      "before": {
+        "thresholds": {
+          "low_threshold": 1,
+          "med_threshold": 1,
+          "high_threshold": 1
+        },
+        "signers": [
+          "GB6DJ..QLU4:1",
+          "GCC64..W5UE:1"
+        ]
+      }
+    },
+    {
+      "case": "1b",
+      "desc": "after plan: SetOptions(high=0) signed by A alone (B declared lost)",
+      "expected": "FAILED op_bad_auth (A weight 1 < HIGH 2)",
+      "observed": {
+        "label": "post-A-alone",
+        "ok": false,
+        "hash": "12,22,197,11,102,85,156,57,54,255,55,51,127,195,132,197,149,247,133,130,144,22,109,181,2,70,185,96,229,25,96,142",
+        "codes": {
+          "transaction": "tx_failed",
+          "operations": [
+            "op_bad_auth"
+          ]
+        },
+        "sigs": 1,
+        "nops": 1
+      },
+      "after": {
+        "thresholds": {
+          "low_threshold": 1,
+          "med_threshold": 1,
+          "high_threshold": 2
+        },
+        "signers": [
+          "GB6DJ..QLU4:1",
+          "GCC64..W5UE:1"
+        ]
+      }
+    },
+    {
+      "case": "1c",
+      "desc": "control: same op signed by A+B",
+      "expected": "SUCCESS (weight 2 meets HIGH 2)",
+      "observed": {
+        "label": "control-A+B",
+        "ok": true,
+        "hash": "2d77d1e05dc4a10e7d3b67ce87a4e5f5f43c852c3bb0ce42754141b1564bd778",
+        "ledger": 5180920,
+        "sigs": 2,
+        "nops": 1
+      }
+    },
+    {
+      "case": "2a",
+      "desc": "one tx [add D:1, remove C] signed A+B (thr 1/2/2)",
+      "expected": "SUCCESS (both ops authorized vs pre-state A+B=2)",
+      "observed": {
+        "label": "plan",
+        "ok": true,
+        "hash": "a973a174480138e8a11d8448d9702127592e0e4d1e8030e7dea8aa966f0b31f6",
+        "ledger": 5180923,
+        "sigs": 2,
+        "nops": 2
+      },
+      "account": "GDIIIH6U2TEPSP4ZQUVN25AERQQXBVJIQB52XD4TKR5IZBT4EIBXXGZO",
+      "before": {
+        "thresholds": {
+          "low_threshold": 1,
+          "med_threshold": 2,
+          "high_threshold": 2
+        },
+        "signers": [
+          "GASBI..FLLX:1",
+          "GDIII..XGZO:1",
+          "GDTHW..XJ7T:1"
+        ]
+      }
+    },
+    {
+      "case": "2b",
+      "desc": "after plan: SetOptions(high=2) signed by A+D",
+      "expected": "SUCCESS (A1+D1=2 meets HIGH 2)",
+      "observed": {
+        "label": "post-A+D",
+        "ok": true,
+        "hash": "1509265ba2fbce758fe0fe042aeec2dd478efae3d3a1f8b1654c4955c452d853",
+        "ledger": 5180924,
+        "sigs": 2,
+        "nops": 1
+      },
+      "after": {
+        "thresholds": {
+          "low_threshold": 1,
+          "med_threshold": 2,
+          "high_threshold": 2
+        },
+        "signers": [
+          "GASBI..FLLX:1",
+          "GC3UO..KS7R:1",
+          "GDIII..XGZO:1"
+        ]
+      }
+    },
+    {
+      "case": "2c",
+      "desc": "after plan: same op signed by A+C (C was removed)",
+      "expected": "FAILED (C no longer a signer; A alone 1 < 2; C signature unused)",
+      "observed": {
+        "label": "post-A+C",
+        "ok": false,
+        "hash": "146,57,12,218,54,113,138,23,174,44,136,66,86,173,43,243,16,122,199,116,122,77,239,165,9,253,23,157,126,93,71,138",
+        "codes": {
+          "transaction": "tx_failed",
+          "operations": [
+            "op_bad_auth"
+          ]
+        },
+        "sigs": 2,
+        "nops": 1
+      }
+    },
+    {
+      "case": "3a",
+      "desc": "SetOptions(master weight 0) signed A+B (A:1,B:1; thr 1/1/2)",
+      "expected": "SUCCESS (A+B=2 meets HIGH 2 in pre-state)",
+      "observed": {
+        "label": "plan",
+        "ok": true,
+        "hash": "287fb5bf07cc54572c4478a03e8811b80cd825aad6d8c7fb739ff5d3cae8f22b",
+        "ledger": 5180927,
+        "sigs": 2,
+        "nops": 1
+      },
+      "account": "GCCZMO5ATYNBER3SYZYQPJRGLH6E464GM4OE2AP5Y5KVGDJSMYVUVXRA",
+      "before": {
+        "thresholds": {
+          "low_threshold": 1,
+          "med_threshold": 1,
+          "high_threshold": 2
+        },
+        "signers": [
+          "GBVSV..7ZUM:1",
+          "GCCZM..VXRA:1"
+        ]
+      }
+    },
+    {
+      "case": "3b",
+      "desc": "after plan: SetOptions(high=0) signed by B (B available)",
+      "expected": "FAILED op_bad_auth (only B:1 left, HIGH 2: deadlock even with B available)",
+      "observed": {
+        "label": "post-B-alone",
+        "ok": false,
+        "hash": "166,68,128,26,236,97,234,12,222,175,149,248,23,95,35,143,87,188,169,2,138,92,83,213,240,171,67,10,6,221,139,190",
+        "codes": {
+          "transaction": "tx_failed",
+          "operations": [
+            "op_bad_auth"
+          ]
+        },
+        "sigs": 1,
+        "nops": 1
+      },
+      "after": {
+        "thresholds": {
+          "low_threshold": 1,
+          "med_threshold": 1,
+          "high_threshold": 2
+        },
+        "signers": [
+          "GBVSV..7ZUM:1",
+          "GCCZM..VXRA:0"
+        ]
+      }
+    },
+    {
+      "case": "5a",
+      "desc": "ONE tx [remove B, master weight 2] signed A+B (thr 1/2/2)",
+      "expected": "SUCCESS (both ops authorized vs pre-state A+B=2)",
+      "observed": {
+        "label": "plan",
+        "ok": true,
+        "hash": "459148158da7fff211bb0ac1fb507d8945c8e824d2ddde58b86bafb5176048d8",
+        "ledger": 5180930,
+        "sigs": 2,
+        "nops": 2
+      },
+      "account": "GAZOPGU2YTOSC3WVC6CPSNZBNY2US75SWAKUPFWPAZVT2BTVX2GCBLEU"
+    },
+    {
+      "case": "5a-state",
+      "desc": "state after 5a",
+      "expected": "signers {A:2}",
+      "observed": {
+        "ok": true,
+        "ledger": 5180930
+      },
+      "after": {
+        "thresholds": {
+          "low_threshold": 1,
+          "med_threshold": 2,
+          "high_threshold": 2
+        },
+        "signers": [
+          "GAZOP..BLEU:2"
+        ]
+      }
+    },
+    {
+      "case": "5b-1",
+      "desc": "TWO txs: tx1 [remove B] signed A+B",
+      "expected": "SUCCESS",
+      "observed": {
+        "label": "tx1",
+        "ok": true,
+        "hash": "7968546df5e17d3e90119c8d5bf56c7f959b102ca183c17c0bfb1dcd8dab4487",
+        "ledger": 5180933,
+        "sigs": 2,
+        "nops": 1
+      },
+      "account": "GD7OXEUGV45NQFL2POCGNL3OBT5WKXQNGM7U6W5VXRJLZDIU5RY4OGH5"
+    },
+    {
+      "case": "5b-2",
+      "desc": "TWO txs: tx2 [master weight 2] signed A alone (B gone; A:1 < HIGH 2)",
+      "expected": "FAILED op_bad_auth (differs from 5a)",
+      "observed": {
+        "label": "tx2",
+        "ok": false,
+        "hash": "140,75,86,9,127,221,246,66,2,87,248,97,111,147,202,205,218,25,80,191,116,215,81,255,151,112,173,37,126,39,70,235",
+        "codes": {
+          "transaction": "tx_failed",
+          "operations": [
+            "op_bad_auth"
+          ]
+        },
+        "sigs": 1,
+        "nops": 1
+      },
+      "after": {
+        "thresholds": {
+          "low_threshold": 1,
+          "med_threshold": 2,
+          "high_threshold": 2
+        },
+        "signers": [
+          "GD7OX..OGH5:1"
+        ]
+      }
+    },
+    {
+      "case": "5c",
+      "desc": "ONE tx [add B:1 + thresholds 2/2/2, setHomeDomain] signed A+B on a default account",
+      "expected": "FAILED tx_bad_auth_extra (B's signature unused: pre-state thresholds 0)",
+      "observed": {
+        "label": "plan",
+        "ok": false,
+        "hash": "62,146,55,174,93,46,79,211,18,177,239,240,109,181,7,183,240,216,140,211,93,159,88,201,214,83,149,26,84,78,244,17",
+        "codes": {
+          "transaction": "tx_bad_auth_extra"
+        },
+        "sigs": 2,
+        "nops": 2
+      },
+      "account": "GCW2KZGBJW2JTN3GLJMWVXFE7BDV4R7HYVDABQQGVAWRJXT5G5JZKVQZ"
+    },
+    {
+      "case": "7a",
+      "desc": "SetOptions(low=5) on A with only A:1",
+      "expected": "SUCCESS (pre-state thresholds 0)",
+      "observed": {
+        "label": "lock",
+        "ok": true,
+        "hash": "edb786dc08f665994cd88cf8dc467fac6294ccf431bf4eef58be572e80645d84",
+        "ledger": 5180937,
+        "sigs": 1,
+        "nops": 1
+      },
+      "account": "GCPY7LDLP2LCBU3UI3UJME2TUPRAU6YODKIIJW5RKOHHZQ7FJOCI3LDS"
+    },
+    {
+      "case": "7b",
+      "desc": "try to reset low=0 with A as tx source",
+      "expected": "FAILED tx_bad_auth (envelope needs LOW 5; A:1)",
+      "observed": {
+        "label": "stuck",
+        "ok": false,
+        "hash": "18,172,81,37,94,113,155,191,29,135,181,98,227,60,64,207,148,152,28,175,252,252,163,127,135,56,188,21,205,120,149,88",
+        "codes": {
+          "transaction": "tx_bad_auth"
+        },
+        "sigs": 1,
+        "nops": 1
+      }
+    },
+    {
+      "case": "7c",
+      "desc": "recover: tx source X (funded), op source A, signed X+A",
+      "expected": "SUCCESS (op needs HIGH 0 on A; envelope LOW 0 on X)",
+      "observed": {
+        "label": "recover",
+        "ok": true,
+        "hash": "1f3ef604f80ffc5e48f04c813d392584f239d952e862f6e840548bda1caa7f18",
+        "ledger": 5180938,
+        "sigs": 2,
+        "nops": 1
+      },
+      "after": {
+        "thresholds": {
+          "low_threshold": 0,
+          "med_threshold": 0,
+          "high_threshold": 0
+        },
+        "signers": [
+          "GCPY7..3LDS:1"
+        ]
+      }
+    }
+  ]
+}
