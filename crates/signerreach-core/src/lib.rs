@@ -5,11 +5,12 @@
 //! `docs/SPEC.md`.
 //!
 //! Implemented so far: the account model ([`account`]), the diagnostic codes
-//! ([`diagnostic`]), the three input documents ([`input`]) and the threshold
-//! rules ([`rules`]). Transaction authorization and the verdicts are not
-//! implemented yet.
+//! ([`diagnostic`]), the three input documents ([`input`]), the threshold
+//! rules ([`rules`]) and the authorization check ([`authorize`]). Applying a
+//! transaction and the verdicts are not implemented yet.
 
 pub mod account;
+pub mod authorize;
 pub mod diagnostic;
 pub mod error;
 pub mod input;
