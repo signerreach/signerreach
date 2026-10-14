@@ -1,0 +1,18 @@
+[package]
+name = "signerreach-cli"
+description = "Command-line interface for SignerReach."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "signerreach"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+
+[lints]
+workspace = true
