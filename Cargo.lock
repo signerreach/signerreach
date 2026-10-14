@@ -242,6 +242,8 @@ dependencies = [
 name = "signerreach-core"
 version = "0.0.0"
 dependencies = [
+ "serde",
+ "serde_json",
  "stellar-strkey",
  "thiserror",
 ]
