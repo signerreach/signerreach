@@ -7,5 +7,9 @@ license.workspace = true
 repository.workspace = true
 publish.workspace = true
 
+[dependencies]
+stellar-strkey = "1"
+thiserror = "2"
+
 [lints]
 workspace = true
