@@ -18,6 +18,8 @@ pub enum Code {
     Tx03,
     /// `SR-TX-04`: fee-bump, preconditions, or another source account.
     Tx04,
+    /// `SR-APPLY-01`: an authorized transaction would fail when applied.
+    Apply01,
     /// `SR-LOCK-01`: total weight of all signers is below the HIGH threshold.
     Lock01,
     /// `SR-LOSS-01`: HIGH is unreachable with the signers declared available.
@@ -46,12 +48,13 @@ pub enum Code {
 
 impl Code {
     /// Every code, in the order of the specification.
-    pub const ALL: [Code; 17] = [
+    pub const ALL: [Code; 18] = [
         Code::Auth01,
         Code::Tx01,
         Code::Tx02,
         Code::Tx03,
         Code::Tx04,
+        Code::Apply01,
         Code::Lock01,
         Code::Loss01,
         Code::Lock02,
@@ -74,6 +77,7 @@ impl Code {
             Code::Tx02 => "SR-TX-02",
             Code::Tx03 => "SR-TX-03",
             Code::Tx04 => "SR-TX-04",
+            Code::Apply01 => "SR-APPLY-01",
             Code::Lock01 => "SR-LOCK-01",
             Code::Loss01 => "SR-LOSS-01",
             Code::Lock02 => "SR-LOCK-02",

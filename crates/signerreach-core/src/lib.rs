@@ -6,10 +6,11 @@
 //!
 //! Implemented so far: the account model ([`account`]), the diagnostic codes
 //! ([`diagnostic`]), the three input documents ([`input`]), the threshold
-//! rules ([`rules`]) and the authorization check ([`authorize`]). Applying a
-//! transaction and the verdicts are not implemented yet.
+//! rules ([`rules`]), the authorization check ([`authorize`]) and applying a
+//! transaction ([`apply`]). The verdicts are not implemented yet.
 
 pub mod account;
+pub mod apply;
 pub mod authorize;
 pub mod diagnostic;
 pub mod error;

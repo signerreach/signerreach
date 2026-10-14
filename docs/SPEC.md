@@ -165,6 +165,8 @@ For transaction *T* against pre-state *S*:
 
 If the transaction is valid, apply its operations **in order** to produce the next state. Applying an operation that removes a signer that does not exist is a no-op. Setting a signer weight to 0 removes it.
 
+An operation that cannot be applied makes the whole transaction fail when applied: it names the account's own key as a signer (even to remove it), or it would take the account above 20 additional signers. This is `SR-APPLY-01`: the state is unchanged and the verdict is UNSAFE. Operations are applied one after another, so at the limit a removal before an addition fits where the reverse order does not.
+
 ### 6.3 Step 3: reachability of the final state
 
 Let *S_n* be the state after the last accepted transaction. For each threshold class (LOW, MEDIUM, HIGH) with threshold *t* and each scenario:
@@ -182,7 +184,7 @@ The verdict is driven by **HIGH**, the administrative threshold. If 6.1 raised a
 
 | Condition (evaluated in this order) | Verdict | Code |
 |---|---|---|
-| Any transaction rejected in 6.2 | UNSAFE | `SR-AUTH-01`, `SR-TX-01` |
+| Any transaction rejected in 6.2 | UNSAFE | `SR-AUTH-01`, `SR-TX-01`, `SR-APPLY-01` |
 | HIGH structurally unreachable | UNSAFE | `SR-LOCK-01` |
 | HIGH not reachable and not dependent on unknowns (`W_all >= t` but `W_avail + W_unk < t`) | UNSAFE | `SR-LOSS-01` |
 | HIGH dependent on unknowns | INCONCLUSIVE | `SR-AVAIL-01` |
@@ -210,6 +212,7 @@ The proposal book's code names were explicitly "proposals, not an established AP
 | `SR-TX-02` | A signature is not necessary; whether it is rejected as extra depends on signature order. | INCONCLUSIVE |
 | `SR-TX-03` | LOW threshold unreachable; administration requires another funded transaction source. | INCONCLUSIVE |
 | `SR-TX-04` | Fee-bump, preconditions, or a source account other than the analysed account. | INCONCLUSIVE |
+| `SR-APPLY-01` | The transaction is authorized but would fail when applied: it names the account's own key as a signer, or it would give the account more than 20 additional signers. | UNSAFE |
 | `SR-LOCK-01` | Total weight of all signers is below the HIGH threshold. | UNSAFE |
 | `SR-LOSS-01` | HIGH is unreachable with the signers declared available in a scenario. | UNSAFE |
 | `SR-LOCK-02` | MEDIUM unreachable (payments blocked); informational. | none |
