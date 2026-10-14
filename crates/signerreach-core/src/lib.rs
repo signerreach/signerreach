@@ -7,13 +7,15 @@
 //! Implemented so far: the account model ([`account`]), the diagnostic codes
 //! ([`diagnostic`]), the three input documents ([`input`]), the threshold
 //! rules ([`rules`]), the authorization check ([`authorize`]) and applying a
-//! transaction ([`apply`]). The verdicts are not implemented yet.
+//! transaction ([`apply`]) and the evaluation that produces the verdict
+//! ([`evaluate`]). The report and the command line are not implemented yet.
 
 pub mod account;
 pub mod apply;
 pub mod authorize;
 pub mod diagnostic;
 pub mod error;
+pub mod evaluate;
 pub mod input;
 pub mod rules;
 
@@ -23,6 +25,7 @@ pub use account::{
 };
 pub use diagnostic::Code;
 pub use error::DomainError;
+pub use evaluate::{Evaluation, Verdict, evaluate};
 pub use input::availability::{Availability, Intent, Scenario, Status, parse_availability};
 pub use input::plan::{Plan, PlannedTransaction, SetOptions, SignerChange, parse_plan};
 pub use input::snapshot::{Network, Provenance, Snapshot, SnapshotSource, parse_snapshot};

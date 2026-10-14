@@ -2,6 +2,20 @@
 
 use std::fmt;
 
+/// What a finding does to the verdict (`docs/SPEC.md`, section 7).
+///
+/// Ordered by severity, so the worst effect of a set of findings is the
+/// largest.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Effect {
+    /// Reported for information; the verdict is unchanged.
+    Info,
+    /// The result cannot be established.
+    Inconclusive,
+    /// The plan fails or access is lost.
+    Unsafe,
+}
+
 /// A stable identifier for one kind of finding.
 ///
 /// The strings are part of the tool's public output and do not change once
@@ -69,6 +83,27 @@ impl Code {
         Code::Intent01,
     ];
 
+    /// What the code does to the verdict.
+    pub const fn effect(self) -> Effect {
+        match self {
+            Code::Auth01 | Code::Tx01 | Code::Apply01 | Code::Lock01 | Code::Loss01 => {
+                Effect::Unsafe
+            }
+            Code::Tx02
+            | Code::Tx03
+            | Code::Tx04
+            | Code::Avail01
+            | Code::Signer01
+            | Code::Op01
+            | Code::Input01
+            | Code::Input02
+            | Code::Fresh01
+            | Code::Rules01
+            | Code::State01 => Effect::Inconclusive,
+            Code::Lock02 | Code::Intent01 => Effect::Info,
+        }
+    }
+
     /// The public identifier, for example `SR-AUTH-01`.
     pub const fn as_str(self) -> &'static str {
         match self {
@@ -115,6 +150,30 @@ mod tests {
             assert_eq!(last.len(), 2, "{name}");
             assert!(last.chars().all(|c| c.is_ascii_digit()), "{name}");
         }
+    }
+
+    #[test]
+    fn effects_match_the_specification_table() {
+        let unsafe_codes = [
+            Code::Auth01,
+            Code::Tx01,
+            Code::Apply01,
+            Code::Lock01,
+            Code::Loss01,
+        ];
+        let info_codes = [Code::Lock02, Code::Intent01];
+        for code in Code::ALL {
+            let expected = if unsafe_codes.contains(&code) {
+                Effect::Unsafe
+            } else if info_codes.contains(&code) {
+                Effect::Info
+            } else {
+                Effect::Inconclusive
+            };
+            assert_eq!(code.effect(), expected, "{code}");
+        }
+        assert!(Effect::Unsafe > Effect::Inconclusive);
+        assert!(Effect::Inconclusive > Effect::Info);
     }
 
     #[test]
