@@ -11,7 +11,7 @@
 
 use crate::account::{AccountState, SignerKey, ThresholdClass};
 use crate::apply::{ApplyFailure, apply};
-use crate::authorize::{Authorization, Doubt, Failure, authorize};
+use crate::authorize::{Authorization, Doubt, Failure, Trace, authorize, trace};
 use crate::diagnostic::{Code, Effect};
 use crate::input::availability::{Availability, Intent, Status};
 use crate::input::plan::Plan;
@@ -70,6 +70,11 @@ pub enum StepResult {
 pub struct Step {
     /// The transaction's id.
     pub id: String,
+    /// The state the transaction was checked against; `None` if it was not
+    /// evaluated.
+    pub before: Option<AccountState>,
+    /// Who signed and how each check came out; `None` if it was not evaluated.
+    pub trace: Option<Trace>,
     /// What happened.
     pub result: StepResult,
 }
@@ -120,6 +125,9 @@ pub struct Finding {
 pub struct ScenarioResult {
     /// The scenario name; `None` for the baseline declaration.
     pub name: Option<String>,
+    /// Every signer that can sign, with its status in this scenario: the
+    /// master key first (if its weight is above 0), then the others by key.
+    pub signers: Vec<SignerStatus>,
     /// LOW, MEDIUM and HIGH, in that order.
     pub reach: Vec<ClassReach>,
     /// Findings specific to this scenario.
@@ -156,10 +164,14 @@ pub fn evaluate(snapshot: &Snapshot, plan: &Plan, availability: &Availability) -
         if stopped {
             steps.push(Step {
                 id,
+                before: None,
+                trace: None,
                 result: StepResult::NotEvaluated,
             });
             continue;
         }
+        let before = state.clone();
+        let step_trace = trace(&state, transaction);
         let result = match authorize(&state, transaction) {
             Authorization::Accepted => match apply(&state, transaction) {
                 Ok(next) => {
@@ -189,7 +201,12 @@ pub fn evaluate(snapshot: &Snapshot, plan: &Plan, availability: &Availability) -
                 StepResult::Undecided(doubts)
             }
         };
-        steps.push(Step { id, result });
+        steps.push(Step {
+            id,
+            before: Some(before),
+            trace: Some(step_trace),
+            result,
+        });
     }
 
     if availability.intent() == Intent::Irreversible {
@@ -252,25 +269,29 @@ fn worst(findings: &[Finding]) -> Verdict {
         .unwrap_or(Verdict::SafeWithinScope)
 }
 
-/// One signer that can contribute to a threshold.
-struct Holder {
-    key: SignerKey,
-    weight: u32,
-    status: Status,
+/// One signer that can contribute to a threshold, with its declared status.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SignerStatus {
+    /// The key.
+    pub key: SignerKey,
+    /// The weight.
+    pub weight: u32,
+    /// The declared availability.
+    pub status: Status,
 }
 
-fn holders(state: &AccountState, status: impl Fn(SignerKey) -> Status) -> Vec<Holder> {
+fn holders(state: &AccountState, status: impl Fn(SignerKey) -> Status) -> Vec<SignerStatus> {
     let mut holders = Vec::new();
     if !state.master_weight().is_zero() {
         let key = state.account();
-        holders.push(Holder {
+        holders.push(SignerStatus {
             key,
             weight: u32::from(state.master_weight().get()),
             status: status(key),
         });
     }
     for (key, weight) in state.signers() {
-        holders.push(Holder {
+        holders.push(SignerStatus {
             key,
             weight: u32::from(weight.get()),
             status: status(key),
@@ -279,14 +300,18 @@ fn holders(state: &AccountState, status: impl Fn(SignerKey) -> Status) -> Vec<Ho
     holders
 }
 
-fn weight_where(holders: &[Holder], wanted: Status) -> (u32, usize) {
+fn weight_where(holders: &[SignerStatus], wanted: Status) -> (u32, usize) {
     holders
         .iter()
         .filter(|h| h.status == wanted)
         .fold((0, 0), |(sum, count), h| (sum + h.weight, count + 1))
 }
 
-fn class_reach(state: &AccountState, holders: &[Holder], class: ThresholdClass) -> ClassReach {
+fn class_reach(
+    state: &AccountState,
+    holders: &[SignerStatus],
+    class: ThresholdClass,
+) -> ClassReach {
     let threshold = state.threshold(class).get();
     let need = u32::from(threshold);
     let total: u32 = holders.iter().map(|h| h.weight).sum();
@@ -417,6 +442,7 @@ fn scenario_result(
     let verdict = Verdict::max(plan_level, worst(&findings));
     ScenarioResult {
         name,
+        signers: holders,
         reach,
         findings,
         verdict,
@@ -479,76 +505,10 @@ fn apply_message(id: &str, failure: &ApplyFailure) -> String {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{Value, json};
+    use serde_json::json;
 
     use super::*;
-    use crate::input::availability::parse_availability;
-    use crate::input::plan::parse_plan;
-    use crate::input::snapshot::parse_snapshot;
-
-    fn k(n: u8) -> String {
-        SignerKey::from_bytes([n; 32]).to_string()
-    }
-
-    fn snapshot(master: u32, signers: &[(u8, u32)], thresholds: (u32, u32, u32)) -> Snapshot {
-        let signers: Vec<Value> = signers
-            .iter()
-            .map(|&(n, w)| json!({ "key": k(n), "type": "ed25519", "weight": w }))
-            .collect();
-        let doc = json!({
-            "schema": "signerreach.snapshot/1",
-            "network": "testnet",
-            "account": k(1),
-            "provenance": {
-                "as_of_ledger": 100,
-                "captured_at": "2026-10-14T09:00:00Z",
-                "source": "file",
-                "protocol_version": 29
-            },
-            "master_weight": master,
-            "thresholds": { "low": thresholds.0, "medium": thresholds.1, "high": thresholds.2 },
-            "signers": signers
-        });
-        parse_snapshot(&doc.to_string()).expect("valid snapshot")
-    }
-
-    fn plan(transactions: Vec<Value>) -> Plan {
-        let doc = json!({ "schema": "signerreach.plan/1", "transactions": transactions });
-        parse_plan(&doc.to_string()).expect("valid plan")
-    }
-
-    fn tx(id: &str, signed_by: &[u8], operations: Vec<Value>) -> Value {
-        let keys: Vec<String> = signed_by.iter().map(|&n| k(n)).collect();
-        json!({ "id": id, "signed_by": keys, "operations": operations })
-    }
-
-    fn signer_op(n: u8, weight: u32) -> Value {
-        json!({ "op": "set_options", "signer": { "key": k(n), "weight": weight } })
-    }
-
-    fn availability(statuses: &[(u8, &str)]) -> Availability {
-        availability_with(statuses, json!([]), 0, "recoverable")
-    }
-
-    fn availability_with(
-        statuses: &[(u8, &str)],
-        scenarios: Value,
-        survive: u32,
-        intent: &str,
-    ) -> Availability {
-        let mut signers = serde_json::Map::new();
-        for &(n, status) in statuses {
-            signers.insert(k(n), json!(status));
-        }
-        let doc = json!({
-            "schema": "signerreach.availability/1",
-            "signers": signers,
-            "scenarios": scenarios,
-            "require_survive_loss_of": survive,
-            "intent": intent
-        });
-        parse_availability(&doc.to_string()).expect("valid availability")
-    }
+    use crate::testing::{availability, availability_with, k, plan, signer_op, snapshot, tx};
 
     fn codes(findings: &[Finding]) -> Vec<Code> {
         findings.iter().map(|f| f.code).collect()

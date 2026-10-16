@@ -112,26 +112,48 @@ const fn passes(matched: usize, weight: u32, need: u32) -> bool {
     matched >= 1 && weight >= need
 }
 
-/// Checks a transaction against the state before it.
-pub fn authorize(state: &AccountState, transaction: &PlannedTransaction) -> Authorization {
-    let doubts = foreign_sources(state, transaction);
-    if !doubts.is_empty() {
-        return Authorization::Undecided(doubts);
-    }
+/// One check a transaction must pass: the envelope or one operation.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CheckResult {
+    /// The operation, or `None` for the envelope.
+    pub operation: Option<usize>,
+    /// The threshold class the check needs.
+    pub class: ThresholdClass,
+    /// The threshold that was needed.
+    pub need: u32,
+    /// The combined weight of the signers that signed.
+    pub have: u32,
+    /// Whether the signatures meet the threshold.
+    pub passed: bool,
+}
 
-    let mut failures = Vec::new();
+/// The working behind an [`Authorization`]: who signed, with what weight, and
+/// how each check came out. Source accounts are not examined here.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Trace {
+    /// Keys that signed and are signers of the state, with their weights.
+    pub matched: Vec<(SignerKey, Weight)>,
+    /// Keys that signed but are not signers of the state.
+    pub unmatched: Vec<SignerKey>,
+    /// The envelope check, then one check per operation, in order.
+    pub checks: Vec<CheckResult>,
+}
 
+/// Works out who signed and how each check comes out, against the state before
+/// the transaction (R6).
+pub fn trace(state: &AccountState, transaction: &PlannedTransaction) -> Trace {
     // A key signs only if it is the account's own key with a weight above 0 or
     // an additional signer. A zero master weight is not a signer (R2).
     let mut seen = BTreeSet::new();
     let mut matched: Vec<(SignerKey, Weight)> = Vec::new();
+    let mut unmatched = Vec::new();
     for &key in transaction.signed_by() {
         if !seen.insert(key) {
             continue;
         }
         let weight = state.weight_of(key);
         if weight.is_zero() {
-            failures.push(Failure::ExtraSignature { key });
+            unmatched.push(key);
         } else {
             matched.push((key, weight));
         }
@@ -139,31 +161,55 @@ pub fn authorize(state: &AccountState, transaction: &PlannedTransaction) -> Auth
     let count = matched.len();
     let have = sum_weights(matched.iter().map(|(_, weight)| *weight));
 
-    // The checks: the envelope, then each operation, all against this state (R6).
-    let mut checks: Vec<(Option<usize>, ThresholdClass, u32)> = Vec::new();
-    let envelope_need = u32::from(state.threshold(ENVELOPE_CLASS).get());
-    checks.push((None, ENVELOPE_CLASS, envelope_need));
+    let check = |operation: Option<usize>, class: ThresholdClass| {
+        let need = u32::from(state.threshold(class).get());
+        CheckResult {
+            operation,
+            class,
+            need,
+            have,
+            passed: passes(count, have, need),
+        }
+    };
+    let mut checks = vec![check(None, ENVELOPE_CLASS)];
     for (index, operation) in transaction.operations().iter().enumerate() {
-        let class = required_class(operation);
-        checks.push((Some(index), class, u32::from(state.threshold(class).get())));
+        checks.push(check(Some(index), required_class(operation)));
+    }
+    Trace {
+        matched,
+        unmatched,
+        checks,
+    }
+}
+
+/// Checks a transaction against the state before it.
+pub fn authorize(state: &AccountState, transaction: &PlannedTransaction) -> Authorization {
+    let doubts = foreign_sources(state, transaction);
+    if !doubts.is_empty() {
+        return Authorization::Undecided(doubts);
     }
 
-    for &(operation, class, need) in &checks {
-        if passes(count, have, need) {
-            continue;
-        }
-        failures.push(match operation {
+    let trace = trace(state, transaction);
+    let count = trace.matched.len();
+
+    let mut failures: Vec<Failure> = trace
+        .unmatched
+        .iter()
+        .map(|&key| Failure::ExtraSignature { key })
+        .collect();
+    for check in trace.checks.iter().filter(|check| !check.passed) {
+        failures.push(match check.operation {
             None => Failure::EnvelopeNotAuthorized {
                 matched: count,
-                have,
-                need,
+                have: check.have,
+                need: check.need,
             },
             Some(operation) => Failure::OperationNotAuthorized {
                 operation,
-                class,
+                class: check.class,
                 matched: count,
-                have,
-                need,
+                have: check.have,
+                need: check.need,
             },
         });
     }
@@ -173,13 +219,16 @@ pub fn authorize(state: &AccountState, transaction: &PlannedTransaction) -> Auth
 
     // Every signature that some check cannot do without is certainly used. A
     // signature no check needs may or may not be used, depending on order (R7).
-    let unnecessary: Vec<SignerKey> = matched
+    let have = trace.checks.first().map_or(0, |check| check.have);
+    let unnecessary: Vec<SignerKey> = trace
+        .matched
         .iter()
         .filter(|(_, weight)| {
             let without = have - u32::from(weight.get());
-            checks
+            trace
+                .checks
                 .iter()
-                .all(|&(_, _, need)| passes(count - 1, without, need))
+                .all(|check| passes(count - 1, without, check.need))
         })
         .map(|(key, _)| *key)
         .collect();

@@ -127,6 +127,11 @@ impl Availability {
         self.signers.get(&key).copied().unwrap_or(self.default)
     }
 
+    /// The signers with a declared status, in ascending key order.
+    pub fn signers(&self) -> impl Iterator<Item = (SignerKey, Status)> + '_ {
+        self.signers.iter().map(|(key, status)| (*key, *status))
+    }
+
     /// The status of a key in a scenario: the scenario's override, else the
     /// baseline.
     pub fn status_in(&self, scenario: &Scenario, key: SignerKey) -> Status {
