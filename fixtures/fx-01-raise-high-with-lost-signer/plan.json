@@ -1,0 +1,17 @@
+{
+  "schema": "signerreach.plan/1",
+  "transactions": [
+    {
+      "id": "raise-high",
+      "signed_by": [
+        "GAAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQDZ7H"
+      ],
+      "operations": [
+        {
+          "op": "set_options",
+          "high": 2
+        }
+      ]
+    }
+  ]
+}

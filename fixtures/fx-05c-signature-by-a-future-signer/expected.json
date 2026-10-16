@@ -1,0 +1,16 @@
+{
+  "id": "FX-05c",
+  "summary": "Signing with B in the same transaction that adds B: the signature is judged against the state before, so it is extra.",
+  "source": "chain",
+  "evidence_cases": [
+    "5c"
+  ],
+  "verdict": "UNSAFE",
+  "exit_code": 1,
+  "codes": [
+    "SR-TX-01"
+  ],
+  "transactions": [
+    "rejected"
+  ]
+}

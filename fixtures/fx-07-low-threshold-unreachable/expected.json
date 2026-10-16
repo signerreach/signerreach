@@ -1,0 +1,16 @@
+{
+  "id": "FX-07",
+  "summary": "LOW 5 with only a weight-1 key: the account cannot be a transaction source, so administering it needs another funded account.",
+  "source": "chain",
+  "evidence_cases": [
+    "7a",
+    "7b",
+    "7c"
+  ],
+  "verdict": "INCONCLUSIVE",
+  "exit_code": 2,
+  "codes": [
+    "SR-TX-03"
+  ],
+  "transactions": []
+}

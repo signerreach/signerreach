@@ -1,0 +1,18 @@
+{
+  "id": "FX-01",
+  "summary": "Raising HIGH to 2 while the only other signer is lost: the master alone can no longer change signers.",
+  "source": "chain",
+  "evidence_cases": [
+    "1a",
+    "1b",
+    "1c"
+  ],
+  "verdict": "UNSAFE",
+  "exit_code": 1,
+  "codes": [
+    "SR-LOSS-01"
+  ],
+  "transactions": [
+    "accepted"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "signerreach.plan/1",
+  "transactions": [
+    {
+      "id": "add-b",
+      "signed_by": [
+        "GAAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQDZ7H",
+        "GABAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEJXA"
+      ],
+      "operations": [
+        {
+          "op": "set_options",
+          "master_weight": 1,
+          "low": 2,
+          "medium": 2,
+          "high": 2,
+          "signer": {
+            "key": "GABAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEJXA",
+            "weight": 1
+          }
+        },
+        {
+          "op": "set_options",
+          "home_domain": "example.org"
+        }
+      ]
+    }
+  ]
+}

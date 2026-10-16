@@ -1,0 +1,17 @@
+{
+  "id": "FX-03",
+  "summary": "Setting the master weight to 0 leaves total weight 1 against HIGH 2: locked even if B is available.",
+  "source": "chain",
+  "evidence_cases": [
+    "3a",
+    "3b"
+  ],
+  "verdict": "UNSAFE",
+  "exit_code": 1,
+  "codes": [
+    "SR-LOCK-01"
+  ],
+  "transactions": [
+    "accepted"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "id": "FX-05b",
+  "summary": "The same two changes as TWO transactions: the first leaves total weight 1 against HIGH 2, so the second is rejected and the account stays locked.",
+  "source": "chain",
+  "evidence_cases": [
+    "5b-1",
+    "5b-2"
+  ],
+  "verdict": "UNSAFE",
+  "exit_code": 1,
+  "codes": [
+    "SR-AUTH-01",
+    "SR-LOCK-01"
+  ],
+  "transactions": [
+    "accepted",
+    "rejected"
+  ]
+}

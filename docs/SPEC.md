@@ -274,7 +274,7 @@ Each fixture has an ID, the three inputs, and the expected verdict, codes and pe
 | FX-03 | chain, Case 3 | A:1, B:1; 1/1/2 | tx `[master_weight=0]` signed A,B. All available | accepted. **UNSAFE `SR-LOCK-01`** (total weight 1, HIGH 2) |
 | FX-04 | synthetic, Case 4 | final A,B,D weight 1 each; 1/2/2 | A available, B and D unknown | **INCONCLUSIVE `SR-AVAIL-01`** |
 | FX-05a | chain, Case 5a | A:1, B:1; 1/2/2 | ONE tx `[remove B, master_weight=2]` signed A,B. All available | accepted. final A:2. **SAFE WITHIN SCOPE** |
-| FX-05b | chain, Case 5b | A:1, B:1; 1/2/2 | TWO txs: tx1 `[remove B]` signed A,B; tx2 `[master_weight=2]` signed A. All available | tx1 accepted, **tx2 rejected**. **UNSAFE `SR-AUTH-01`** at tx2 op 0 |
+| FX-05b | chain, Case 5b | A:1, B:1; 1/2/2 | TWO txs: tx1 `[remove B]` signed A,B; tx2 `[master_weight=2]` signed A. All available | tx1 accepted, **tx2 rejected**. **UNSAFE**: `SR-AUTH-01` at tx2 op 0, and `SR-LOCK-01` because after tx1 the account has total weight 1 against HIGH 2 |
 | FX-05c | chain, Case 5c | A:1, no signers; 0/0/0 | ONE tx `[add B:1 and thresholds 2/2/2; set_home_domain]` signed A,B | **rejected, `SR-TX-01`** (B matches no pre-state signer). **UNSAFE** |
 | FX-07 | chain, Case 7 | A:1; low 5, medium 0, high 0 | state check, no plan. A available | LOW unreachable, HIGH reachable. **INCONCLUSIVE `SR-TX-03`** |
 | FX-06a | synthetic | any | plan contains a `payment` | INCONCLUSIVE `SR-OP-01` |

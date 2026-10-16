@@ -1,0 +1,14 @@
+{
+  "id": "FX-05a",
+  "summary": "Removing B and raising the master weight in ONE transaction: both are authorized against the state before it.",
+  "source": "chain",
+  "evidence_cases": [
+    "5a"
+  ],
+  "verdict": "SAFE WITHIN SCOPE",
+  "exit_code": 0,
+  "codes": [],
+  "transactions": [
+    "accepted"
+  ]
+}

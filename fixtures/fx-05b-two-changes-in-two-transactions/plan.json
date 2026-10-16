@@ -1,0 +1,33 @@
+{
+  "schema": "signerreach.plan/1",
+  "transactions": [
+    {
+      "id": "first",
+      "signed_by": [
+        "GAAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQDZ7H",
+        "GABAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEJXA"
+      ],
+      "operations": [
+        {
+          "op": "set_options",
+          "signer": {
+            "key": "GABAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEJXA",
+            "weight": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "second",
+      "signed_by": [
+        "GAAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQDZ7H"
+      ],
+      "operations": [
+        {
+          "op": "set_options",
+          "master_weight": 2
+        }
+      ]
+    }
+  ]
+}

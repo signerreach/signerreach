@@ -1,0 +1,18 @@
+{
+  "schema": "signerreach.plan/1",
+  "transactions": [
+    {
+      "id": "zero-master",
+      "signed_by": [
+        "GAAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQDZ7H",
+        "GABAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEJXA"
+      ],
+      "operations": [
+        {
+          "op": "set_options",
+          "master_weight": 0
+        }
+      ]
+    }
+  ]
+}
