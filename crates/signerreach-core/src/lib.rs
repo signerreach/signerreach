@@ -35,4 +35,4 @@ pub use input::availability::{Availability, Intent, Scenario, Status, parse_avai
 pub use input::plan::{Plan, PlannedTransaction, SetOptions, SignerChange, parse_plan};
 pub use input::snapshot::{Network, Provenance, Snapshot, SnapshotSource, parse_snapshot};
 pub use input::{InputIssue, MAX_INPUT_BYTES};
-pub use report::{json_report, text_report};
+pub use report::{RejectedDocument, json_report, rejected_json, rejected_text, text_report};

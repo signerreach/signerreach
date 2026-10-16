@@ -6,8 +6,10 @@
 //! always gives the same bytes.
 
 mod json;
+mod rejected;
 
 pub use json::{REPORT_SCHEMA, json_report};
+pub use rejected::{RejectedDocument, rejected_json, rejected_text};
 
 use crate::account::{AccountState, SignerKey};
 use crate::authorize::{CheckResult, Trace};

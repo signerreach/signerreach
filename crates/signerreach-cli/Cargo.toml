@@ -13,6 +13,7 @@ path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
+signerreach-core = { path = "../signerreach-core", version = "0.0.0" }
 
 [lints]
 workspace = true
