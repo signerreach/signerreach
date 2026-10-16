@@ -5,6 +5,10 @@
 //! It uses ASCII only and contains no timestamps of its own, so the same input
 //! always gives the same bytes.
 
+mod json;
+
+pub use json::{REPORT_SCHEMA, json_report};
+
 use crate::account::{AccountState, SignerKey};
 use crate::authorize::{CheckResult, Trace};
 use crate::diagnostic::Effect;
@@ -14,7 +18,7 @@ use crate::input::plan::{Plan, SetOptions};
 use crate::input::snapshot::Snapshot;
 
 /// What the tool models.
-const MODELLED: [&str; 7] = [
+pub(crate) const MODELLED: [&str; 7] = [
     "one classic account (a G address) per run",
     "ed25519 signers, including the account's own key",
     "SetOptions operations",
@@ -25,7 +29,7 @@ const MODELLED: [&str; 7] = [
 ];
 
 /// What the tool does not model. Each of these gives INCONCLUSIVE, not SAFE.
-const NOT_MODELLED: [&str; 9] = [
+pub(crate) const NOT_MODELLED: [&str; 9] = [
     "whether anyone holds, or can use, any key",
     "fee-bump transactions and transaction preconditions",
     "source accounts other than the analysed account",
@@ -61,25 +65,9 @@ pub fn text_report(
     put(&mut out, "SIGNERREACH CHECK");
     put(&mut out, "=================");
     put(&mut out, "");
-    put(
-        &mut out,
-        "Availability is declared by the user. This tool does not and cannot verify that anyone \
-         holds any key.",
-    );
-    put(
-        &mut out,
-        format!(
-            "The result applies to the account state at ledger {} on {}. Authorization happens \
-             at apply time against the live state, which may have changed.",
-            provenance.as_of_ledger(),
-            snapshot.network().as_str()
-        ),
-    );
-    put(
-        &mut out,
-        "Only the features listed under \"Coverage\" are modelled. Anything else is reported \
-         INCONCLUSIVE.",
-    );
+    for line in header_lines(snapshot) {
+        put(&mut out, line);
+    }
 
     out.push('\n');
     put(
@@ -175,8 +163,26 @@ pub fn text_report(
     out
 }
 
+/// The three limitations printed at the top of every report (spec 8.1).
+pub(crate) fn header_lines(snapshot: &Snapshot) -> [String; 3] {
+    [
+        "Availability is declared by the user. This tool does not and cannot verify that anyone \
+         holds any key."
+            .to_string(),
+        format!(
+            "The result applies to the account state at ledger {} on {}. Authorization happens \
+             at apply time against the live state, which may have changed.",
+            snapshot.provenance().as_of_ledger(),
+            snapshot.network().as_str()
+        ),
+        "Only the features listed under \"Coverage\" are modelled. Anything else is reported \
+         INCONCLUSIVE."
+            .to_string(),
+    ]
+}
+
 /// The single most important reason for the verdict.
-fn reason(evaluation: &Evaluation) -> String {
+pub(crate) fn reason(evaluation: &Evaluation) -> String {
     let wanted = match evaluation.verdict {
         Verdict::SafeWithinScope => {
             return "a path to administer the account remains under the declared assumptions, in \
@@ -456,7 +462,7 @@ fn scenario_block(out: &mut String, scenario: &ScenarioResult) {
     }
 }
 
-fn effect_label(effect: Effect) -> &'static str {
+pub(crate) fn effect_label(effect: Effect) -> &'static str {
     match effect {
         Effect::Unsafe => "UNSAFE",
         Effect::Inconclusive => "INCONCLUSIVE",
@@ -464,7 +470,9 @@ fn effect_label(effect: Effect) -> &'static str {
     }
 }
 
-fn diagnostics(out: &mut String, evaluation: &Evaluation) {
+/// Every finding with the scope it applies to: `plan`, `baseline`, or a
+/// scenario name. Plan findings come first, then each scenario in order.
+pub(crate) fn scoped_findings(evaluation: &Evaluation) -> Vec<(String, &Finding)> {
     let mut lines: Vec<(String, &Finding)> = Vec::new();
     for finding in &evaluation.plan_findings {
         lines.push(("plan".to_string(), finding));
@@ -478,6 +486,11 @@ fn diagnostics(out: &mut String, evaluation: &Evaluation) {
             lines.push((scope.clone(), finding));
         }
     }
+    lines
+}
+
+fn diagnostics(out: &mut String, evaluation: &Evaluation) {
+    let lines = scoped_findings(evaluation);
     if lines.is_empty() {
         put(out, "  none");
     }

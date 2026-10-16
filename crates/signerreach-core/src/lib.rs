@@ -8,8 +8,8 @@
 //! ([`diagnostic`]), the three input documents ([`input`]), the threshold
 //! rules ([`rules`]), the authorization check ([`authorize`]), applying a
 //! transaction ([`apply`]), the evaluation that produces the verdict
-//! ([`evaluate`]) and the plain-text report ([`report`]). The JSON report and
-//! the command line are not implemented yet.
+//! ([`evaluate`]) and the text and JSON reports ([`report`]). The command line
+//! is not implemented yet.
 
 pub mod account;
 pub mod apply;
@@ -35,4 +35,4 @@ pub use input::availability::{Availability, Intent, Scenario, Status, parse_avai
 pub use input::plan::{Plan, PlannedTransaction, SetOptions, SignerChange, parse_plan};
 pub use input::snapshot::{Network, Provenance, Snapshot, SnapshotSource, parse_snapshot};
 pub use input::{InputIssue, MAX_INPUT_BYTES};
-pub use report::text_report;
+pub use report::{json_report, text_report};
