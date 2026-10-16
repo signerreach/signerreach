@@ -1,0 +1,13 @@
+{
+  "id": "FX-06g",
+  "summary": "A alone meets every threshold, so B's signature is unneeded and whether the network rejects it depends on signature order.",
+  "source": "synthetic",
+  "verdict": "INCONCLUSIVE",
+  "exit_code": 2,
+  "codes": [
+    "SR-TX-02"
+  ],
+  "transactions": [
+    "undecided"
+  ]
+}

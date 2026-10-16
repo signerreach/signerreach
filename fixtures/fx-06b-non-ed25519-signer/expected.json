@@ -1,0 +1,11 @@
+{
+  "id": "FX-06b",
+  "summary": "The account has a pre-authorized-transaction signer, which is not modelled.",
+  "source": "synthetic",
+  "verdict": "INCONCLUSIVE",
+  "exit_code": 2,
+  "codes": [
+    "SR-SIGNER-01"
+  ],
+  "transactions": []
+}

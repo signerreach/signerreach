@@ -1,0 +1,23 @@
+{
+  "schema": "signerreach.availability/1",
+  "signers": {
+    "GAAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQDZ7H": "available",
+    "GABAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEJXA": "available",
+    "GABQGAYDAMBQGAYDAMBQGAYDAMBQGAYDAMBQGAYDAMBQGAYDAMBQHGPC": "available"
+  },
+  "scenarios": [
+    {
+      "name": "A-lost",
+      "overrides": {
+        "GAAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQDZ7H": "lost"
+      }
+    },
+    {
+      "name": "A-and-B-lost",
+      "overrides": {
+        "GAAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQDZ7H": "lost",
+        "GABAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEJXA": "lost"
+      }
+    }
+  ]
+}

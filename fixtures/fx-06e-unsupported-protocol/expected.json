@@ -1,0 +1,11 @@
+{
+  "id": "FX-06e",
+  "summary": "The snapshot belongs to protocol 28; only protocol 29 rules are verified.",
+  "source": "synthetic",
+  "verdict": "INCONCLUSIVE",
+  "exit_code": 2,
+  "codes": [
+    "SR-RULES-01"
+  ],
+  "transactions": []
+}

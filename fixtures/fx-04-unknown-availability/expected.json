@@ -1,0 +1,11 @@
+{
+  "id": "FX-04",
+  "summary": "HIGH needs B or D, whose availability is not declared: the result cannot be established.",
+  "source": "synthetic",
+  "verdict": "INCONCLUSIVE",
+  "exit_code": 2,
+  "codes": [
+    "SR-AVAIL-01"
+  ],
+  "transactions": []
+}

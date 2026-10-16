@@ -1,0 +1,11 @@
+{
+  "id": "FX-06c",
+  "summary": "A signer weight of 256 is outside the range 0 to 255.",
+  "source": "synthetic",
+  "verdict": "INCONCLUSIVE",
+  "exit_code": 2,
+  "codes": [
+    "SR-INPUT-01"
+  ],
+  "transactions": []
+}

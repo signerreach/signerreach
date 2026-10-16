@@ -1,0 +1,11 @@
+{
+  "id": "FX-09",
+  "summary": "Safe if nobody is lost and if A is lost, unsafe if A and B are both lost: the worst scenario decides.",
+  "source": "synthetic",
+  "verdict": "UNSAFE",
+  "exit_code": 1,
+  "codes": [
+    "SR-LOSS-01"
+  ],
+  "transactions": []
+}

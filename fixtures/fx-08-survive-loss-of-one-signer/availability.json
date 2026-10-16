@@ -1,0 +1,8 @@
+{
+  "schema": "signerreach.availability/1",
+  "signers": {
+    "GAAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQDZ7H": "available",
+    "GABAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEJXA": "available"
+  },
+  "require_survive_loss_of": 1
+}

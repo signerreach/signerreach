@@ -285,6 +285,7 @@ Each fixture has an ID, the three inputs, and the expected verdict, codes and pe
 | FX-06f | synthetic | `account` starts with `C` | any | INCONCLUSIVE `SR-INPUT-02` |
 | FX-06g | synthetic | A:2, B:1; 1/2/2 | tx `[set_home_domain]` signed A,B (A alone meets every check) | INCONCLUSIVE `SR-TX-02` |
 | FX-08 | synthetic | A:1, B:1; 1/1/2 | empty plan, `require_survive_loss_of: 1`, all available | UNSAFE `SR-LOSS-01` (loss of A or B leaves weight 1) |
+| FX-09 | synthetic | A:1, B:1, C:1; 1/2/2 | empty plan. A, B, C available; scenarios `A-lost` and `A-and-B-lost` | UNSAFE `SR-LOSS-01`: safe in the baseline and in `A-lost`, unsafe in `A-and-B-lost`; the worst scenario decides |
 
 **Chain fixtures are replayed, not trusted.** Testnet resets periodically. The repository must carry a separate replay harness (not part of the default CLI) that rebuilds each chain fixture on a fresh test network and compares observed to expected. A fixture whose replay differs from its expectation blocks release.
 

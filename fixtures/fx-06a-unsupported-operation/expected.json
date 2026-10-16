@@ -1,0 +1,11 @@
+{
+  "id": "FX-06a",
+  "summary": "A plan containing a payment: only SetOptions is supported, so nothing is evaluated.",
+  "source": "synthetic",
+  "verdict": "INCONCLUSIVE",
+  "exit_code": 2,
+  "codes": [
+    "SR-OP-01"
+  ],
+  "transactions": []
+}

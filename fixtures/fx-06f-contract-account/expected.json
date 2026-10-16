@@ -1,0 +1,11 @@
+{
+  "id": "FX-06f",
+  "summary": "The account is a contract address (C...), which is out of scope.",
+  "source": "synthetic",
+  "verdict": "INCONCLUSIVE",
+  "exit_code": 2,
+  "codes": [
+    "SR-INPUT-02"
+  ],
+  "transactions": []
+}

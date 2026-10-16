@@ -1,0 +1,29 @@
+{
+  "schema": "signerreach.snapshot/1",
+  "network": "testnet",
+  "account": "GAAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQDZ7H",
+  "provenance": {
+    "as_of_ledger": 5180915,
+    "captured_at": "2026-10-13T21:49:21Z",
+    "source": "file",
+    "protocol_version": 29
+  },
+  "master_weight": 1,
+  "thresholds": {
+    "low": 1,
+    "medium": 2,
+    "high": 2
+  },
+  "signers": [
+    {
+      "key": "GABAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEJXA",
+      "type": "ed25519",
+      "weight": 1
+    },
+    {
+      "key": "GABQGAYDAMBQGAYDAMBQGAYDAMBQGAYDAMBQGAYDAMBQGAYDAMBQHGPC",
+      "type": "ed25519",
+      "weight": 1
+    }
+  ]
+}

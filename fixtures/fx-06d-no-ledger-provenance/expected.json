@@ -1,0 +1,11 @@
+{
+  "id": "FX-06d",
+  "summary": "The snapshot does not say which ledger it was taken at, so its freshness cannot be established.",
+  "source": "synthetic",
+  "verdict": "INCONCLUSIVE",
+  "exit_code": 2,
+  "codes": [
+    "SR-FRESH-01"
+  ],
+  "transactions": []
+}

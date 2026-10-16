@@ -1,0 +1,18 @@
+{
+  "schema": "signerreach.plan/1",
+  "transactions": [
+    {
+      "id": "domain",
+      "signed_by": [
+        "GAAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQDZ7H",
+        "GABAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEJXA"
+      ],
+      "operations": [
+        {
+          "op": "set_options",
+          "home_domain": "example.org"
+        }
+      ]
+    }
+  ]
+}

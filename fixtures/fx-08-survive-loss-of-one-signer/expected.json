@@ -1,0 +1,11 @@
+{
+  "id": "FX-08",
+  "summary": "HIGH is reachable today, but the loss of either signer would break it, and the declaration requires surviving one loss.",
+  "source": "synthetic",
+  "verdict": "UNSAFE",
+  "exit_code": 1,
+  "codes": [
+    "SR-LOSS-01"
+  ],
+  "transactions": []
+}
