@@ -251,6 +251,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "signerreach-stellar"
+version = "0.0.0"
+dependencies = [
+ "serde_json",
+ "signerreach-core",
+ "thiserror",
+]
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
