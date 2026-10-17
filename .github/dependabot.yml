@@ -1,0 +1,28 @@
+version: 2
+
+updates:
+  # Rust dependencies, read from Cargo.toml and Cargo.lock at the repository root.
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build(deps)"
+    # Do not take a release until it has been public for a while. This does not
+    # delay security updates.
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+
+  # The pinned actions in .github/workflows. Dependabot updates the commit SHA
+  # and the version comment together.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci(deps)"
+    cooldown:
+      default-days: 7
