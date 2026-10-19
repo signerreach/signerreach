@@ -1,9 +1,12 @@
 //! The `signerreach` command line.
 //!
 //! Exit codes (`docs/SPEC.md`, section 9): 0 SAFE WITHIN SCOPE, 1 UNSAFE,
-//! 2 INCONCLUSIVE (including rejected input), 64 usage error.
+//! 2 INCONCLUSIVE (including rejected input), 64 usage error. `fetch` has no
+//! verdict: it exits 0 with a snapshot, 64 for bad arguments, or 69 when the
+//! account could not be read.
 
 mod check;
+mod fetch;
 
 use std::process::ExitCode;
 
@@ -21,6 +24,8 @@ struct Cli {
 enum Command {
     /// Check whether a plan keeps an account administrable
     Check(check::Args),
+    /// Read an account from a Horizon server and print a snapshot (read-only)
+    Fetch(fetch::Args),
 }
 
 fn main() -> ExitCode {
@@ -40,5 +45,6 @@ fn main() -> ExitCode {
     };
     match cli.command {
         Command::Check(args) => check::run(&args),
+        Command::Fetch(args) => fetch::run(&args),
     }
 }

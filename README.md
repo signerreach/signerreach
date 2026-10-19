@@ -44,8 +44,8 @@ It answers one of three things, with the reasoning shown:
 - **`INCONCLUSIVE`**: the result cannot be established from what is declared and
   modelled. This includes any input it does not understand.
 
-It never holds keys, signs, or submits anything, and the core makes no network
-connection.
+It never holds keys, signs, or submits anything. The check makes no network
+connection; only the optional `fetch` command does, and it only reads.
 
 ## Example
 
@@ -96,8 +96,18 @@ The binary is `target/release/signerreach`.
 
 ## Making a snapshot
 
-A command to fetch a snapshot from the network is planned but not built. For now
-you write the file yourself, from an account record such as Horizon's:
+`fetch` reads an account from a Horizon server and prints a snapshot. It only
+reads, and it writes no file, so save the output yourself:
+
+```bash
+signerreach fetch --network testnet --account G... > snapshot.json
+```
+
+Use `--horizon-url` to read from a server of your own (https, or http on your own
+machine). It exits 0 with a snapshot, 64 for bad arguments, and 69 if the account
+could not be read.
+
+Or write the file yourself, from an account record such as Horizon's:
 
 | In the snapshot | From the account record |
 |---|---|

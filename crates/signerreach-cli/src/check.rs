@@ -1,7 +1,7 @@
 //! The `check` command: read three documents, evaluate, print a report.
 //!
-//! This is the only place the tool touches the file system or the terminal.
-//! It makes no network connection and never writes a file.
+//! This command reads files and prints to the terminal. It makes no network
+//! connection and never writes a file.
 
 use std::fs::File;
 use std::io::{self, Read, Write};
@@ -152,9 +152,9 @@ fn parse<T>(
     }
 }
 
-/// Prints the report on stdout and returns `code`. A closed pipe, as in
+/// Prints the text on stdout and returns `code`. A closed pipe, as in
 /// `signerreach check ... | head`, is not an error.
-fn emit(report: &str, code: u8) -> ExitCode {
+pub fn emit(report: &str, code: u8) -> ExitCode {
     let mut stdout = io::stdout().lock();
     match stdout
         .write_all(report.as_bytes())

@@ -258,10 +258,10 @@ If `intent` is `irreversible`, the report states "Irreversible administrative st
 | Command | Behaviour |
 |---|---|
 | `signerreach check --snapshot S --plan P --availability A` with optional `--format` set to text, json or markdown | Evaluate. Exit code 0 SAFE WITHIN SCOPE, 1 UNSAFE, 2 INCONCLUSIVE, 64 usage error. |
-| `signerreach fetch --network N --account G` | Read-only. Writes a snapshot file with provenance. Uses a public read endpoint. No write path exists anywhere in the binary. |
+| `signerreach fetch --network N --account G` with optional `--horizon-url U` | Read-only. Prints a snapshot with provenance on standard output and writes no file. Reads from the public Horizon server for the network, or from `U` (https, or http for this machine only). Exit code 0 with a snapshot, 64 for bad arguments, 69 if the account could not be read. No write path exists anywhere in the binary. |
 | `signerreach schema KIND` where KIND is snapshot, plan, availability or report | Print the JSON Schema. |
 
-The default `check` command makes no network calls.
+`check` makes no network calls. `fetch` is the only command that does, and it sends nothing but `GET` requests for the server root and one account. It follows no redirects, uses no proxy, and limits each request to 30 seconds and each answer to 1 MiB.
 
 ## 10. Test corpus
 
