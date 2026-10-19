@@ -38,6 +38,8 @@ for example `fx-05b-two-changes-in-two-transactions`.
   them, the tool is wrong or the evidence needs repeating. The `codes` are not
   observations: they follow from the rules in `docs/SPEC.md` applied to the
   observed outcome, and are fixed by the specification.
+  The chain fixtures can be replayed on a fresh Testnet with
+  [`tools/replay`](../tools/replay/README.md).
 - **`synthetic`**: a case that tests the tool's own handling of input and
   assumptions. It says nothing about Stellar and must never be presented as
   evidence about the network.

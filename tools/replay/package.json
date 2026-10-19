@@ -1,0 +1,18 @@
+{
+  "name": "signerreach-replay",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Replays the SignerReach chain fixtures on Stellar Testnet. A development tool, not part of the shipped binary.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dry-run": "node replay.mjs --dry-run",
+    "replay": "node replay.mjs"
+  },
+  "dependencies": {
+    "@stellar/stellar-sdk": "17.2.1"
+  }
+}

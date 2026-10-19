@@ -15,6 +15,19 @@ updates:
       default-days: 7
       semver-major-days: 14
 
+  # The Testnet replay tool. It is a development tool and is not part of the
+  # shipped binary.
+  - package-ecosystem: "npm"
+    directory: "/tools/replay"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build(deps)"
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+
   # The pinned actions in .github/workflows. Dependabot updates the commit SHA
   # and the version comment together.
   - package-ecosystem: "github-actions"
