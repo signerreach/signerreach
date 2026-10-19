@@ -125,6 +125,8 @@ format is in section 5 of [`docs/SPEC.md`](docs/SPEC.md).
 
 The rules were not assumed. They were read in stellar-core and then observed on
 Testnet at protocol 29: [`docs/evidence/testnet-2026-10-13`](docs/evidence/testnet-2026-10-13/README.md).
+The chain fixtures were replayed on a fresh Testnet on 2026-10-19, and every
+outcome matched: [`docs/evidence/replay-2026-10-19`](docs/evidence/replay-2026-10-19/README.md).
 One finding matters most:
 
 > All operations in a transaction are authorized against the account **as it was

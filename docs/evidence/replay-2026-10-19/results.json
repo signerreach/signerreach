@@ -1,0 +1,178 @@
+{
+  "meta": {
+    "tool": "signerreach-replay/1",
+    "sdk": "17.2.1",
+    "horizon": "https://horizon-testnet.stellar.org",
+    "dry_run": false,
+    "started": "2026-10-19T16:17:47.540Z",
+    "protocol": 29,
+    "core": "stellar-core 30.0.0 (0e49751aa9ddf892302cca02cea7f3f5d97df9f1)",
+    "ledger_at_start": 5280616,
+    "fixture_protocols": [
+      29
+    ],
+    "finished": "2026-10-19T16:20:03.767Z"
+  },
+  "results": [
+    {
+      "fixture": "FX-01",
+      "directory": "fx-01-raise-high-with-lost-signer",
+      "account": "GDZ5LYTL6FOUALMUH4GDPJLUMODOCX42TEASAS4LM4A5IKZNZBKUTYRO",
+      "setup": {
+        "status": "accepted",
+        "hash": "741076cf98e0bed6e1fb6619560678912dc35bc571d1a603f025357fe03df42d",
+        "ledger": 5280620
+      },
+      "transactions": [
+        {
+          "id": "raise-high",
+          "expected": "accepted",
+          "status": "accepted",
+          "hash": "30c3b9a24bb49029adcb2daad1028b4aff0bb71df8c9964d3976953ff08c408f",
+          "ledger": 5280621,
+          "match": true
+        }
+      ],
+      "match": true
+    },
+    {
+      "fixture": "FX-02",
+      "directory": "fx-02-safe-rotation",
+      "account": "GBUWAY5WT76JFMQFGY2DTFMM7IWDMZN6J46GGNS7MWQKMJIHB7S7HQ2S",
+      "setup": {
+        "status": "accepted",
+        "hash": "303e5d439f9f07ab93529d50d9813dbafdc002eacb9fcc27534b50f29fc40fda",
+        "ledger": 5280623
+      },
+      "transactions": [
+        {
+          "id": "rotate",
+          "expected": "accepted",
+          "status": "accepted",
+          "hash": "2f13734a259ca4d35c516fecaeaa8247e9e3030a5596c0b510aa870a0d33ce63",
+          "ledger": 5280624,
+          "match": true
+        }
+      ],
+      "match": true
+    },
+    {
+      "fixture": "FX-03",
+      "directory": "fx-03-master-zero-structural-lock",
+      "account": "GCEZM7YD6DWMBE3KQWJJDFONSGVHUDM5UBP7RWWDFQZA6DOPIOCJXO2L",
+      "setup": {
+        "status": "accepted",
+        "hash": "bdfbedeba0ffd03317f3b5b7608849eb447fb6849f191a1a1a4003abb1b02bdd",
+        "ledger": 5280627
+      },
+      "transactions": [
+        {
+          "id": "zero-master",
+          "expected": "accepted",
+          "status": "accepted",
+          "hash": "06670d6469d7943ed80b0d3885e74348e32e13f11ce64efe21d880eaf27c9cf0",
+          "ledger": 5280628,
+          "match": true
+        }
+      ],
+      "match": true
+    },
+    {
+      "fixture": "FX-05a",
+      "directory": "fx-05a-two-changes-in-one-transaction",
+      "account": "GAS4RGGNMLRPSATFNAJJUV4YOTMXDMDE7ZHHE7KYPJDJXUNAA4B3D7PK",
+      "setup": {
+        "status": "accepted",
+        "hash": "84d66f1c9353ea8d878202ee28043b4c0c6faa371fdcfa69173ca09e31546985",
+        "ledger": 5280632
+      },
+      "transactions": [
+        {
+          "id": "one",
+          "expected": "accepted",
+          "status": "accepted",
+          "hash": "f60c7c1dba79136691547cc817e2b835a3f719621432835ec876c25a003f662b",
+          "ledger": 5280633,
+          "match": true
+        }
+      ],
+      "match": true
+    },
+    {
+      "fixture": "FX-05b",
+      "directory": "fx-05b-two-changes-in-two-transactions",
+      "account": "GA33R6B6FLFJMPHZOO4ATRPWFQMHPK2X5NAMJUJHPSRPYE7DP4YYNDZO",
+      "setup": {
+        "status": "accepted",
+        "hash": "2390a381c4464ff74d7690fd944df0ebb4ec6025e9e68810ae3ac00310a437f9",
+        "ledger": 5280637
+      },
+      "transactions": [
+        {
+          "id": "first",
+          "expected": "accepted",
+          "status": "accepted",
+          "hash": "c0fe75d9afd5f570767b67e5329a06419139a89b5f7d22eecfe0a75e00f5d610",
+          "ledger": 5280638,
+          "match": true
+        },
+        {
+          "id": "second",
+          "expected": "rejected",
+          "status": "rejected",
+          "hash": "3f6a2f3d060f5a5f25afffd9af66917e9629976fdcc3cc1e17c4be45c2b26f19",
+          "codes": {
+            "transaction": "tx_failed",
+            "operations": [
+              "op_bad_auth"
+            ]
+          },
+          "match": true
+        }
+      ],
+      "match": true
+    },
+    {
+      "fixture": "FX-05c",
+      "directory": "fx-05c-signature-by-a-future-signer",
+      "account": "GDEG3OXRKWZXX4KZ5UM3A42B75K6YROATPCM27L42C4HVYA7NHCPP6KU",
+      "setup": null,
+      "transactions": [
+        {
+          "id": "add-b",
+          "expected": "rejected",
+          "status": "rejected",
+          "hash": "fffba386bce60824f2127db1ebdfaf99af4812c256fbd7444c15723d52390286",
+          "codes": {
+            "transaction": "tx_bad_auth_extra"
+          },
+          "match": true
+        }
+      ],
+      "match": true
+    },
+    {
+      "fixture": "FX-07",
+      "directory": "fx-07-low-threshold-unreachable",
+      "account": "GBNLUB4VMUWZ3MVYZHY6B76HLB4K7DOA2SZIYDT4AFNOK22SUDRMSOVP",
+      "setup": {
+        "status": "accepted",
+        "hash": "bb60afd2bc801e57f572d5cfdc3307ce680eb6849d1064cbd34a6862f359a37b",
+        "ledger": 5280643
+      },
+      "transactions": [],
+      "probe": {
+        "rule": "the envelope needs the source account's LOW threshold",
+        "expected": "rejected",
+        "status": "rejected",
+        "hash": "c15614769772a4bf57c823ec0ba660e141f50d201e1ed9a029bb275256470f4b",
+        "codes": {
+          "transaction": "tx_bad_auth"
+        },
+        "match": true
+      },
+      "match": true
+    }
+  ],
+  "differing": []
+}
