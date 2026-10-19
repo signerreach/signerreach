@@ -34,6 +34,14 @@ pub enum MapError {
     #[error("a signer has a type this tool does not know")]
     UnknownSignerType,
 
+    /// The server reports a different network from the one that was asked for.
+    #[error("the server is on a different network from the one requested")]
+    WrongNetwork,
+
+    /// The ledger number sent by the server is not a whole number of at least 1.
+    #[error("the ledger number sent by the server is not valid")]
+    BadLedger,
+
     /// The date is not an HTTP date such as `Sat, 17 Oct 2026 08:17:27 GMT`.
     #[error("the date is not an HTTP date such as `Sat, 17 Oct 2026 08:17:27 GMT`")]
     BadDate,
