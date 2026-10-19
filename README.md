@@ -105,7 +105,8 @@ signerreach fetch --network testnet --account G... > snapshot.json
 
 Use `--horizon-url` to read from a server of your own (https, or http on your own
 machine). It exits 0 with a snapshot, 64 for bad arguments, and 69 if the account
-could not be read.
+could not be read. The snapshot records the ledger and protocol version the server
+reported, and `check` reports `INCONCLUSIVE` for any protocol other than 29.
 
 Or write the file yourself, from an account record such as Horizon's:
 
@@ -170,7 +171,9 @@ Every report ends with a coverage list stating what was and was not modelled.
 | Path | Content |
 |---|---|
 | `crates/signerreach-core` | The evaluation: pure, with no file, clock or network access |
+| `crates/signerreach-stellar` | Turns Horizon data into snapshots; the only code that opens a network connection, and it only reads |
 | `crates/signerreach-cli` | The `signerreach` command; the only code that touches files or the terminal |
+| `tools/replay` | A Node script that replays the chain fixtures on Testnet; a development tool, not part of the binary |
 | `docs/SPEC.md` | The specification: inputs, rules, verdicts, diagnostic codes |
 | `docs/evidence` | What was observed on a real network |
 | `fixtures` | The test cases, each with its expected result |

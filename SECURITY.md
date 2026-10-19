@@ -14,7 +14,10 @@ are treated as security problems here.
   signature. Any path that reads, stores, logs or prints one is a bug, as is any
   message that repeats a value taken from an input document.
 - **A crash or unbounded use of memory or time on crafted input.** All input is
-  untrusted.
+  untrusted, and so is everything a server sends to `fetch`.
+- **A `fetch` request that goes somewhere it should not.** It must send only `GET`
+  requests for the server root and one account, follow no redirect, use no proxy,
+  and send no credential. Anything else is a bug.
 - **A weakness in the build or release process**, such as a workflow that could
   be made to run with more permissions than it needs.
 

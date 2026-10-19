@@ -15,7 +15,9 @@ Read these three things first. They are short.
 - [`fixtures/README.md`](fixtures/README.md): the test cases and how they are
   written.
 - [`docs/evidence/testnet-2026-10-13/README.md`](docs/evidence/testnet-2026-10-13/README.md):
-  the observations on a real network that the rules rest on.
+  the observations on a real network that the rules rest on. A second run,
+  [`docs/evidence/replay-2026-10-19`](docs/evidence/replay-2026-10-19/README.md),
+  repeated the chain fixtures.
 
 For anything larger than a small fix, open an issue and say what you plan to do
 before you write it. That avoids work that cannot be merged.
@@ -29,7 +31,9 @@ These come from the purpose of the tool and are not negotiable.
   small bug. A result that is too confident is a serious one.
 - **The core does no input or output.** `signerreach-core` never reads a file,
   opens a connection or reads the clock. Only `signerreach-cli` touches the
-  file system or the terminal.
+  file system or the terminal, and only `signerreach-stellar` opens a network
+  connection. That connection only reads, and tests check that the `check`
+  command cannot reach it.
 - **No secrets, ever.** The tool never needs a private key, seed or signature,
   and must never read, store or print one. Messages must not repeat a value taken
   from an input document, because it could be something that should not be
@@ -44,7 +48,9 @@ These come from the purpose of the tool and are not negotiable.
 ## Setting up
 
 You need a current stable Rust toolchain. Nothing else: no Docker, no network and
-no Stellar account are required to build and test.
+no Stellar account are required to build and test. The tests that fetch use a
+fake server on your own machine. Only the optional
+[`tools/replay`](tools/replay/README.md) script needs Node and the live Testnet.
 
 ```bash
 cargo build
