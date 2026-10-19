@@ -296,7 +296,7 @@ V1 is accepted only if all of these hold:
 1. Every fixture in section 10 passes, and no unsafe fixture is reported SAFE.
 2. A replay of each chain fixture on a fresh Testnet matches the expected outcome, with ledger and hash recorded.
 3. The same input always yields byte-identical JSON output.
-4. The default `check` command opens no network connection (proved by a test that fails on any socket use).
+4. The `check` command opens no network connection. This is shown by tests that fail if the core depends on any networking crate, or if the core or the `check` command names networking code (`crates/signerreach-cli/tests/offline.rs`). It is not shown by watching sockets at run time.
 5. No private key, seed or signature is read, stored or logged anywhere.
 6. Every INCONCLUSIVE path has a test and a named code.
 7. The documentation states the fixed header text and the coverage list.
