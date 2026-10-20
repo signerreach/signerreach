@@ -55,3 +55,25 @@ jobs:
           cargo --version
       - name: Test
         run: cargo test --workspace --locked
+
+  # The oldest Rust version the project says it supports. This fails when a
+  # change, or a dependency update, needs something newer. The version here must
+  # match `rust-version` in Cargo.toml.
+  minimum-rust:
+    name: Minimum Rust version
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Rust 1.87.0
+        run: rustup toolchain install 1.87.0 --profile minimal
+      - name: Use Rust 1.87.0
+        run: rustup default 1.87.0
+      - name: Show versions
+        run: |
+          rustc --version
+          cargo --version
+      - name: Test
+        run: cargo test --workspace --locked

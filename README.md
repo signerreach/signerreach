@@ -85,8 +85,8 @@ and whether each threshold can be reached under every scenario. Add
 
 ## Building
 
-There is no release yet, so build from source. You need a current stable Rust
-toolchain and nothing else.
+There is no release yet, so build from source. You need Rust 1.87 or later and
+nothing else.
 
 ```bash
 cargo build --release

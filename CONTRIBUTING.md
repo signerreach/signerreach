@@ -47,8 +47,11 @@ These come from the purpose of the tool and are not negotiable.
 
 ## Setting up
 
-You need a current stable Rust toolchain. Nothing else: no Docker, no network and
-no Stellar account are required to build and test. The tests that fetch use a
+You need Rust 1.87 or later. Nothing else: no Docker, no network and no Stellar
+account are required to build and test. CI also builds and tests on exactly 1.87,
+so do not use a feature that needs a newer compiler without raising
+`rust-version` in `Cargo.toml` and the version in `.github/workflows/ci.yml`
+together, and say why in the pull request. The tests that fetch use a
 fake server on your own machine. Only the optional
 [`tools/replay`](tools/replay/README.md) script needs Node and the live Testnet.
 
