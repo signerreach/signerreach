@@ -9,10 +9,12 @@
 //! not model is written out with its kind, so that `signerreach check` reports it
 //! (`SR-SIGNER-01`) instead of the fetch silently dropping it.
 //!
-//! Horizon's signer types are `ed25519_public_key`, `sha256_hash` and
-//! `preauth_tx` (from its published account documentation). The name
-//! `ed25519_signed_payload` is expected for signed-payload signers but was not
-//! seen in the documentation; a type with any other name is refused.
+//! Horizon's signer types are `ed25519_public_key`, `sha256_hash`,
+//! `preauth_tx` and `ed25519_signed_payload`. The first three are in its
+//! published account documentation. All four are in the `KeyTypeNames` table of
+//! `protocols/horizon/main.go` in `stellar/go-stellar-sdk`, which was read on
+//! 2026-10-20. A signed-payload signer has not been seen in a live response. A
+//! type with any other name is refused.
 
 use serde_json::{Value, json};
 use signerreach_core::{Network, SignerKey};
