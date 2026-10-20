@@ -140,7 +140,8 @@ transactions as the unit, and keeps both cases as test fixtures
 
 ## How it differs from other tools
 
-Read on 2026-10-13, from their public source. Corrections are welcome.
+Read on 2026-10-13, from their public source. The source files that were
+read had not changed when checked again on 2026-10-20. Corrections are welcome.
 
 - **Stellar Laboratory** shows a fixed warning that a change can lock an account.
   It does not analyse the change.
@@ -148,8 +149,18 @@ Read on 2026-10-13, from their public source. Corrections are welcome.
   is an app for building and signing multisig transactions. It checks the
   resulting configuration and blocks one whose thresholds exceed the total signer
   weight.
+- **stellar-toml-lint** ([`anchor-tools/stellar-toml-lint`](https://github.com/anchor-tools/stellar-toml-lint),
+  pull request 266) audits an account's current signers and thresholds, and
+  reports thresholds that the total weight cannot reach. It looks at the current
+  state, not at a planned change.
+- **js-stellar-sdk** has an open issue,
+  [#1606](https://github.com/stellar/js-stellar-sdk/issues/1606), proposing a
+  function that checks whether a transaction's signatures are sufficient. That
+  is about current signatures, not planned changes.
 
-SignerReach does not repeat that check as its headline. What it adds is
+Closed-source wallets and dashboards were not examined.
+
+SignerReach does not repeat the final-state check as its headline. What it adds is
 **availability scenarios** ("what if this key is lost"), **ordered plans** of
 several transactions evaluated one after another, and use **offline and in
 scripts**, with a reproducible trace.
