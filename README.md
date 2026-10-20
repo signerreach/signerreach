@@ -72,7 +72,9 @@ Diagnostics
 
 The full report also shows each transaction's signers, weights and thresholds,
 and whether each threshold can be reached under every scenario. Add
-`--format json` for a machine-readable report.
+`--format json` for a machine-readable report. A longer example, with the
+network evidence behind it and a corrected plan, is in
+[`docs/walkthrough`](docs/walkthrough/README.md).
 
 ### Exit codes
 
