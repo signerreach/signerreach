@@ -6,6 +6,10 @@ still be administered afterwards, under the assumptions you state.
 
 [![CI](https://github.com/signerreach/signerreach/actions/workflows/ci.yml/badge.svg)](https://github.com/signerreach/signerreach/actions/workflows/ci.yml)
 
+[Documentation](docs/README.md) · [Architecture](docs/architecture.md) ·
+[Evidence index](evidence/index.md) · [Security](SECURITY.md) ·
+[Contributing](CONTRIBUTING.md)
+
 > **Status: early and unreleased.** The tool runs end to end and is tested, but
 > it has not been audited and there is no release yet. It cannot know whether
 > anyone holds a key. Treat a result as an aid to your own review, not as a
