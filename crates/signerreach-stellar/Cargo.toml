@@ -9,6 +9,7 @@ repository.workspace = true
 publish.workspace = true
 
 [dependencies]
+serde = "1"
 serde_json = "1"
 signerreach-core = { path = "../signerreach-core", version = "0.0.0" }
 thiserror = "2"

@@ -6,8 +6,8 @@
 /// Why a server's data could not be turned into a SignerReach document.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum MapError {
-    /// The response is not valid JSON.
-    #[error("the response is not valid JSON")]
+    /// The response is malformed JSON or contains an ambiguous duplicate key.
+    #[error("the response is not valid or unambiguous JSON")]
     NotJson,
 
     /// A field the tool needs is missing.
@@ -21,6 +21,11 @@ pub enum MapError {
     /// The account id is not an ed25519 account address (`G...`).
     #[error("the account id is not an ed25519 account address (a G... address)")]
     NotAnAccount,
+
+    /// The record does not identify the account that was requested, or its
+    /// own `id` and `account_id` disagree.
+    #[error("the response describes a different account from the one requested")]
+    AccountMismatch,
 
     /// The signers list has no entry for the account's own key.
     #[error("the signers list has no entry for the account's own key")]

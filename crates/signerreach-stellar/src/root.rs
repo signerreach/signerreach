@@ -11,6 +11,7 @@ use serde_json::Value;
 use signerreach_core::Network;
 
 use crate::error::MapError;
+use crate::strict_json;
 
 /// The name by which a network identifies itself. These are the published values
 /// and were confirmed against the live servers on 2026-10-18.
@@ -33,7 +34,7 @@ pub struct RootInfo {
 impl RootInfo {
     /// Reads the server root document.
     pub fn parse(text: &str) -> Result<Self, MapError> {
-        let root: Value = serde_json::from_str(text).map_err(|_| MapError::NotJson)?;
+        let root: Value = strict_json::parse(text)?;
         let passphrase = root
             .get("network_passphrase")
             .ok_or(MapError::MissingField("network_passphrase"))?
@@ -104,6 +105,14 @@ mod tests {
         let info = RootInfo::parse(&root("Test SDF Network ; September 2015", "29")).unwrap();
         assert_eq!(info.passphrase, "Test SDF Network ; September 2015");
         assert_eq!(info.protocol_version, 29);
+    }
+
+    #[test]
+    fn duplicate_root_fields_are_refused() {
+        let text = r#"{"network_passphrase":"Test SDF Network ; September 2015","current_protocol_version":29,"current_protocol_version":30}"#;
+        assert!(RootInfo::parse(text).is_err());
+        let nested = r#"{"network_passphrase":"Test SDF Network ; September 2015","current_protocol_version":29,"extra":{"x":1,"x":2}}"#;
+        assert!(RootInfo::parse(nested).is_err());
     }
 
     #[test]

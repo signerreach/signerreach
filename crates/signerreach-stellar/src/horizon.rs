@@ -20,6 +20,7 @@ use serde_json::{Value, json};
 use signerreach_core::{Network, SignerKey};
 
 use crate::error::MapError;
+use crate::strict_json;
 
 /// What a snapshot records about where its data came from.
 #[derive(Debug, Clone, Copy)]
@@ -32,6 +33,8 @@ pub struct Context<'a> {
     pub captured_at: &'a str,
     /// The network's protocol version when the data was read.
     pub protocol_version: u32,
+    /// The account address requested from Horizon, if this came from a fetch.
+    pub requested_account: Option<&'a str>,
 }
 
 /// Builds the text of a snapshot document from a Horizon account response.
@@ -40,10 +43,25 @@ pub struct Context<'a> {
 /// is indented, ends with a newline, and lists signers in ascending key order, so
 /// the same record always gives the same bytes.
 pub fn snapshot_from_account(account: &str, context: &Context<'_>) -> Result<String, MapError> {
-    let record: Value = serde_json::from_str(account).map_err(|_| MapError::NotJson)?;
+    let record: Value = strict_json::parse(account)?;
 
     let id = text(&record, "id")?;
     SignerKey::from_strkey(id).map_err(|_| MapError::NotAnAccount)?;
+    if context
+        .requested_account
+        .is_some_and(|requested| requested != id)
+        || record
+            .get("account_id")
+            .is_some_and(|value| value.as_str() != Some(id))
+    {
+        return Err(MapError::AccountMismatch);
+    }
+    if let Some(modified) = record.get("last_modified_ledger") {
+        let ledger = modified.as_u64().ok_or(MapError::BadLedger)?;
+        if ledger == 0 || ledger > context.as_of_ledger {
+            return Err(MapError::BadLedger);
+        }
+    }
 
     let thresholds = record
         .get("thresholds")
@@ -157,6 +175,7 @@ mod tests {
             as_of_ledger: 5_240_432,
             captured_at: "2026-10-17T08:29:07Z",
             protocol_version: 29,
+            requested_account: None,
         }
     }
 
@@ -206,6 +225,12 @@ mod tests {
     }
 
     #[test]
+    fn duplicate_account_fields_are_refused() {
+        let text = format!(r#"{{"id":"{}",{}"#, account_key(1), &THREE_SIGNERS[1..]);
+        assert!(map(&text).is_err());
+    }
+
+    #[test]
     fn the_master_entry_is_not_listed_as_an_additional_signer() {
         let value = json_of(&map(THREE_SIGNERS).expect("maps"));
         let id = value["account"].as_str().unwrap().to_string();
@@ -240,6 +265,7 @@ mod tests {
             as_of_ledger: 64_988_002,
             captured_at: "2026-10-17T08:29:55Z",
             protocol_version: 29,
+            requested_account: None,
         };
         let text = snapshot_from_account(ZERO_MASTER, &context).expect("maps");
         let snapshot = parse_snapshot(&text).expect("accepted");

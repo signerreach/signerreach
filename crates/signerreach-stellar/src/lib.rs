@@ -21,6 +21,7 @@ mod error;
 mod horizon;
 mod http_date;
 mod root;
+mod strict_json;
 mod url;
 
 pub use client::{FetchError, Limits, fetch_snapshot};

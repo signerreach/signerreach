@@ -395,6 +395,7 @@ dependencies = [
 name = "signerreach-stellar"
 version = "0.0.0"
 dependencies = [
+ "serde",
  "serde_json",
  "signerreach-core",
  "thiserror",
