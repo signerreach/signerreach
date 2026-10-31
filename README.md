@@ -185,6 +185,9 @@ Every report ends with a coverage list stating what was and was not modelled.
 
 ## Project layout
 
+See the [architecture reference](docs/architecture.md) for the crate boundaries,
+trust assumptions and evaluation flow.
+
 | Path | Content |
 |---|---|
 | `crates/signerreach-core` | The evaluation: pure, with no file, clock or network access |
