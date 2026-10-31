@@ -1,0 +1,24 @@
+{
+  "schema": "signerreach.replay-after/1",
+  "attempts": [
+    {
+      "id": "post-master-alone",
+      "signed_by": [
+        "GAAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQDZ7H"
+      ],
+      "operations": [
+        {
+          "op": "set_options",
+          "high": 0
+        }
+      ],
+      "expected": {
+        "stage": "rejected_at_submission",
+        "result_codes": {
+          "transaction": "tx_failed",
+          "operations": ["op_bad_auth"]
+        }
+      }
+    }
+  ]
+}

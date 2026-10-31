@@ -19,6 +19,27 @@ For each fixture whose `expected.json` has `"source": "chain"`:
    `signed_by`.
 4. Compares what happened with `transactions` in `expected.json`, and records the
    ledger and transaction hash of each accepted transaction.
+5. If `after.json` exists, runs its ordered replay-only attempts after every
+   planned transaction matched. It uses only explicitly listed fixture signers
+   declared `available`, reloads account sequence before every attempt, and
+   verifies the resulting account signer/threshold state and sequence.
+
+`after.json` has schema `signerreach.replay-after/1`; see
+[`fixtures/README.md`](../../fixtures/README.md#replay-only-follow-up-attempts)
+for the full format. Its presence does not change any input to `signerreach
+check` or the fixture's `expected.json` verdict.
+
+Follow-up expected stages are `accepted`, `rejected_at_submission`, and
+`failed_to_apply`. Successful and included failed transactions must be found in
+Horizon history with a matching hash, ledger, and XDR result. A submission
+rejection is recorded only when Horizon returns structured result codes, a
+bounded history lookup does not find the hash, and account sequence and
+authorization state remain unchanged. The output labels the number of checks
+and explicitly records that bounded absence is not absolute proof of
+non-inclusion. An unresolved lookup or inconsistent state is `unconfirmed`,
+never a match, and ends the fixture's follow-up sequence. Ordered operation
+result codes are compared exactly. New replay output keeps only allowlisted,
+sanitized Horizon response fields, with each retained string capped at 24 KiB.
 
 A fixture with no transactions is a state check. For it the tool submits a
 change-nothing transaction signed by every signer, and expects it to be accepted
@@ -37,10 +58,12 @@ node replay.mjs --out results.json
 ```
 
 - `--dry-run` builds and signs every transaction but sends nothing. It does not
-  construct a Horizon client or call Friendbot.
+  construct a Horizon client or call Friendbot. It validates and builds
+  `after.json` attempts too; they show `not_submitted` and never count as a
+  match against network expectations.
 - `--only TEXT` runs the fixtures whose directory name contains `TEXT`.
 - Exit code 0: every outcome matched. 1: an outcome differed. 2: the run could
-  not be completed.
+  not be completed or a follow-up outcome was unconfirmed/not run.
 
 Progress goes to standard error. The results are JSON, on standard output or in
 the `--out` file.
@@ -54,13 +77,13 @@ the `--out` file.
   pinned to 17.3.0, the first published JavaScript SDK release with Protocol 30
   XDR, but this does not verify SignerReach's Protocol 30 rules.
 - **Secret keys exist only in memory.** They are not written or printed.
-- **It does not tell a rejected transaction from one that failed to apply.**
-  Both come back from Horizon as an error with result codes, and the tool
-  records them as `rejected`. The chain fixtures expect only `accepted` and
-  `rejected`; a fixture that expects `failed_to_apply` is reported as differing.
-- **It does not replay the follow-up attempts** of the Phase 1 evidence (for
-  example, trying to change a threshold after a plan that locked the account).
-  It checks what the plan's own transactions did.
+- Existing `expected.json` plan outcomes retain their historical `accepted` /
+  `rejected` model. The separate follow-up path distinguishes a submission
+  rejection from an included `tx_failed` transaction by querying transaction
+  history and checking account sequence/state. A bounded missing-history result
+  is cautious evidence only, not proof that no inclusion can ever appear.
+- Initial follow-up coverage is FX-01 Case 1b only. Do not add controls that
+  require signers marked `lost` or `unknown` without a separate decision.
 
 ## When to run it
 
