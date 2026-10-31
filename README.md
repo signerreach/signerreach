@@ -175,9 +175,11 @@ scripts**, with a reproducible trace.
 - A snapshot goes stale. The result applies to the ledger it was read at.
 - Only protocol 29 rules are verified, only `SetOptions` operations, and only
   ed25519 signers on a single classic account.
-- Not modelled, and so reported `INCONCLUSIVE`: fee-bump transactions,
-  preconditions, other source accounts, sponsorship and reserves, and Soroban
-  contract accounts.
+- Recognized unsupported inputs, including fee-bump transactions,
+  preconditions, other source accounts, sponsored signers and Soroban contract
+  accounts, are reported `INCONCLUSIVE`. Reserve sufficiency and other external
+  conditions cannot always be established from the snapshot, even when the
+  verdict is `SAFE WITHIN SCOPE`.
 
 Every report ends with a coverage list stating what was and was not modelled.
 
