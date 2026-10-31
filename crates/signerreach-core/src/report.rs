@@ -30,7 +30,8 @@ pub(crate) const MODELLED: [&str; 7] = [
     "up to 20 additional signers, weights and thresholds from 0 to 255",
 ];
 
-/// What the tool does not model. Each of these gives INCONCLUSIVE, not SAFE.
+/// What the tool does not model. Some are detected and cause INCONCLUSIVE;
+/// others are external assumptions that cannot be checked from these files.
 pub(crate) const NOT_MODELLED: [&str; 9] = [
     "whether anyone holds, or can use, any key",
     "fee-bump transactions and transaction preconditions",
@@ -157,7 +158,7 @@ pub fn text_report(
     }
     put(
         &mut out,
-        "  Not modelled (any of these gives INCONCLUSIVE):",
+        "  Outside this model (recognized unsupported input gives INCONCLUSIVE):",
     );
     for item in NOT_MODELLED {
         put(&mut out, format!("    - {item}"));
@@ -177,8 +178,8 @@ pub(crate) fn header_lines(snapshot: &Snapshot) -> [String; 3] {
             snapshot.provenance().as_of_ledger(),
             snapshot.network().as_str()
         ),
-        "Only the features listed under \"Coverage\" are modelled. Anything else is reported \
-         INCONCLUSIVE."
+        "Only the features listed under \"Coverage\" are modelled. Recognized unsupported \
+         input gives INCONCLUSIVE; external conditions may remain unchecked."
             .to_string(),
     ]
 }
@@ -560,8 +561,8 @@ mod tests {
         );
         assert_eq!(
             all[5],
-            "Only the features listed under \"Coverage\" are modelled. Anything else is \
-             reported INCONCLUSIVE."
+            "Only the features listed under \"Coverage\" are modelled. Recognized unsupported \
+             input gives INCONCLUSIVE; external conditions may remain unchecked."
         );
     }
 
@@ -612,7 +613,7 @@ mod tests {
         assert!(has_line(&text, "Modelled:"));
         assert!(has_line(
             &text,
-            "Not modelled (any of these gives INCONCLUSIVE):"
+            "Outside this model (recognized unsupported input gives INCONCLUSIVE):"
         ));
         assert!(contains(&text, "whether anyone holds, or can use, any key"));
     }

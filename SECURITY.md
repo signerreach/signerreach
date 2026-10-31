@@ -10,9 +10,14 @@ are treated as security problems here.
   under the stated assumptions, administrative access would be lost or the plan
   would be rejected by the network. Please include the evidence that shows
   Stellar behaves differently from the tool, such as a Testnet transaction hash.
-- **Anything that handles a secret.** The tool never needs a private key, seed or
-  signature. Any path that reads, stores, logs or prints one is a bug, as is any
-  message that repeats a value taken from an input document.
+- **A secret exposed by the shipped CLI or the replay harness.** `check` and
+  `fetch` never ask for a private key, seed or signature, and never sign a
+  transaction. The development-only `tools/replay` harness creates temporary
+  Testnet keypairs and signs transactions in memory. It must never print,
+  persist or disclose their secret keys. A report may show validated public
+  account addresses, signer keys, transaction IDs, scenario names and home
+  domains. Error messages must not echo unvalidated document values or file
+  names. Do not put secrets in fields intended for public display.
 - **A crash or unbounded use of memory or time on crafted input.** All input is
   untrusted, and so is everything a server sends to `fetch`.
 - **A `fetch` request that goes somewhere it should not.** It must send only `GET`
@@ -41,18 +46,20 @@ Include:
 - the output you got and the output you expected;
 - the version or commit you ran.
 
-**Never send a private key, a seed or a signature.** None of them is needed.
+**Never send a private key, a seed or a signature.** None of them is needed to
+investigate a report.
 
 ## What to expect
 
-- An acknowledgement within 7 days.
-- An assessment, and updates when something changes.
+- An acknowledgement and assessment on a best-effort basis.
+- Updates when something changes.
 - A fix on a best-effort basis. This is an unfunded open-source project and no
   fixed repair time is promised.
 - Credit in the advisory, unless you prefer not to be named.
 - No payment: there is no bounty programme.
 
-When a fix is released, a security advisory describing the problem is published.
+When a fix is released, the maintainers may publish a security advisory if it
+helps users understand the impact.
 
 ## Supported versions
 

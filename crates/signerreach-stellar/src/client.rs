@@ -154,6 +154,7 @@ pub fn fetch_snapshot(
         as_of_ledger,
         captured_at: &captured_at,
         protocol_version: before.protocol_version,
+        requested_account: Some(account),
     };
     Ok(snapshot_from_account(&reply.body, &context)?)
 }

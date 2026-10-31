@@ -698,12 +698,7 @@ mod tests {
         doc["signers"][0]["note"] = json!("x");
         doc["provenance"]["who"] = json!("x");
         let found = issues(&doc);
-        for location in [
-            "/extra",
-            "/thresholds/top",
-            "/signers/0/note",
-            "/provenance/who",
-        ] {
+        for location in ["", "/thresholds", "/signers/0", "/provenance"] {
             assert!(has(&found, Code::Input01, location), "{location}");
         }
     }

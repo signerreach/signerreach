@@ -6,8 +6,12 @@ still be administered afterwards, under the assumptions you state.
 
 [![CI](https://github.com/signerreach/signerreach/actions/workflows/ci.yml/badge.svg)](https://github.com/signerreach/signerreach/actions/workflows/ci.yml)
 
+[Documentation](docs/README.md) · [Architecture](docs/architecture.md) ·
+[Evidence index](evidence/index.md) · [Security](SECURITY.md) ·
+[Contributing](CONTRIBUTING.md)
+
 > **Status: early and unreleased.** The tool runs end to end and is tested, but
-> it has not been audited and there is no release yet. It cannot know whether
+> it has not been independently audited and there is no release yet. It cannot know whether
 > anyone holds a key. Treat a result as an aid to your own review, not as a
 > guarantee. SignerReach is an independent project, not affiliated with or
 > endorsed by the Stellar Development Foundation.
@@ -44,8 +48,10 @@ It answers one of three things, with the reasoning shown:
 - **`INCONCLUSIVE`**: the result cannot be established from what is declared and
   modelled. This includes any input it does not understand.
 
-It never holds keys, signs, or submits anything. The check makes no network
-connection; only the optional `fetch` command does, and it only reads.
+The shipped `signerreach` binary never holds private signing keys, signs, or
+submits anything. The `check` command makes no network connection; only the
+optional `fetch` command does, and it only reads. The separate development
+replay harness creates temporary Testnet keys to reproduce fixtures.
 
 ## Example
 
@@ -173,19 +179,24 @@ scripts**, with a reproducible trace.
 - A snapshot goes stale. The result applies to the ledger it was read at.
 - Only protocol 29 rules are verified, only `SetOptions` operations, and only
   ed25519 signers on a single classic account.
-- Not modelled, and so reported `INCONCLUSIVE`: fee-bump transactions,
-  preconditions, other source accounts, sponsorship and reserves, and Soroban
-  contract accounts.
+- Recognized unsupported inputs, including fee-bump transactions,
+  preconditions, other source accounts, sponsored signers and Soroban contract
+  accounts, are reported `INCONCLUSIVE`. Reserve sufficiency and other external
+  conditions cannot always be established from the snapshot, even when the
+  verdict is `SAFE WITHIN SCOPE`.
 
 Every report ends with a coverage list stating what was and was not modelled.
 
 ## Project layout
 
+See the [architecture reference](docs/architecture.md) for the crate boundaries,
+trust assumptions and evaluation flow.
+
 | Path | Content |
 |---|---|
 | `crates/signerreach-core` | The evaluation: pure, with no file, clock or network access |
-| `crates/signerreach-stellar` | Turns Horizon data into snapshots; the only code that opens a network connection, and it only reads |
-| `crates/signerreach-cli` | The `signerreach` command; the only code that touches files or the terminal |
+| `crates/signerreach-stellar` | Turns Horizon data into snapshots; the only Rust component that opens a network connection, and it only reads |
+| `crates/signerreach-cli` | The `signerreach` command; the Rust component that touches files or the terminal |
 | `tools/replay` | A Node script that replays the chain fixtures on Testnet; a development tool, not part of the binary |
 | `docs/SPEC.md` | The specification: inputs, rules, verdicts, diagnostic codes |
 | `docs/evidence` | What was observed on a real network |

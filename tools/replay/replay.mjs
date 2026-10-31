@@ -194,7 +194,7 @@ async function submit(server, source, operations, signers) {
     return { status: "accepted", hash: response.hash, ledger: response.ledger };
   } catch (error) {
     const codes = error?.response?.data?.extras?.result_codes;
-    if (!codes) throw new Unusable(`submission failed without a result: ${String(error?.message).slice(0, 120)}`);
+    if (!codes) throw new Unusable("submission failed without a result");
     return { status: "rejected", hash, codes };
   }
 }
@@ -299,8 +299,8 @@ async function main() {
     meta.ledger_at_start = root.history_latest_ledger;
     const fixtureProtocols = [...new Set(fixtures.map((f) => f.snapshot.provenance.protocol_version))];
     meta.fixture_protocols = fixtureProtocols;
-    if (fixtureProtocols.some((p) => p !== meta.protocol)) {
-      log(`note: Testnet is at protocol ${meta.protocol}, the fixtures were written for ${fixtureProtocols.join(", ")}`);
+    if (meta.protocol !== 29 || fixtureProtocols.some((p) => p !== meta.protocol)) {
+      throw new Unusable("live replay requires protocol 29 fixtures on a protocol 29 Testnet");
     }
     log(`Testnet protocol ${meta.protocol}, ${meta.core}, ledger ${meta.ledger_at_start}`);
   }
@@ -330,7 +330,7 @@ main().then(
     process.exitCode = code;
   },
   (error) => {
-    log(`replay: ${error instanceof Unusable ? error.message : `unexpected failure: ${error?.message}`}`);
+    log(`replay: ${error instanceof Unusable ? error.message : "unexpected failure"}`);
     process.exitCode = 2;
   },
 );

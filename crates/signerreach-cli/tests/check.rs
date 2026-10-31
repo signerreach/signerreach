@@ -244,7 +244,26 @@ fn a_missing_file_exits_64_and_says_which() {
     assert_eq!(code(&output), 64);
     assert!(stdout(&output).is_empty());
     let message = stderr(&output);
-    assert!(message.contains("cannot read the snapshot file definitely-not-a-file.json"));
+    assert!(message.contains("cannot read the snapshot file"));
+}
+
+#[test]
+fn a_file_name_is_not_echoed_in_an_error() {
+    let scratch = Scratch::new("path-error");
+    let plan_file = scratch.write("plan.json", &plan(""));
+    let availability_file = scratch.write("availability.json", &availability(&[]));
+    let output = run(&[
+        "check",
+        "--snapshot",
+        "SECRET_MARKER\nnot-a-file",
+        "--plan",
+        &plan_file,
+        "--availability",
+        &availability_file,
+    ]);
+    assert_eq!(code(&output), 64);
+    assert!(!stderr(&output).contains("SECRET_MARKER"));
+    assert!(!stderr(&output).contains("not-a-file"));
 }
 
 #[test]

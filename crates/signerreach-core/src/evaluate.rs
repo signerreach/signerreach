@@ -487,6 +487,10 @@ fn doubt_message(id: &str, doubt: &Doubt) -> String {
             "transaction {id}, operation {operation}: names a source account other than the \
              analysed account"
         ),
+        Doubt::UnmodelledAccountFlags { operation } => format!(
+            "transaction {id}, operation {operation}: changes account flags, but the snapshot \
+             does not record their current state"
+        ),
     }
 }
 

@@ -8,8 +8,8 @@
 //! ([`diagnostic`]), the three input documents ([`input`]), the threshold
 //! rules ([`rules`]), the authorization check ([`authorize`]), applying a
 //! transaction ([`apply`]), the evaluation that produces the verdict
-//! ([`evaluate`]) and the text and JSON reports ([`report`]). The command line
-//! is not implemented yet.
+//! ([`evaluate`]) and the text and JSON reports ([`report`]). The implemented
+//! `check` and `fetch` commands live in `signerreach-cli`.
 
 pub mod account;
 pub mod apply;

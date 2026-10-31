@@ -4,8 +4,7 @@
 //! duplicate keys, then validated field by field so every problem is reported
 //! with its location and a diagnostic code.
 //!
-//! Messages never repeat a value taken from the document, except field names
-//! and public account addresses. A document may contain something that must
+//! Messages never repeat an unvalidated value taken from the document. A document may contain something that must
 //! not be echoed (for example a secret seed pasted into the wrong field).
 
 pub mod availability;
@@ -244,10 +243,9 @@ impl<'a> Obj<'a> {
 
     /// Reports every key that no `field` call asked for.
     pub(crate) fn finish(self, issues: &mut Issues) {
-        for ((name, _), seen) in self.pairs.iter().zip(&self.seen) {
+        for (index, seen) in self.seen.iter().enumerate() {
             if !seen {
-                let shown: String = name.chars().take(40).collect();
-                issues.input(&child(&self.path, name), format!("unknown field `{shown}`"));
+                issues.input(&self.path, format!("unknown field at object entry {index}"));
             }
         }
     }
@@ -352,4 +350,24 @@ pub(crate) fn key_from_text(text: &str, path: &str, issues: &mut Issues) -> Opti
 pub(crate) fn as_key(value: &Json, path: &str, issues: &mut Issues) -> Option<SignerKey> {
     let text = as_str(value, path, issues)?;
     key_from_text(text, path, issues)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::input::plan::parse_plan;
+
+    #[test]
+    fn an_unknown_field_cannot_leak_its_name_or_terminal_controls() {
+        let input = r#"{"schema":"signerreach.plan/1","transactions":[],"SECRET_MARKER\u001b[31m":"value"}"#;
+        let issues = parse_plan(input).expect_err("unknown field");
+        let rendered = issues
+            .iter()
+            .map(ToString::to_string)
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert!(issues.iter().any(|issue| issue.code == Code::Input01));
+        assert!(!rendered.contains("SECRET_MARKER"));
+        assert!(!rendered.contains('\u{1b}'));
+    }
 }

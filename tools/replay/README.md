@@ -5,7 +5,7 @@ Testnet and checks that the network did what each fixture says.
 
 This is a development tool. It signs and submits transactions, which the
 `signerreach` binary never does, so it lives outside the Rust workspace. It is
-not run in CI because it needs the live network.
+not run live in CI because it needs the network. The offline dry run can run in CI.
 
 ## What it does
 
@@ -36,7 +36,8 @@ node replay.mjs --dry-run
 node replay.mjs --out results.json
 ```
 
-- `--dry-run` builds and signs every transaction but sends nothing.
+- `--dry-run` builds and signs every transaction but sends nothing. It does not
+  construct a Horizon client or call Friendbot.
 - `--only TEXT` runs the fixtures whose directory name contains `TEXT`.
 - Exit code 0: every outcome matched. 1: an outcome differed. 2: the run could
   not be completed.
@@ -48,6 +49,10 @@ the `--out` file.
 
 - **It never touches mainnet.** The server address is fixed, and the run stops if
   the server's network passphrase is not Testnet's.
+- **Live replay requires protocol 29.** The script refuses a different live
+  protocol before funding an account or submitting a transaction. The SDK is
+  pinned to 17.3.0, the first published JavaScript SDK release with Protocol 30
+  XDR, but this does not verify SignerReach's Protocol 30 rules.
 - **Secret keys exist only in memory.** They are not written or printed.
 - **It does not tell a rejected transaction from one that failed to apply.**
   Both come back from Horizon as an error with result codes, and the tool
@@ -59,6 +64,7 @@ the `--out` file.
 
 ## When to run it
 
-When Testnet or the network moves to a protocol version other than 29, run it
-again before trusting the checker's rules on that version. The output records the
-protocol version and core version it ran against.
+When Testnet moves past protocol 29, first verify the relevant authorization
+rules against official protocol sources and new network evidence. Then update
+the explicit protocol guard and fixtures before live replay. The historical
+evidence stays unchanged. The output records the protocol and core versions.

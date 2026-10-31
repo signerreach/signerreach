@@ -253,6 +253,48 @@ fn a_good_answer_becomes_a_snapshot_the_checker_accepts() {
 }
 
 #[test]
+fn the_response_must_describe_the_requested_account() {
+    let mut record: serde_json::Value = serde_json::from_str(ACCOUNT_JSON).unwrap();
+    let other = signerreach_core::SignerKey::from_bytes([7; 32]).to_string();
+    let original = account_id();
+    record["id"] = serde_json::json!(other);
+    record["account_id"] = serde_json::json!(other);
+    for signer in record["signers"].as_array_mut().unwrap() {
+        if signer["key"] == original {
+            signer["key"] = serde_json::json!(other);
+        }
+    }
+    let account = Reply::ok(&record.to_string())
+        .header("Latest-Ledger", "5240432")
+        .header("Date", DATE);
+    let server = Server::start(routes(account, vec![testnet_root(29)]));
+    assert!(fetch(&server, &original, &quick()).is_err());
+}
+
+#[test]
+fn contradictory_account_ids_are_refused() {
+    let mut record: serde_json::Value = serde_json::from_str(ACCOUNT_JSON).unwrap();
+    record["account_id"] =
+        serde_json::json!(signerreach_core::SignerKey::from_bytes([7; 32]).to_string());
+    let account = Reply::ok(&record.to_string())
+        .header("Latest-Ledger", "5240432")
+        .header("Date", DATE);
+    let server = Server::start(routes(account, vec![testnet_root(29)]));
+    assert!(fetch(&server, &account_id(), &quick()).is_err());
+}
+
+#[test]
+fn an_account_modified_after_the_claimed_ledger_is_refused() {
+    let mut record: serde_json::Value = serde_json::from_str(ACCOUNT_JSON).unwrap();
+    record["last_modified_ledger"] = serde_json::json!(5_240_433);
+    let account = Reply::ok(&record.to_string())
+        .header("Latest-Ledger", "5240432")
+        .header("Date", DATE);
+    let server = Server::start(routes(account, vec![testnet_root(29)]));
+    assert!(fetch(&server, &account_id(), &quick()).is_err());
+}
+
+#[test]
 fn it_reads_the_root_then_the_account_then_the_root_and_nothing_else() {
     let server = Server::start(routes(good_account(), vec![testnet_root(29)]));
     fetch(&server, &account_id(), &quick()).expect("fetches");

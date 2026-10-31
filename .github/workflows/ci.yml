@@ -55,6 +55,9 @@ jobs:
           cargo --version
       - name: Test
         run: cargo test --workspace --locked
+      - name: Build release binary
+        if: matrix.os == 'ubuntu-latest'
+        run: cargo build --release --locked
 
   # The oldest Rust version the project says it supports. This fails when a
   # change, or a dependency update, needs something newer. The version here must
@@ -77,3 +80,24 @@ jobs:
           cargo --version
       - name: Test
         run: cargo test --workspace --locked
+
+  replay-offline:
+    name: Replay dry run (offline)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Install replay dependencies without scripts
+        working-directory: tools/replay
+        run: npm ci --ignore-scripts
+      - name: Check Node dependencies
+        working-directory: tools/replay
+        run: npm audit --omit=dev
+      - name: Build replay fixtures without network requests
+        working-directory: tools/replay
+        run: node replay.mjs --dry-run > "$RUNNER_TEMP/replay-dry-run.json"

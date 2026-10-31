@@ -1,13 +1,13 @@
 # SignerReach V1 Specification (draft 0.1)
 
 Date: 2026-10-14
-Status: Draft 0.1, accepted as the basis for the V1 implementation. **Nothing described here is implemented yet.** A behaviour in this document counts as delivered only when the matching test in section 10 passes.
+Status as of 2026-10-31: This retains the original Draft 0.1 specification and fixture IDs. The Rust core, read-only Horizon adapter, `check` and `fetch` commands, text and JSON reports, and development Testnet replay harness are implemented and tested. Markdown reports and `signerreach schema KIND` remain planned in issues [#2](https://github.com/signerreach/signerreach/issues/2) and [#1](https://github.com/signerreach/signerreach/issues/1). The project is unreleased and has not been independently audited. Protocol 29 is the verified rules boundary. Sections below describe intended V1 behavior where they differ from the current implementation; the status notes identify those differences.
 
 ---
 
 ## 1. Purpose in one paragraph
 
-SignerReach is an offline command-line checker. Before a person submits a change to the signers or thresholds of a Stellar classic account, it takes a snapshot of the account, an ordered plan of changes, and a declaration of which signers are available, and it answers one question: **after this plan, can the account still be administered, under the stated assumptions?** It answers SAFE WITHIN SCOPE, UNSAFE or INCONCLUSIVE and shows the authorization trace that led to the answer. It never holds keys, signs, or submits anything.
+SignerReach is an offline command-line checker. Before a person submits a change to the signers or thresholds of a Stellar classic account, it takes a snapshot of the account, an ordered plan of changes, and a declaration of which signers are available, and it answers one question: **after this plan, can the account still be administered, under the stated assumptions?** It answers SAFE WITHIN SCOPE, UNSAFE or INCONCLUSIVE and shows the authorization trace that led to the answer. The shipped binary never holds private signing keys, signs, or submits anything. The separate development replay harness generates temporary Testnet keys and submits fixture transactions.
 
 ## 2. What is new compared with what already exists
 
@@ -32,14 +32,14 @@ If any of these cannot be delivered correctly, V1 is reduced, not padded.
 - **Account kind:** one classic account (G address) per run.
 - **Network and rules:** Stellar network at **protocol 29** only (the version on which the rules were verified).
 - **Signer types:** `ed25519` keys, including the account's own master key.
-- **Operations in a plan:** `SetOptions` only. A `SetOptions` is *administrative* when it sets master weight, a threshold, or a signer, and *non-administrative* when it only sets flags, home domain or inflation destination.
+- **Operations in a plan:** `SetOptions` only. A `SetOptions` is *administrative* when it sets master weight, a threshold, or a signer. A home-domain-only or empty `SetOptions` needs MEDIUM authorization. Flag changes cannot be decided from this snapshot format.
 - **Transaction source:** the analysed account itself.
 - **Availability:** each signer is `available`, `lost` or `unknown`. Default is `unknown`.
-- **Outputs:** text, JSON and Markdown reports.
+- **Outputs:** text and JSON reports are implemented. Markdown reporting is planned in issue #2.
 
-### 3.2 Out of scope (always INCONCLUSIVE with a named code)
+### 3.2 Out of scope
 
-Soroban or contract accounts (`C...`), muxed accounts, fee-bump transactions, transaction preconditions beyond what is listed, operation or transaction source accounts other than the analysed account, sponsorship and reserve effects, `pre_auth_tx`, `hash_x` and `ed25519_signed_payload` signers, any operation type other than `SetOptions` (including `AccountMerge`, which needs HIGH but ends the account and is not modelled as a plan step), any protocol other than 29.
+Soroban or contract accounts (`C...`), muxed accounts, fee-bump transactions, transaction preconditions beyond what is listed, operation or transaction source accounts other than the analysed account, account flag changes, sponsorship and reserve effects, `pre_auth_tx`, `hash_x` and `ed25519_signed_payload` signers, any operation type other than `SetOptions` (including `AccountMerge`, which needs HIGH but ends the account and is not modelled as a plan step), any protocol other than 29. Recognized unsupported inputs give `INCONCLUSIVE`. The checker cannot detect every reserve or external state constraint from this snapshot format, so those conditions remain outside a safe verdict's scope.
 
 ### 3.3 Non-goals
 
@@ -110,8 +110,8 @@ All input is untrusted. Files are size-limited (default 1 MiB) and must be UTF-8
 ```
 
 - `transactions` is ordered. Transaction boundaries are preserved exactly as written. A plan that is "the same changes" in one transaction and in two transactions is two different plans.
-- `signed_by` lists the keys that will sign that transaction. It is required because authorization depends on it.
-- A `set_options` operation may carry any of: `master_weight`, `low`, `medium`, `high`, `signer`, `home_domain`, `set_flags`, `clear_flags`. Only `master_weight`, the three thresholds and `signer` change the model; the others are accepted as non-administrative and do not change state.
+- `signed_by` lists the keys whose signatures the submitted transaction is assumed to contain. It is required because authorization depends on it. The checker does not obtain or verify signatures, and does not infer that a signer marked `lost` cannot have signed a pre-signed transaction. The user must confirm the signatures can actually be supplied.
+- A `set_options` operation may carry any of: `master_weight`, `low`, `medium`, `high`, `signer`, `home_domain`, `set_flags`, `clear_flags`. Only `master_weight`, the three thresholds and `signer` change the model. A flag change is parsed but makes the transaction undecidable with `SR-STATE-01`, because the snapshot omits existing account flags. A valid home domain does not change the modeled signer state.
 - `transactions` may be empty. An empty plan is a state-only check of the snapshot.
 - Any other operation type, including `account_merge`, is rejected with `SR-OP-01`.
 - `id` is 1 to 64 characters from letters, digits, `.`, `_` and `-`, and unique within the plan.
@@ -151,11 +151,13 @@ The evaluation is deterministic and has no I/O. Given the same input and rule se
 
 ### 6.1 Step 1: validate
 
-Reject (INCONCLUSIVE) on: unknown fields; weights or thresholds outside 0 to 255; duplicate signer keys; a signer entry with weight 0 (a weight of 0 removes a signer, so it cannot appear in a state); more than 20 additional signers in any state; more than 20 entries in `signed_by`; a signer key equal to the account; a non-G key; missing provenance; protocol other than 29; any item listed in 3.2. Each rejection carries the matching diagnostic code and the exact location in the input.
+Reject (INCONCLUSIVE) on: unknown fields; weights or thresholds outside 0 to 255; duplicate signer keys; a signer entry with weight 0 (a weight of 0 removes a signer, so it cannot appear in a state); more than 20 additional signers in any state; more than 20 entries in `signed_by`; a signer key equal to the account; a non-G key; missing provenance; protocol other than 29; any item listed in 3.2. Each rejection carries a diagnostic code. Known fields have a field path. An unknown field is located by its containing object and entry index, so an unvalidated field name is not echoed.
 
 ### 6.2 Step 2: authorize each transaction (rules R2 to R7)
 
 For transaction *T* against pre-state *S*:
+
+If any operation changes account flags, the transaction is undecidable (`SR-STATE-01`). Stellar can refuse such a change based on flags absent from the snapshot.
 
 1. **Matching.** Each key in `signed_by` is matched to the account's master key (if master weight above 0) or to an additional signer in *S*. A key that matches nothing is *extra* → `SR-TX-01`, transaction rejected.
 2. **Envelope check.** Sum of matched weights (each capped at 255, each key counted once) must be at least `S.low`, and at least one key must match. Otherwise `SR-AUTH-01`.
@@ -199,7 +201,7 @@ MEDIUM unreachable with HIGH reachable is not a failure (HIGH can reset it). It 
 
 ### 6.5 Why the rules are conservative
 
-A false SAFE can cost someone their account. Wherever a rule is not verified, the result is INCONCLUSIVE. An INCONCLUSIVE result is a correct answer.
+A false SAFE can cost someone their account. Recognized unsupported constructs and unverified protocol versions produce INCONCLUSIVE. A result marked SAFE WITHIN SCOPE still depends on the supplied snapshot, real signatures, declared availability, and external conditions such as reserves that this snapshot cannot establish.
 
 ## 7. Diagnostic codes
 
@@ -223,27 +225,29 @@ The proposal book's code names were explicitly "proposals, not an established AP
 | `SR-INPUT-02` | Unsupported account kind (contract, muxed). | INCONCLUSIVE |
 | `SR-FRESH-01` | Snapshot provenance missing (no ledger or network). | INCONCLUSIVE |
 | `SR-RULES-01` | Protocol or rule version not supported. | INCONCLUSIVE |
-| `SR-STATE-01` | Sponsorship or reserve conditions are not modelled. | INCONCLUSIVE |
+| `SR-STATE-01` | An account flag change needs existing flags absent from the snapshot. Sponsorship and reserve conditions are not modelled. | INCONCLUSIVE |
 | `SR-INTENT-01` | Plan declared `irreversible`; presentation only. | none |
 
 ## 8. Output
 
-### 8.1 Fixed header (always printed, never omitted)
+### 8.1 Fixed limitations (valid text and JSON reports)
 
 > Availability is declared by the user. This tool does not and cannot verify that anyone holds any key.
 > The result applies to the account state at ledger N on network X. Authorization happens at apply time against the live state, which may have changed.
-> Only the features listed under "coverage" are modelled. Anything else is reported INCONCLUSIVE.
+> Only the features listed under "coverage" are modelled. Recognized unsupported inputs are reported INCONCLUSIVE.
+
+Rejected-input reports use a shorter form with the `INCONCLUSIVE` verdict and input problems. The text above describes the full report for validated inputs; it is not a literal quote of every output line.
 
 ### 8.2 Sections
 
 1. **Verdict** and the single most important reason in one sentence.
-2. **Provenance:** network, account, ledger, capture time, source, rule version, snapshot age.
+2. **Provenance:** network, account, ledger, capture time, source, protocol version. The tool does not calculate snapshot age.
 3. **Assumptions:** the availability table and scenarios, as given.
 4. **Step trace:** for each transaction, the pre-state, which signatures matched with their weights, the threshold needed per operation, and accepted or rejected.
 5. **Reachability:** LOW, MEDIUM and HIGH for each scenario, with `W_all`, `W_avail`, `W_unk`.
 6. **Diagnostics:** codes with locations.
 7. **Coverage:** what was modelled and what was not.
-8. **Counterexample** for UNSAFE: the smallest declared scenario and signer set that fails.
+8. **Unsafe reason:** the failing transaction or scenario is named with its diagnostic. The tool does not prove a mathematically minimal counterexample.
 
 ### 8.3 Machine-readable output
 
@@ -257,9 +261,9 @@ If `intent` is `irreversible`, the report states "Irreversible administrative st
 
 | Command | Behaviour |
 |---|---|
-| `signerreach check --snapshot S --plan P --availability A` with optional `--format` set to text, json or markdown | Evaluate. Exit code 0 SAFE WITHIN SCOPE, 1 UNSAFE, 2 INCONCLUSIVE, 64 usage error. |
+| `signerreach check --snapshot S --plan P --availability A` with optional `--format` set to text or json | Implemented. Evaluate. Exit code 0 SAFE WITHIN SCOPE, 1 UNSAFE, 2 INCONCLUSIVE, 64 usage error. Markdown is issue #2. |
 | `signerreach fetch --network N --account G` with optional `--horizon-url U` | Read-only. Prints a snapshot with provenance on standard output and writes no file. Reads from the public Horizon server for the network, or from `U` (https, or http for this machine only). Exit code 0 with a snapshot, 64 for bad arguments, 69 if the account could not be read. No write path exists anywhere in the binary. |
-| `signerreach schema KIND` where KIND is snapshot, plan, availability or report | Print the JSON Schema. |
+| `signerreach schema KIND` where KIND is snapshot, plan, availability or report | Planned in issue #1; no command exists yet. |
 
 `check` makes no network calls. `fetch` is the only command that does, and it sends nothing but `GET` requests for the server root and one account. It follows no redirects, uses no proxy, and limits each request to 30 seconds and each answer to 1 MiB.
 
@@ -297,7 +301,7 @@ V1 is accepted only if all of these hold:
 2. A replay of each chain fixture on a fresh Testnet matches the expected outcome, with ledger and hash recorded.
 3. The same input always yields byte-identical JSON output.
 4. The `check` command opens no network connection. This is shown by tests that fail if the core depends on any networking crate, or if the core or the `check` command names networking code (`crates/signerreach-cli/tests/offline.rs`). It is not shown by watching sockets at run time.
-5. No private key, seed or signature is read, stored or logged anywhere.
+5. The shipped CLI needs no private key, seed or signature. The development replay harness uses temporary Testnet keys in memory and does not print or persist their secrets.
 6. Every INCONCLUSIVE path has a test and a named code.
 7. The documentation states the fixed header text and the coverage list.
 8. No claim of audit, adoption, approval or funding appears in any file.
@@ -308,7 +312,7 @@ V1 is accepted only if all of these hold:
 - Compiler, SDK and crate versions are verified on the build date and recorded in the lock file and CI, not copied from this document.
 - Issues are opened only from real, evidenced work.
 - Documentation claims are limited to what is tested. No file may claim audit, adoption, approval or funding.
-- No code path may read, store or log a private key, seed or signature.
+- The shipped CLI must not ask for or disclose private signing material. The replay harness must not print or persist its temporary Testnet secrets.
 
 ## 13. Glossary
 
