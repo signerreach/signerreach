@@ -32,14 +32,14 @@ If any of these cannot be delivered correctly, V1 is reduced, not padded.
 - **Account kind:** one classic account (G address) per run.
 - **Network and rules:** Stellar network at **protocol 29** only (the version on which the rules were verified).
 - **Signer types:** `ed25519` keys, including the account's own master key.
-- **Operations in a plan:** `SetOptions` only. A `SetOptions` is *administrative* when it sets master weight, a threshold, or a signer, and *non-administrative* when it only sets flags, home domain or inflation destination.
+- **Operations in a plan:** `SetOptions` only. A `SetOptions` is *administrative* when it sets master weight, a threshold, or a signer. A home-domain-only or empty `SetOptions` needs MEDIUM authorization. Flag changes cannot be decided from this snapshot format.
 - **Transaction source:** the analysed account itself.
 - **Availability:** each signer is `available`, `lost` or `unknown`. Default is `unknown`.
 - **Outputs:** text, JSON and Markdown reports.
 
 ### 3.2 Out of scope (always INCONCLUSIVE with a named code)
 
-Soroban or contract accounts (`C...`), muxed accounts, fee-bump transactions, transaction preconditions beyond what is listed, operation or transaction source accounts other than the analysed account, sponsorship and reserve effects, `pre_auth_tx`, `hash_x` and `ed25519_signed_payload` signers, any operation type other than `SetOptions` (including `AccountMerge`, which needs HIGH but ends the account and is not modelled as a plan step), any protocol other than 29.
+Soroban or contract accounts (`C...`), muxed accounts, fee-bump transactions, transaction preconditions beyond what is listed, operation or transaction source accounts other than the analysed account, account flag changes, sponsorship and reserve effects, `pre_auth_tx`, `hash_x` and `ed25519_signed_payload` signers, any operation type other than `SetOptions` (including `AccountMerge`, which needs HIGH but ends the account and is not modelled as a plan step), any protocol other than 29.
 
 ### 3.3 Non-goals
 
@@ -111,7 +111,7 @@ All input is untrusted. Files are size-limited (default 1 MiB) and must be UTF-8
 
 - `transactions` is ordered. Transaction boundaries are preserved exactly as written. A plan that is "the same changes" in one transaction and in two transactions is two different plans.
 - `signed_by` lists the keys that will sign that transaction. It is required because authorization depends on it.
-- A `set_options` operation may carry any of: `master_weight`, `low`, `medium`, `high`, `signer`, `home_domain`, `set_flags`, `clear_flags`. Only `master_weight`, the three thresholds and `signer` change the model; the others are accepted as non-administrative and do not change state.
+- A `set_options` operation may carry any of: `master_weight`, `low`, `medium`, `high`, `signer`, `home_domain`, `set_flags`, `clear_flags`. Only `master_weight`, the three thresholds and `signer` change the model. A flag change is parsed but makes the transaction undecidable with `SR-STATE-01`, because the snapshot omits existing account flags. A valid home domain does not change the modeled signer state.
 - `transactions` may be empty. An empty plan is a state-only check of the snapshot.
 - Any other operation type, including `account_merge`, is rejected with `SR-OP-01`.
 - `id` is 1 to 64 characters from letters, digits, `.`, `_` and `-`, and unique within the plan.
@@ -156,6 +156,8 @@ Reject (INCONCLUSIVE) on: unknown fields; weights or thresholds outside 0 to 255
 ### 6.2 Step 2: authorize each transaction (rules R2 to R7)
 
 For transaction *T* against pre-state *S*:
+
+If any operation changes account flags, the transaction is undecidable (`SR-STATE-01`). Stellar can refuse such a change based on flags absent from the snapshot.
 
 1. **Matching.** Each key in `signed_by` is matched to the account's master key (if master weight above 0) or to an additional signer in *S*. A key that matches nothing is *extra* → `SR-TX-01`, transaction rejected.
 2. **Envelope check.** Sum of matched weights (each capped at 255, each key counted once) must be at least `S.low`, and at least one key must match. Otherwise `SR-AUTH-01`.
@@ -223,7 +225,7 @@ The proposal book's code names were explicitly "proposals, not an established AP
 | `SR-INPUT-02` | Unsupported account kind (contract, muxed). | INCONCLUSIVE |
 | `SR-FRESH-01` | Snapshot provenance missing (no ledger or network). | INCONCLUSIVE |
 | `SR-RULES-01` | Protocol or rule version not supported. | INCONCLUSIVE |
-| `SR-STATE-01` | Sponsorship or reserve conditions are not modelled. | INCONCLUSIVE |
+| `SR-STATE-01` | An account flag change needs existing flags absent from the snapshot. Sponsorship and reserve conditions are not modelled. | INCONCLUSIVE |
 | `SR-INTENT-01` | Plan declared `irreversible`; presentation only. | none |
 
 ## 8. Output

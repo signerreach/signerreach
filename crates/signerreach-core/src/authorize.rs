@@ -81,6 +81,12 @@ pub enum Doubt {
         /// The operation, or `None` for the transaction itself.
         operation: Option<usize>,
     },
+    /// Existing account flags are absent from the snapshot, so a flag change
+    /// may fail even when signatures meet the required threshold.
+    UnmodelledAccountFlags {
+        /// The operation that changes flags.
+        operation: usize,
+    },
 }
 
 impl Doubt {
@@ -89,6 +95,7 @@ impl Doubt {
         match self {
             Doubt::UnnecessarySignatures { .. } => Code::Tx02,
             Doubt::ForeignSource { .. } => Code::Tx04,
+            Doubt::UnmodelledAccountFlags { .. } => Code::State01,
         }
     }
 }
@@ -184,7 +191,7 @@ pub fn trace(state: &AccountState, transaction: &PlannedTransaction) -> Trace {
 
 /// Checks a transaction against the state before it.
 pub fn authorize(state: &AccountState, transaction: &PlannedTransaction) -> Authorization {
-    let doubts = foreign_sources(state, transaction);
+    let doubts = unmodelled_conditions(state, transaction);
     if !doubts.is_empty() {
         return Authorization::Undecided(doubts);
     }
@@ -239,7 +246,7 @@ pub fn authorize(state: &AccountState, transaction: &PlannedTransaction) -> Auth
     }
 }
 
-fn foreign_sources(state: &AccountState, transaction: &PlannedTransaction) -> Vec<Doubt> {
+fn unmodelled_conditions(state: &AccountState, transaction: &PlannedTransaction) -> Vec<Doubt> {
     let account = state.account();
     let foreign = |source: Option<SignerKey>| source.is_some_and(|key| key != account);
 
@@ -252,6 +259,9 @@ fn foreign_sources(state: &AccountState, transaction: &PlannedTransaction) -> Ve
             doubts.push(Doubt::ForeignSource {
                 operation: Some(index),
             });
+        }
+        if operation.set_flags().is_some() || operation.clear_flags().is_some() {
+            doubts.push(Doubt::UnmodelledAccountFlags { operation: index });
         }
     }
     doubts
@@ -323,6 +333,16 @@ mod tests {
         let before = state(1, &[(2, 1)], (1, 1, 1));
         let tx = transaction(&[1], vec![json!({ "op": "set_options", "high": 2 })]);
         assert_eq!(authorize(&before, &tx), Authorization::Accepted);
+    }
+
+    #[test]
+    fn flag_changes_cannot_be_decided_without_the_existing_account_flags() {
+        let before = state(1, &[], (1, 1, 1));
+        let tx = transaction(&[1], vec![json!({ "op": "set_options", "set_flags": 1 })]);
+        assert!(matches!(
+            authorize(&before, &tx),
+            Authorization::Undecided(_)
+        ));
     }
 
     #[test]
