@@ -29,15 +29,18 @@ These come from the purpose of the tool and are not negotiable.
 - **When unsure, say so.** Anything the tool does not model must give
   `INCONCLUSIVE`, never `SAFE WITHIN SCOPE`. A result that is too cautious is a
   small bug. A result that is too confident is a serious one.
-- **The core does no input or output.** `signerreach-core` never reads a file,
-  opens a connection or reads the clock. Only `signerreach-cli` touches the
-  file system or the terminal, and only `signerreach-stellar` opens a network
-  connection. That connection only reads, and tests check that the `check`
-  command cannot reach it.
-- **No secrets, ever.** The tool never needs a private key, seed or signature,
-  and must never read, store or print one. Messages must not repeat a value taken
-  from an input document, because it could be something that should not be
-  echoed.
+- **The Rust core does no input or output.** `signerreach-core` never reads a
+  file, opens a connection or reads the clock. In the shipped Rust workspace,
+  only `signerreach-cli` touches files or the terminal, and only
+  `signerreach-stellar` opens a network connection. That connection only reads.
+  Tests check that `check` cannot reach it. The separate replay harness reads
+  fixtures and can submit transactions to Testnet.
+- **Protect secrets.** The shipped CLI needs no private key, seed or signature.
+  The replay harness creates temporary Testnet keys and must never print,
+  persist or disclose their secrets. Reports deliberately display validated
+  public addresses, signer keys, transaction IDs, scenario names and home
+  domains. Errors must not echo unvalidated document values or file names.
+  Never put a secret in a field intended for public display.
 - **Same input, same output.** Reports are reproducible byte for byte. Do not add
   timestamps, random values or unordered maps to output.
 - **No unsafe code.** It is forbidden for the whole workspace.

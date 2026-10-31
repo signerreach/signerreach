@@ -44,8 +44,10 @@ It answers one of three things, with the reasoning shown:
 - **`INCONCLUSIVE`**: the result cannot be established from what is declared and
   modelled. This includes any input it does not understand.
 
-It never holds keys, signs, or submits anything. The check makes no network
-connection; only the optional `fetch` command does, and it only reads.
+The shipped `signerreach` binary never holds private signing keys, signs, or
+submits anything. The `check` command makes no network connection; only the
+optional `fetch` command does, and it only reads. The separate development
+replay harness creates temporary Testnet keys to reproduce fixtures.
 
 ## Example
 

@@ -151,7 +151,7 @@ The evaluation is deterministic and has no I/O. Given the same input and rule se
 
 ### 6.1 Step 1: validate
 
-Reject (INCONCLUSIVE) on: unknown fields; weights or thresholds outside 0 to 255; duplicate signer keys; a signer entry with weight 0 (a weight of 0 removes a signer, so it cannot appear in a state); more than 20 additional signers in any state; more than 20 entries in `signed_by`; a signer key equal to the account; a non-G key; missing provenance; protocol other than 29; any item listed in 3.2. Each rejection carries the matching diagnostic code and the exact location in the input.
+Reject (INCONCLUSIVE) on: unknown fields; weights or thresholds outside 0 to 255; duplicate signer keys; a signer entry with weight 0 (a weight of 0 removes a signer, so it cannot appear in a state); more than 20 additional signers in any state; more than 20 entries in `signed_by`; a signer key equal to the account; a non-G key; missing provenance; protocol other than 29; any item listed in 3.2. Each rejection carries a diagnostic code. Known fields have a field path. An unknown field is located by its containing object and entry index, so an unvalidated field name is not echoed.
 
 ### 6.2 Step 2: authorize each transaction (rules R2 to R7)
 

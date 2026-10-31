@@ -543,8 +543,8 @@ mod tests {
         doc["extra"] = json!(1);
         doc["scenarios"][0]["note"] = json!("x");
         let found = issues(&doc);
-        assert!(has(&found, Code::Input01, "/extra"));
-        assert!(has(&found, Code::Input01, "/scenarios/0/note"));
+        assert!(has(&found, Code::Input01, ""));
+        assert!(has(&found, Code::Input01, "/scenarios/0"));
     }
 
     #[test]

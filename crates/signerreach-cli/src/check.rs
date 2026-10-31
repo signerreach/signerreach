@@ -117,10 +117,7 @@ fn read(path: &Path, label: &str) -> Option<Document> {
     let mut bytes = Vec::new();
     let result = File::open(path).and_then(|file| file.take(limit).read_to_end(&mut bytes));
     if let Err(error) = result {
-        eprintln!(
-            "signerreach: cannot read the {label} file {}: {error}",
-            path.display()
-        );
+        eprintln!("signerreach: cannot read the {label} file: {error}");
         return None;
     }
     if bytes.len() > MAX_INPUT_BYTES {
@@ -129,10 +126,7 @@ fn read(path: &Path, label: &str) -> Option<Document> {
     match String::from_utf8(bytes) {
         Ok(text) => Some(Document::Text(text)),
         Err(_) => {
-            eprintln!(
-                "signerreach: the {label} file {} is not valid UTF-8",
-                path.display()
-            );
+            eprintln!("signerreach: the {label} file is not valid UTF-8");
             None
         }
     }
