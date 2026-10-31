@@ -51,8 +51,13 @@ for example `fx-05b-two-changes-in-two-transactions`.
 does not change `expected.json`, and is used only by `tools/replay`. Its schema
 is `signerreach.replay-after/1`; each ordered attempt has an `id`, an explicit
 `signed_by` list of fixture G addresses, `set_options` operations, and an
-expected stage. A listed signer must be declared `available` by the fixture's
-`availability.json`. Omitted `after.json` means no follow-up attempts.
+expected stage. There may be at most 100 attempts and 100 operations per
+transaction. `home_domain` is limited to 32 UTF-8 bytes. Expected result-code
+names must be known to the pinned Stellar SDK's XDR definitions, and result
+code objects accept only `transaction` and ordered `operations` fields. A
+listed signer must be declared `available` by the fixture's `availability.json`.
+Omitted `after.json` means no follow-up attempts; invalid UTF-8, malformed JSON,
+duplicate keys, or unsupported fields fail validation before replay.
 
 The expected stages are `accepted`, `rejected_at_submission`, and
 `failed_to_apply`. The latter requires ledger history to confirm inclusion and

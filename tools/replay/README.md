@@ -37,7 +37,14 @@ bounded history lookup does not find the hash, and account sequence and
 authorization state remain unchanged. The output labels the number of checks
 and explicitly records that bounded absence is not absolute proof of
 non-inclusion. An unresolved lookup or inconsistent state is `unconfirmed`,
-never a match, and ends the fixture's follow-up sequence. Ordered operation
+never a match, and ends the fixture's follow-up sequence. Only a structured
+HTTP 400 submission result can establish submission rejection; timeouts and
+other HTTP statuses remain uncertain even if their body contains result-code
+fields. When a submit response is uncertain, history is still checked by the
+locally computed transaction hash; only a matching confirmed ledger record can
+establish application. Account-read failures, malformed responses, or failed
+sequence/state reconciliation remain structured `unconfirmed` outcomes and
+leave later attempts `not_run`, with the run exiting 2. Ordered operation
 result codes are compared exactly. New replay output keeps only allowlisted,
 sanitized Horizon response fields, with each retained string capped at 24 KiB.
 
@@ -63,7 +70,7 @@ node replay.mjs --out results.json
   match against network expectations.
 - `--only TEXT` runs the fixtures whose directory name contains `TEXT`.
 - Exit code 0: every outcome matched. 1: an outcome differed. 2: the run could
-  not be completed or a follow-up outcome was unconfirmed/not run.
+  not be completed or an outcome was unconfirmed/not run.
 
 Progress goes to standard error. The results are JSON, on standard output or in
 the `--out` file.

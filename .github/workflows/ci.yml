@@ -98,7 +98,7 @@ jobs:
       - name: Check Node dependencies
         working-directory: tools/replay
         run: npm audit --omit=dev
-      - name: Test replay-only follow-up format and classification
+      - name: Test replay-only follow-up validation and execution
         working-directory: tools/replay
         run: npm test
       - name: Build replay fixtures without network requests

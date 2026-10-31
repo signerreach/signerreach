@@ -7,6 +7,7 @@ import {
   classifyAttemptOutcome,
   classifyLedgerRecord,
   compareResultCodes,
+  parseAfterBytes,
   parseAfterJson,
   sanitizeHorizonResponse,
   validateAfterDocument,
@@ -59,6 +60,24 @@ test("requires exact expected transaction and ordered operation codes for accept
   }), []);
 });
 
+test("rejects result codes that contradict the expected application stage", () => {
+  const value = document();
+  value.attempts[0].expected = {
+    stage: "accepted",
+    result_codes: { transaction: "tx_failed", operations: ["op_bad_auth"] },
+  };
+  const errors = validateAfterDocument(value, { knownAddresses: new Set([account]), isAvailable: () => true });
+  assert.match(errors.join("\n"), /accepted stage requires tx_success/);
+  assert.match(errors.join("\n"), /one op_success per operation/);
+  value.attempts[0].expected = {
+    stage: "failed_to_apply",
+    result_codes: { transaction: "tx_success", operations: ["op_success"] },
+  };
+  assert.match(validateAfterDocument(value, {
+    knownAddresses: new Set([account]), isAvailable: () => true,
+  }).join("\n"), /failed_to_apply stage requires tx_failed/);
+});
+
 test("rejects unavailable, unknown and duplicate signers", () => {
   const value = document();
   value.attempts[0].signed_by = [account, other, other];
@@ -97,11 +116,47 @@ test("rejects unsupported fields, stages and duplicate attempt ids", () => {
   assert.match(errors.join("\n"), /only set_options/);
 });
 
+test("enforces the 100-operation transaction limit", () => {
+  const value = document();
+  value.attempts[0].operations = Array.from({ length: 101 }, () => ({ op: "set_options", high: 0 }));
+  const errors = validateAfterDocument(value, { knownAddresses: new Set([account]), isAvailable: () => true });
+  assert.match(errors.join("\n"), /at most 100 operations/);
+});
+
+test("limits home_domain by UTF-8 bytes rather than JavaScript characters", () => {
+  const value = document();
+  value.attempts[0].operations[0] = { op: "set_options", home_domain: "é".repeat(17) };
+  const errors = validateAfterDocument(value, { knownAddresses: new Set([account]), isAvailable: () => true });
+  assert.match(errors.join("\n"), /at most 32 UTF-8 bytes/);
+});
+
+test("rejects unsupported fields inside expected result codes", () => {
+  const value = document();
+  value.attempts[0].expected.result_codes.extra = "tx_success";
+  const errors = validateAfterDocument(value, { knownAddresses: new Set([account]), isAvailable: () => true });
+  assert.match(errors.join("\n"), /unsupported result-code field/);
+});
+
+test("rejects syntactically shaped but unknown result codes", () => {
+  const value = document();
+  value.attempts[0].expected.result_codes = { transaction: "tx_not_real", operations: ["op_not_real"] };
+  const errors = validateAfterDocument(value, { knownAddresses: new Set([account]), isAvailable: () => true });
+  assert.match(errors.join("\n"), /expected a transaction result code/);
+  assert.match(errors.join("\n"), /ordered array of operation result codes/);
+});
+
 test("malformed JSON is rejected before any replay action", () => {
   assert.deepEqual(parseAfterJson("{", { knownAddresses: new Set(), isAvailable: () => false }), {
     document: null,
     errors: ["$: invalid JSON"],
   });
+});
+
+test("malformed UTF-8 optional files are rejected rather than replacement-decoded", () => {
+  assert.deepEqual(parseAfterBytes(Uint8Array.from([0x7b, 0xff, 0x7d]), {
+    knownAddresses: new Set(),
+    isAvailable: () => false,
+  }), { document: null, errors: ["$: invalid UTF-8"] });
 });
 
 test("duplicate JSON keys are rejected before values are interpreted", () => {

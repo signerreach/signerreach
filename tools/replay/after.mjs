@@ -8,6 +8,26 @@ export const MAX_RAW_FIELD_BYTES = 24 * 1024;
 const stages = new Set(["accepted", "rejected_at_submission", "failed_to_apply"]);
 const idPattern = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 const codePattern = /^[a-z][a-z0-9_]*$/;
+const transactionResultCodes = new Set(Object.entries(xdr.TransactionResultCode.schema)
+  .filter(([name, value]) => name.startsWith("tx") && Number.isInteger(value))
+  .map(([name]) => camelToSnake(name)));
+const operationResultCodes = collectOperationResultCodes();
+
+function collectOperationResultCodes() {
+  const codes = new Set(xdr.OperationResult.schema.cases
+    .filter((entry) => entry.name !== "opInner")
+    .map((entry) => camelToSnake(entry.name)));
+  const inner = xdr.OperationResult.schema.cases.find((entry) => entry.name === "opInner")?.arm.schema;
+  for (const operation of inner?.cases ?? []) {
+    for (const outcome of operation.arm.schema?.cases ?? []) {
+      const prefix = operation.name;
+      const suffix = outcome.name.startsWith(prefix) ? outcome.name.slice(prefix.length) : outcome.name;
+      codes.add(`op_${camelToSnake(suffix)}`);
+    }
+  }
+  codes.add("op_success");
+  return codes;
+}
 
 export function validateAfterDocument(document, { knownAddresses, isAvailable }) {
   const errors = [];
@@ -63,6 +83,7 @@ export function validateAfterDocument(document, { knownAddresses, isAvailable })
     if (!Array.isArray(attempt.operations) || attempt.operations.length === 0) {
       issue(`${path}/operations`, "expected at least one operation");
     } else {
+      if (attempt.operations.length > 100) issue(`${path}/operations`, "at most 100 operations are supported per transaction");
       for (const [opIndex, operation] of attempt.operations.entries()) {
         const opPath = `${path}/operations/${opIndex}`;
         if (!isObject(operation)) {
@@ -88,8 +109,8 @@ export function validateAfterDocument(document, { knownAddresses, isAvailable })
             }
           }
         }
-        if (Object.hasOwn(operation, "home_domain") && (typeof operation.home_domain !== "string" || operation.home_domain.length > 32)) {
-          issue(`${opPath}/home_domain`, "expected a string of at most 32 characters");
+        if (Object.hasOwn(operation, "home_domain") && (typeof operation.home_domain !== "string" || Buffer.byteLength(operation.home_domain, "utf8") > 32)) {
+          issue(`${opPath}/home_domain`, "expected a string of at most 32 UTF-8 bytes");
         }
         const allowed = new Set(["op", "master_weight", "low", "medium", "high", "signer", "home_domain", "set_flags", "clear_flags"]);
         for (const key of Object.keys(operation)) {
@@ -105,21 +126,37 @@ export function validateAfterDocument(document, { knownAddresses, isAvailable })
         if (!["stage", "result_codes"].includes(key)) issue(`${path}/expected/${key}`, "unsupported field for accepted stage");
       }
       validateExpectedCodes(attempt.expected.result_codes, `${path}/expected/result_codes`, issue);
+      if (attempt.expected.result_codes?.transaction !== "tx_success") {
+        issue(`${path}/expected/result_codes/transaction`, "accepted stage requires tx_success");
+      }
+      if (Array.isArray(attempt.expected.result_codes?.operations) &&
+          (attempt.expected.result_codes.operations.length !== attempt.operations?.length ||
+           attempt.expected.result_codes.operations.some((code) => code !== "op_success"))) {
+        issue(`${path}/expected/result_codes/operations`, "accepted stage requires one op_success per operation");
+      }
     } else {
       for (const key of Object.keys(attempt.expected)) {
         if (!["stage", "result_codes"].includes(key)) issue(`${path}/expected/${key}`, "unsupported field");
       }
       validateExpectedCodes(attempt.expected.result_codes, `${path}/expected/result_codes`, issue);
+      if (attempt.expected.stage === "failed_to_apply" && attempt.expected.result_codes?.transaction !== "tx_failed") {
+        issue(`${path}/expected/result_codes/transaction`, "failed_to_apply stage requires tx_failed");
+      }
     }
   }
   return errors;
 }
 
 function validateExpectedCodes(codes, path, issue) {
-  if (!isObject(codes) || typeof codes.transaction !== "string" || !codePattern.test(codes.transaction)) {
+  if (isObject(codes)) {
+    for (const key of Object.keys(codes)) {
+      if (!["transaction", "operations"].includes(key)) issue(`${path}/${key}`, "unsupported result-code field");
+    }
+  }
+  if (!isObject(codes) || typeof codes.transaction !== "string" || !codePattern.test(codes.transaction) || !transactionResultCodes.has(codes.transaction)) {
     issue(path, "expected a transaction result code");
   }
-  if (!isObject(codes) || !Array.isArray(codes.operations) || !codes.operations.every((code) => typeof code === "string" && codePattern.test(code))) {
+  if (!isObject(codes) || !Array.isArray(codes.operations) || !codes.operations.every((code) => typeof code === "string" && codePattern.test(code) && operationResultCodes.has(code))) {
     issue(`${path}/operations`, "expected an ordered array of operation result codes");
   }
 }
@@ -133,6 +170,16 @@ export function parseAfterJson(text, validation) {
   }
   if (hasDuplicateKeys(text)) return { document: null, errors: ["$: duplicate object key"] };
   return { document, errors: validateAfterDocument(document, validation) };
+}
+
+export function parseAfterBytes(bytes, validation) {
+  let text;
+  try {
+    text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return { document: null, errors: ["$: invalid UTF-8"] };
+  }
+  return parseAfterJson(text, validation);
 }
 
 function hasDuplicateKeys(text) {
@@ -264,8 +311,8 @@ export function compareResultCodes(actual, expected) {
 
 export function isResultCodes(value) {
   return Boolean(
-    isObject(value) && typeof value.transaction === "string" && codePattern.test(value.transaction) &&
-    Array.isArray(value.operations) && value.operations.every((code) => typeof code === "string" && codePattern.test(code)),
+    isObject(value) && typeof value.transaction === "string" && codePattern.test(value.transaction) && transactionResultCodes.has(value.transaction) &&
+    Array.isArray(value.operations) && value.operations.every((code) => typeof code === "string" && codePattern.test(code) && operationResultCodes.has(code)),
   );
 }
 
