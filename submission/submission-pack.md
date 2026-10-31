@@ -1,7 +1,8 @@
 # SignerReach submission pack
 
-Prepared for maintainer review on 2026-10-31. This is a draft information pack,
-not a submission, approval request, release announcement or funding claim.
+Prepared for maintainer review and refreshed after the 2026-10-31 merge.
+This is a draft information pack, not a submission, release announcement,
+approval request or funding claim.
 The [readiness audit](../docs/readiness-audit.md) records the remaining gates.
 
 ## Project
@@ -57,11 +58,14 @@ dry run built and signed seven chain fixtures with no submissions; a network
 system-call trace observed no network calls. `cargo audit` and
 `npm audit --omit=dev` reported no known advisories after narrow lockfile
 corrections. The [evidence index](../evidence/index.md) records the exact
-sources and limits. The base `main` commit's [historical CI run](https://github.com/signerreach/signerreach/actions/runs/39461300547)
-passed on 2026-10-20 with 269 Ubuntu tests and its cross-platform jobs. It is
-not evidence that this branch has passed hosted CI. The current review is
-[PR #6](https://github.com/signerreach/signerreach/pull/6) from Hollujay's fork;
-its checks must be inspected on the final branch commit.
+sources and limits. [PR #6](https://github.com/signerreach/signerreach/pull/6)
+from Hollujay's fork merged into upstream `main` as `be8b082e9c6e5dad4be2ab4f9ddd5d353e39e702` on
+2026-10-31. The [post-merge main CI](https://github.com/signerreach/signerreach/actions/runs/41182773470) passed all six
+jobs, including 277 Rust tests, minimum Rust verification, the offline replay
+dry run, formatting/linting, cross-platform tests and the Ubuntu release
+build. The earlier 269-test run on the pre-merge commit remains historical
+evidence, not the current main-branch result. This draft does not claim
+that a subsequent documentation-only PR has passed until its own CI runs.
 
 Real Testnet observations from [2026-10-13](../docs/evidence/testnet-2026-10-13/README.md)
 include accepted changes and rejected follow-up lockout attempts at protocol
