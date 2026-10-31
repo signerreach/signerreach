@@ -59,9 +59,9 @@ system-call trace observed no network calls. `cargo audit` and
 corrections. The [evidence index](../evidence/index.md) records the exact
 sources and limits. The base `main` commit's [historical CI run](https://github.com/signerreach/signerreach/actions/runs/39461300547)
 passed on 2026-10-20 with 269 Ubuntu tests and its cross-platform jobs. It is
-not evidence that this branch has passed hosted CI. [PR #5](https://github.com/signerreach/signerreach/pull/5)
-is waiting for maintainer approval to run its workflow; its new checks have
-not executed on GitHub-hosted CI.
+not evidence that this branch has passed hosted CI. The current review is
+[PR #6](https://github.com/signerreach/signerreach/pull/6) from Hollujay's fork;
+its checks must be inspected on the final branch commit.
 
 Real Testnet observations from [2026-10-13](../docs/evidence/testnet-2026-10-13/README.md)
 include accepted changes and rejected follow-up lockout attempts at protocol
@@ -126,8 +126,7 @@ persist their secrets. This is not an independent security audit.
 Contributor work remains open: [#1 JSON Schema command](https://github.com/signerreach/signerreach/issues/1),
 [#2 Markdown report](https://github.com/signerreach/signerreach/issues/2),
 [#3 follow-up replay format discussion](https://github.com/signerreach/signerreach/issues/3),
-and [#4 Protocol 30 verification](https://github.com/signerreach/signerreach/issues/4).
-No issue has been closed to improve appearances.
+and [#7 Protocol 30 verification](https://github.com/signerreach/signerreach/issues/7).
 
 A coherent first release could contain the implemented `check` and `fetch`
 commands, text and JSON reports, protocol 29 support, fixtures, source
