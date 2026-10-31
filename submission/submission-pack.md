@@ -2,6 +2,7 @@
 
 Prepared for maintainer review on 2026-10-31. This is a draft information pack,
 not a submission, approval request, release announcement or funding claim.
+The [readiness audit](../docs/readiness-audit.md) records the remaining gates.
 
 ## Project
 
@@ -58,7 +59,9 @@ system-call trace observed no network calls. `cargo audit` and
 corrections. The [evidence index](../evidence/index.md) records the exact
 sources and limits. The base `main` commit's [historical CI run](https://github.com/signerreach/signerreach/actions/runs/39461300547)
 passed on 2026-10-20 with 269 Ubuntu tests and its cross-platform jobs. It is
-not evidence that this branch has passed hosted CI.
+not evidence that this branch has passed hosted CI. [PR #5](https://github.com/signerreach/signerreach/pull/5)
+is waiting for maintainer approval to run its workflow; its new checks have
+not executed on GitHub-hosted CI.
 
 Real Testnet observations from [2026-10-13](../docs/evidence/testnet-2026-10-13/README.md)
 include accepted changes and rejected follow-up lockout attempts at protocol

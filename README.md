@@ -11,7 +11,7 @@ still be administered afterwards, under the assumptions you state.
 [Contributing](CONTRIBUTING.md)
 
 > **Status: early and unreleased.** The tool runs end to end and is tested, but
-> it has not been audited and there is no release yet. It cannot know whether
+> it has not been independently audited and there is no release yet. It cannot know whether
 > anyone holds a key. Treat a result as an aid to your own review, not as a
 > guarantee. SignerReach is an independent project, not affiliated with or
 > endorsed by the Stellar Development Foundation.
@@ -195,8 +195,8 @@ trust assumptions and evaluation flow.
 | Path | Content |
 |---|---|
 | `crates/signerreach-core` | The evaluation: pure, with no file, clock or network access |
-| `crates/signerreach-stellar` | Turns Horizon data into snapshots; the only code that opens a network connection, and it only reads |
-| `crates/signerreach-cli` | The `signerreach` command; the only code that touches files or the terminal |
+| `crates/signerreach-stellar` | Turns Horizon data into snapshots; the only Rust component that opens a network connection, and it only reads |
+| `crates/signerreach-cli` | The `signerreach` command; the Rust component that touches files or the terminal |
 | `tools/replay` | A Node script that replays the chain fixtures on Testnet; a development tool, not part of the binary |
 | `docs/SPEC.md` | The specification: inputs, rules, verdicts, diagnostic codes |
 | `docs/evidence` | What was observed on a real network |

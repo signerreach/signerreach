@@ -38,7 +38,7 @@ hosted state. Its version is currently `0.0.0` and it is unreleased.
 
 The supported document identifiers are `signerreach.snapshot/1`,
 `signerreach.plan/1` and `signerreach.availability/1`. Their fields and limits
-are defined in [SPEC.md](SPEC.md#5-input-documents). The CLI caps each file at
+are defined in [SPEC.md](SPEC.md#5-inputs). The CLI caps each file at
 1 MiB. The core rejects malformed JSON, duplicate keys, unknown fields,
 invalid G addresses, out-of-range weights and thresholds, unsupported signer
 types, and unsupported protocol versions. Unknown field names and malformed
