@@ -253,6 +253,20 @@ fn a_good_answer_becomes_a_snapshot_the_checker_accepts() {
 }
 
 #[test]
+fn a_stable_protocol_30_horizon_root_cannot_produce_a_safe_snapshot() {
+    let server = Server::start(routes(good_account(), vec![testnet_root(30)]));
+    let text = fetch(&server, &account_id(), &quick()).expect("fetches provenance");
+
+    let issues = parse_snapshot(&text).expect_err("protocol 30 is unsupported");
+    assert!(
+        issues
+            .iter()
+            .any(|issue| issue.code == signerreach_core::Code::Rules01)
+    );
+    assert_eq!(server.requests().len(), 3);
+}
+
+#[test]
 fn the_response_must_describe_the_requested_account() {
     let mut record: serde_json::Value = serde_json::from_str(ACCOUNT_JSON).unwrap();
     let other = signerreach_core::SignerKey::from_bytes([7; 32]).to_string();
