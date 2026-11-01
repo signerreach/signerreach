@@ -98,6 +98,9 @@ jobs:
       - name: Check Node dependencies
         working-directory: tools/replay
         run: npm audit --omit=dev
+      - name: Test replay-only follow-up validation and execution
+        working-directory: tools/replay
+        run: npm test
       - name: Build replay fixtures without network requests
         working-directory: tools/replay
         run: node replay.mjs --dry-run > "$RUNNER_TEMP/replay-dry-run.json"

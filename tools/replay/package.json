@@ -10,7 +10,8 @@
   },
   "scripts": {
     "dry-run": "node replay.mjs --dry-run",
-    "replay": "node replay.mjs"
+    "replay": "node replay.mjs",
+    "test": "node --test"
   },
   "dependencies": {
     "@stellar/stellar-sdk": "17.3.0"
