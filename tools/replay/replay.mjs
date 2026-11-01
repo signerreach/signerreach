@@ -223,7 +223,7 @@ async function readRoot() {
 }
 
 // Builds, signs and (unless dry) submits one transaction from `source`.
-async function submit(server, source, operations, signers) {
+export async function submit(server, source, operations, signers) {
   let account;
   try {
     account = server ? await server.loadAccount(source.publicKey()) : new Account(source.publicKey(), "0");
@@ -234,14 +234,30 @@ async function submit(server, source, operations, signers) {
       raw_response: { account_read: errorEvidence(error) },
     };
   }
-  const builder = new TransactionBuilder(account, { fee: BASE_FEE, networkPassphrase: Networks.TESTNET });
-  operations.forEach((operation) => builder.addOperation(operation));
-  const transaction = builder.setTimeout(120).build();
-  signers.forEach((keypair) => transaction.sign(keypair));
-  const hash = Buffer.from(transaction.hash()).toString("hex");
+  let transaction;
+  let hash;
+  try {
+    const builder = new TransactionBuilder(account, { fee: BASE_FEE, networkPassphrase: Networks.TESTNET });
+    operations.forEach((operation) => builder.addOperation(operation));
+    transaction = builder.setTimeout(120).build();
+    signers.forEach((keypair) => transaction.sign(keypair));
+    hash = Buffer.from(transaction.hash()).toString("hex");
+  } catch (error) {
+    return {
+      status: "unconfirmed",
+      reason: "transaction_build_failed",
+      raw_response: { transaction_build: errorEvidence(error) },
+    };
+  }
   if (!server) return { status: "not_submitted", hash };
   try {
     const response = await server.submitTransaction(transaction);
+    if (!response || typeof response !== "object" || Array.isArray(response)) return {
+      status: "unconfirmed",
+      hash,
+      reason: "malformed_submission_response",
+      raw_response: { submission: sanitizeHorizonResponse(response) },
+    };
     if (response?.hash !== hash) return {
       status: "unconfirmed",
       hash,
@@ -249,16 +265,27 @@ async function submit(server, source, operations, signers) {
       returned_hash: response?.hash,
       raw_response: { submission: sanitizeHorizonResponse(response) },
     };
+    if (!Number.isSafeInteger(response.ledger) || response.ledger < 1) return {
+      status: "unconfirmed",
+      hash,
+      reason: "malformed_submission_response",
+      raw_response: { submission: sanitizeHorizonResponse(response) },
+    };
     return { status: "accepted", hash: response.hash, ledger: response.ledger };
   } catch (error) {
-    const codes = error?.response?.data?.extras?.result_codes;
-    if (!isResultCodes(codes)) return {
+    const codes = resultCodesFromSubmission(error);
+    if (statusCode(error) !== 400 || !codes) return {
       status: "unconfirmed",
       hash,
       reason: "submission_outcome_unconfirmed",
       raw_response: { submission: errorEvidence(error) },
     };
-    return { status: "rejected", hash, codes };
+    return {
+      status: "rejected",
+      hash,
+      codes,
+      raw_response: { submission: errorEvidence(error) },
+    };
   }
 }
 
@@ -729,7 +756,7 @@ async function checkBuiltState(server, account, snapshot, keys) {
 
 // ------------------------------------------------------------------ replay
 
-async function replay(fixture, server) {
+export async function replay(fixture, server, { fundAccount = fund } = {}) {
   const { name, expected, snapshot, plan } = fixture;
   if (snapshot.network !== "testnet") throw new Unusable(`${name}: the snapshot is not for testnet`);
   const keys = keypairsFor(fixture);
@@ -741,7 +768,7 @@ async function replay(fixture, server) {
   let activeTransaction = null;
 
   try {
-    if (server) await fund(account.publicKey());
+    if (server) await fundAccount(account.publicKey());
 
     activeStage = "setup";
     const setup = setupOperations(snapshot, keys);

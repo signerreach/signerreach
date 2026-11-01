@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { Keypair, xdr } from "@stellar/stellar-sdk";
+import { Account, Keypair, Operation, xdr } from "@stellar/stellar-sdk";
 
-import { replayExitCode, runFollowupAttempts } from "./replay.mjs";
+import { replay, replayExitCode, runFollowupAttempts, submit } from "./replay.mjs";
 
 function accountState(master, additional, sequence = "10", high = 2) {
   return {
@@ -80,6 +80,190 @@ function harness({ loadAccount, submitTransaction, history } = {}) {
 }
 
 const noWait = { sleep: async () => {}, historyChecks: 3, historyCheckDelayMs: 0 };
+const rejectionCodes = { transaction: "tx_failed", operations: ["op_bad_auth"] };
+
+function accountRecord(address, sequence = "1", thresholds = { low: 0, medium: 0, high: 0 }) {
+  const record = new Account(address, sequence);
+  record.thresholds = {
+    low_threshold: thresholds.low,
+    med_threshold: thresholds.medium,
+    high_threshold: thresholds.high,
+  };
+  record.signers = [{ key: address, weight: 1 }];
+  return record;
+}
+
+async function submitWithError(status, data, { transport = false } = {}) {
+  const source = Keypair.random();
+  return submit({
+    loadAccount: async () => new Account(source.publicKey(), "1"),
+    submitTransaction: async () => {
+      if (transport) throw new Error("mock transport failure");
+      throw horizonError(status, data);
+    },
+  }, source, [Operation.setOptions({})], [source]);
+}
+
+async function submitWithResponse(makeResponse) {
+  const source = Keypair.random();
+  return submit({
+    loadAccount: async () => new Account(source.publicKey(), "1"),
+    submitTransaction: async (transaction) => makeResponse(Buffer.from(transaction.hash()).toString("hex")),
+  }, source, [Operation.setOptions({})], [source]);
+}
+
+function chainFixture({ high = 0, expectedTransactions, afterAttempts = [] }) {
+  const symbolicAccount = Keypair.random().publicKey();
+  return {
+    name: "fx-submit-regression",
+    expected: { id: "SUBMIT", transactions: expectedTransactions },
+    snapshot: {
+      network: "testnet",
+      account: symbolicAccount,
+      master_weight: 1,
+      thresholds: { low: 0, medium: 0, high },
+      signers: [],
+    },
+    plan: {
+      transactions: expectedTransactions.map((_, index) => ({
+        id: `planned-${index + 1}`,
+        signed_by: [symbolicAccount],
+        operations: [{ op: "set_options", high: index + 1 }],
+      })),
+    },
+    after: { attempts: afterAttempts },
+  };
+}
+
+function replayServer(submitTransaction) {
+  const calls = { accounts: 0, submissions: 0, fund: 0, hashes: [] };
+  return {
+    calls,
+    server: {
+      async loadAccount(address) {
+        calls.accounts += 1;
+        return accountRecord(address);
+      },
+      async submitTransaction(transaction) {
+        calls.submissions += 1;
+        const hash = Buffer.from(transaction.hash()).toString("hex");
+        calls.hashes.push(hash);
+        return submitTransaction(hash, calls);
+      },
+    },
+  };
+}
+
+function afterAttempt(symbolicAccount) {
+  return {
+    id: "after",
+    signed_by: [symbolicAccount],
+    operations: [{ op: "set_options", high: 0 }],
+    expected: { stage: "rejected_at_submission", result_codes: rejectionCodes },
+  };
+}
+
+test("general submission accepts only HTTP 400 with valid result codes as rejected", async () => {
+  const result = await submitWithError(400, { extras: { result_codes: rejectionCodes } });
+  assert.equal(result.status, "rejected");
+  assert.deepEqual(result.codes, rejectionCodes);
+  assert.equal(result.raw_response.submission.status_code, 400);
+  assert.deepEqual(result.raw_response.submission.response.extras.result_codes, rejectionCodes);
+});
+
+test("general submission keeps non-400 and incomplete errors unconfirmed", async (t) => {
+  for (const status of [429, 500, 503, 504]) {
+    await t.test(`HTTP ${status} with result codes`, async () => {
+      const result = await submitWithError(status, { extras: { result_codes: rejectionCodes } });
+      assert.equal(result.status, "unconfirmed");
+      assert.equal(result.reason, "submission_outcome_unconfirmed");
+      assert.equal(result.raw_response.submission.status_code, status);
+      assert.deepEqual(result.raw_response.submission.response.extras.result_codes, rejectionCodes);
+    });
+  }
+  await t.test("HTTP 400 without result codes", async () => {
+    const result = await submitWithError(400, { title: "Missing result codes" });
+    assert.equal(result.status, "unconfirmed");
+    assert.equal(result.raw_response.submission.status_code, 400);
+  });
+  await t.test("transport failure", async () => {
+    const result = await submitWithError(undefined, undefined, { transport: true });
+    assert.equal(result.status, "unconfirmed");
+    assert.equal(Object.hasOwn(result.raw_response.submission, "status_code"), false);
+  });
+  await t.test("malformed successful response", async () => {
+    const result = await submitWithResponse(() => null);
+    assert.equal(result.status, "unconfirmed");
+    assert.equal(result.reason, "malformed_submission_response");
+  });
+  await t.test("matching hash without a valid ledger", async () => {
+    const result = await submitWithResponse((hash) => ({ hash }));
+    assert.equal(result.status, "unconfirmed");
+    assert.equal(result.reason, "malformed_submission_response");
+    assert.equal(Object.hasOwn(result, "ledger"), false);
+  });
+});
+
+test("HTTP 400 rejection remains a matching planned transaction", async () => {
+  const fixture = chainFixture({ expectedTransactions: ["rejected"] });
+  const mock = replayServer(async () => { throw horizonError(400, { extras: { result_codes: rejectionCodes } }); });
+  const result = await replay(fixture, mock.server, {
+    fundAccount: async () => { mock.calls.fund += 1; },
+  });
+  assert.equal(result.transactions[0].status, "rejected");
+  assert.equal(result.transactions[0].match, true);
+  assert.deepEqual(result.transactions[0].codes, rejectionCodes);
+  assert.equal(result.match, true);
+  assert.equal(replayExitCode([result], []), 0);
+});
+
+test("HTTP 503 planned rejection stays unconfirmed and stops later work", async () => {
+  const fixture = chainFixture({ expectedTransactions: ["rejected", "accepted"] });
+  fixture.after.attempts = [afterAttempt(fixture.snapshot.account)];
+  const mock = replayServer(async () => { throw horizonError(503, { extras: { result_codes: rejectionCodes } }); });
+  const result = await replay(fixture, mock.server, {
+    fundAccount: async () => { mock.calls.fund += 1; },
+  });
+  assert.equal(result.transactions[0].status, "unconfirmed");
+  assert.equal(result.transactions[0].match, null);
+  assert.equal(result.transactions[0].raw_response.submission.status_code, 503);
+  assert.deepEqual(result.transactions[0].raw_response.submission.response.extras.result_codes, rejectionCodes);
+  assert.equal(result.transactions[1].status, "not_run");
+  assert.equal(result.after[0].status, "not_run");
+  assert.equal(mock.calls.submissions, 1);
+  assert.equal(result.match, null);
+  assert.equal(replayExitCode([result], []), 2);
+});
+
+test("missing codes leave a planned transaction unconfirmed and preserve the following work", async () => {
+  const fixture = chainFixture({ expectedTransactions: ["rejected", "accepted"] });
+  fixture.after.attempts = [afterAttempt(fixture.snapshot.account)];
+  const mock = replayServer(async () => { throw horizonError(400, { title: "Missing result codes" }); });
+  const result = await replay(fixture, mock.server, {
+    fundAccount: async () => { mock.calls.fund += 1; },
+  });
+  assert.equal(result.transactions[0].status, "unconfirmed");
+  assert.equal(result.transactions[0].raw_response.submission.status_code, 400);
+  assert.equal(result.transactions[1].status, "not_run");
+  assert.equal(result.after[0].status, "not_run");
+  assert.equal(replayExitCode([result], []), 2);
+});
+
+test("an uncertain setup prevents planned and follow-up submissions", async () => {
+  const fixture = chainFixture({ high: 1, expectedTransactions: ["accepted"] });
+  fixture.after.attempts = [afterAttempt(fixture.snapshot.account)];
+  const mock = replayServer(async () => { throw horizonError(503, { extras: { result_codes: rejectionCodes } }); });
+  const result = await replay(fixture, mock.server, {
+    fundAccount: async () => { mock.calls.fund += 1; },
+  });
+  assert.equal(result.setup.status, "unconfirmed");
+  assert.equal(result.setup.raw_response.submission.status_code, 503);
+  assert.equal(result.transactions[0].status, "not_run");
+  assert.equal(result.after[0].status, "not_run");
+  assert.equal(mock.calls.submissions, 1);
+  assert.equal(result.match, null);
+  assert.equal(replayExitCode([result], []), 2);
+});
 
 test("confirms successful inclusion after delayed history visibility", async () => {
   const h = harness({
