@@ -56,12 +56,14 @@ reserve despite a safe authorization and reachability result. Horizon's
 root/account/root sequence checks network and protocol consistency, but is
 not an atomic ledger snapshot and cannot defeat a stale or dishonest server.
 Protocol 30 has not been verified for this checker. The historic Testnet runs
-were on protocol 29. The replay harness does not repeat the original follow-up
-lockout attempts. These are disclosed scope limits and must be considered when
-using `SAFE WITHIN SCOPE`.
+were on protocol 29. A guarded 2026-11-01 replay repeated the FX-01 master-only
+follow-up rejection, but does not repeat every original follow-up lockout
+attempt. These are disclosed scope limits and must be considered when using
+`SAFE WITHIN SCOPE`.
 
 The Node development harness trusts repository fixtures and does not impose
 the CLI's 1 MiB input cap. A user who places a secret in a field designed for
 public display can expose it in a report or replay result. No user interviews,
-independent security audit, live Protocol 30 test or current live Testnet replay
-was performed here.
+independent security audit, or live Protocol 30 test was performed here; the
+Protocol-29 FX-01 replay is recorded separately in the
+[evidence index](../evidence/index.md).

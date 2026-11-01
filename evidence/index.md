@@ -1,6 +1,6 @@
 # Evidence and claim ledger
 
-Checked 2026-10-31. This is the central index for what the repository can
+Checked 2026-11-01. This is the central index for what the repository can
 support. Historical Testnet observations remain in their original directories.
 `TESTED LOCALLY` means this review ran the named command; it does not imply
 hosted CI or independent audit. `VERIFIED` means a source or observation directly
@@ -16,8 +16,9 @@ gate that has not passed.
 | Protocol 29 `SetOptions` authorization uses LOW for the envelope and the required operation threshold | Stellar Core source and historical Testnet observation | [Specification rules](../docs/SPEC.md#4-verified-rules-this-specification-relies-on), [Stellar Core TransactionFrame](https://github.com/stellar/stellar-core/blob/master/src/transactions/TransactionFrame.cpp), [SetOptionsOpFrame](https://github.com/stellar/stellar-core/blob/master/src/transactions/SetOptionsOpFrame.cpp), [2026-10-13 evidence](../docs/evidence/testnet-2026-10-13/README.md) | 2026-10-31 | VERIFIED for protocol 29 |
 | Operations in one transaction are authorized against pre-transaction state | Protocol source, Testnet cases and fixture tests | [CAP-0002](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0002.md), [Testnet cases 5a and 5b](../docs/evidence/testnet-2026-10-13/README.md#what-the-cases-show), [FX-05a](../fixtures/fx-05a-two-changes-in-one-transaction/expected.json), [FX-05b](../fixtures/fx-05b-two-changes-in-two-transactions/expected.json), [fixture test](../crates/signerreach-cli/tests/fixtures.rs) | 2026-10-31 | VERIFIED for observed protocol 29 cases |
 | Original follow-up lockout attempts were rejected | Historical Testnet observation | [2026-10-13 cases 1b and 3b](../docs/evidence/testnet-2026-10-13/README.md#results), [raw results](../docs/evidence/testnet-2026-10-13/results.json) | 2026-10-31 | VERIFIED historical observation |
+| FX-01's fresh-account master-only follow-up `SetOptions(high=0)` was rejected at submission with `tx_failed` / `op_bad_auth` after the planned raise to HIGH=2 | Protocol 29 Testnet replay and read-only reconciliation | [2026-11-01 FX-01 follow-up record](../docs/evidence/replay-2026-11-01-fx-01-followup/README.md), [raw replay output](../docs/evidence/replay-2026-11-01-fx-01-followup/results.json) | 2026-11-01 | VERIFIED historical observation; Protocol 29 only |
 | Seven chain fixture plans matched a second Testnet replay | Historical Testnet replay | [2026-10-19 replay](../docs/evidence/replay-2026-10-19/README.md), [raw results](../docs/evidence/replay-2026-10-19/results.json) | 2026-10-31 | VERIFIED historical observation |
-| Second replay did not repeat follow-up lockout attempts | Replay scope and issue | [Replay notes](../docs/evidence/replay-2026-10-19/README.md#notes), [issue #3](https://github.com/signerreach/signerreach/issues/3) | 2026-10-31 | KNOWN LIMITATION |
+| Only FX-01 has a repeatable live follow-up replay; other historical follow-up attempts remain unobserved by the new harness | Replay scope and issue | [2026-11-01 FX-01 record](../docs/evidence/replay-2026-11-01-fx-01-followup/README.md#scope-and-reproduction-limits), [2026-10-19 replay notes](../docs/evidence/replay-2026-10-19/README.md#notes), [issue #3](https://github.com/signerreach/signerreach/issues/3) | 2026-11-01 | KNOWN LIMITATION |
 | `check` evaluates files offline, returns documented verdict exit codes and stable reports | Integration and unit tests; local workspace run | [CLI tests](../crates/signerreach-cli/tests/check.rs), [offline tests](../crates/signerreach-cli/tests/offline.rs), [report tests](../crates/signerreach-core/src/report.rs), `cargo test --workspace --locked` passed 277 tests | 2026-10-31 | TESTED LOCALLY |
 | `fetch` makes constrained read-only Horizon requests and rejects contradictory responses | Fake-server tests and source review | [fetch tests](../crates/signerreach-stellar/tests/fetch.rs), [client](../crates/signerreach-stellar/src/client.rs), [mapping](../crates/signerreach-stellar/src/horizon.rs) | 2026-10-31 | TESTED LOCALLY |
 | The Rust workspace builds on Rust 1.87.0 | Local and main CI minimum-toolchain tests | `cargo +1.87.0 test --workspace --locked`; [merged-main CI](https://github.com/signerreach/signerreach/actions/runs/41182773470) | 2026-10-31 | VERIFIED on main at `be8b082` |
@@ -42,7 +43,7 @@ gate that has not passed.
 | [SECURITY.md](../SECURITY.md) and [CONTRIBUTING.md](../CONTRIBUTING.md) distinguish the shipped no-key CLI from the Testnet replay harness | [Rust CLI](../crates/signerreach-cli/src/main.rs), [replay script](../tools/replay/replay.mjs), source review and offline trace | LOGICALLY COVERED; no independent audit | 2026-10-31 |
 | [Architecture](../docs/architecture.md) describes pre-state authorization, scenario evaluation and deterministic output | [authorize](../crates/signerreach-core/src/authorize.rs), [apply](../crates/signerreach-core/src/apply.rs), [evaluate](../crates/signerreach-core/src/evaluate.rs), report tests | TESTED LOCALLY | 2026-10-31 |
 | [Walkthrough](../docs/walkthrough/README.md) shows unsafe and corrected plans | [FX-01 inputs](../fixtures/fx-01-raise-high-with-lost-signer/expected.json), [corrected plan](../docs/walkthrough/corrected-plan.json), real CLI runs in this review; corrected plan itself was not submitted on-chain | TESTED LOCALLY; corrected live behavior UNVERIFIED | 2026-10-31 |
-| [Testnet summaries](../docs/evidence/testnet-2026-10-13/README.md) and [replay summary](../docs/evidence/replay-2026-10-19/README.md) describe observed transactions and their limits | Preserved raw `results.json` files and case scripts in those directories | VERIFIED historical observation; current live compatibility UNVERIFIED | 2026-10-31 |
+| [Testnet summaries](../docs/evidence/testnet-2026-10-13/README.md), [replay summary](../docs/evidence/replay-2026-10-19/README.md) and [FX-01 follow-up replay](../docs/evidence/replay-2026-11-01-fx-01-followup/README.md) describe observed transactions and their limits | Preserved raw `results.json` files and case scripts in those directories | VERIFIED historical observation; current live compatibility UNVERIFIED | 2026-11-01 |
 | [Problem record](../research/problem-validation.md) identifies intended operators and risks | Protocol mechanism and historic cases; no interviews or adoption measurements | LOGICALLY COVERED mechanism; adoption UNVERIFIED | 2026-10-31 |
 | [Submission pack](../submission/submission-pack.md) uses only these sources | This index, source files, local and merged-main verification; [readiness audit](../docs/readiness-audit.md) | VERIFIED as a draft; eligibility and final protection review remain UNVERIFIED | 2026-10-31 |
 
@@ -50,8 +51,9 @@ gate that has not passed.
 
 The 2026-10-13 Testnet record includes follow-up lockout attempts. The
 2026-10-19 replay covers fixture plans and a LOW-threshold probe, and did not
-repeat those follow-ups. Both ran at protocol 29. The corrected walkthrough
-plan has a local checker verdict and supporting mechanism evidence, but no
-live run of that exact plan. No historical transaction hash demonstrates
-Protocol 30 compatibility or a current live account state. No dependency
-scanner result constitutes an independent security audit.
+repeat them. The 2026-11-01 replay repeated FX-01 Case 1b only. All three ran
+at protocol 29. The corrected walkthrough plan has a local checker verdict and
+supporting mechanism evidence, but no live run of that exact plan. No
+historical transaction hash demonstrates Protocol 30 compatibility or a
+current live account state. No dependency scanner result constitutes an
+independent security audit.

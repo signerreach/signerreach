@@ -1,0 +1,129 @@
+{
+  "meta": {
+    "tool": "signerreach-replay/1",
+    "sdk": "17.3.0",
+    "horizon": "https://horizon-testnet.stellar.org",
+    "dry_run": false,
+    "started": "2026-11-01T09:43:56.423Z",
+    "protocol": 29,
+    "core": "stellar-core 30.0.0 (0e49751aa9ddf892302cca02cea7f3f5d97df9f1)",
+    "ledger_at_start": 5500519,
+    "fixture_protocols": [
+      29
+    ],
+    "finished": "2026-11-01T09:44:34.918Z"
+  },
+  "results": [
+    {
+      "fixture": "FX-01",
+      "directory": "fx-01-raise-high-with-lost-signer",
+      "account": "GBPC4G6LJDBXU6CA4APP2DZZXIBULI6ULXKAGE2YTLHS2BFCGIZ67N6O",
+      "transactions": [
+        {
+          "id": "raise-high",
+          "expected": "accepted",
+          "status": "accepted",
+          "hash": "6e0c973269d2a558b9d80a1a826359b6c104f55a78983d35ee4be700ce083e55",
+          "ledger": 5500524,
+          "match": true
+        }
+      ],
+      "after": [
+        {
+          "id": "post-master-alone",
+          "expected": {
+            "stage": "rejected_at_submission",
+            "result_codes": {
+              "transaction": "tx_failed",
+              "operations": [
+                "op_bad_auth"
+              ]
+            }
+          },
+          "status": "rejected_at_submission",
+          "match": true,
+          "hash": "b7952b310286ecf301de92239fe57ea3597057edc57208f3670e44bd1b5f91c2",
+          "history_checks": 5,
+          "sequence_before": "23624557805961218",
+          "sequence_after": "23624557805961218",
+          "authorization_state_before": {
+            "sequence": "23624557805961218",
+            "thresholds": {
+              "low": 1,
+              "medium": 1,
+              "high": 2
+            },
+            "signers": {
+              "GBPC4G6LJDBXU6CA4APP2DZZXIBULI6ULXKAGE2YTLHS2BFCGIZ67N6O": 1,
+              "GDUGHLYZGMEHZTFNESQ6VQSGKBJMS3PRZUFEPVR6VOBYQTNNRA6JROIO": 1
+            }
+          },
+          "authorization_state_after": {
+            "sequence": "23624557805961218",
+            "thresholds": {
+              "low": 1,
+              "medium": 1,
+              "high": 2
+            },
+            "signers": {
+              "GBPC4G6LJDBXU6CA4APP2DZZXIBULI6ULXKAGE2YTLHS2BFCGIZ67N6O": 1,
+              "GDUGHLYZGMEHZTFNESQ6VQSGKBJMS3PRZUFEPVR6VOBYQTNNRA6JROIO": 1
+            }
+          },
+          "result_codes": {
+            "transaction": "tx_failed",
+            "operations": [
+              "op_bad_auth"
+            ]
+          },
+          "non_inclusion_checks": 5,
+          "non_inclusion_is_absolute_proof": false,
+          "raw_response": {
+            "submission": {
+              "status_code": 400,
+              "error_name": "Error",
+              "response": {
+                "type": "https://stellar.org/horizon-errors/transaction_failed",
+                "title": "Transaction Failed",
+                "status": 400,
+                "extras": {
+                  "result_codes": {
+                    "transaction": "tx_failed",
+                    "operations": [
+                      "op_bad_auth"
+                    ]
+                  },
+                  "result_xdr": "AAAAAAAAAGT/////AAAAAf////8AAAAA"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "setup": {
+        "status": "accepted",
+        "hash": "3deb1fd5e13241d8993287be547a43f0b0382f5ebf2423af700cc8279c8e6789",
+        "ledger": 5500523
+      },
+      "after_precondition": {
+        "status": "matched",
+        "expected_sequence": "23624557805961218",
+        "observed_sequence": "23624557805961218",
+        "observed_account_state": {
+          "sequence": "23624557805961218",
+          "thresholds": {
+            "low": 1,
+            "medium": 1,
+            "high": 2
+          },
+          "signers": {
+            "GBPC4G6LJDBXU6CA4APP2DZZXIBULI6ULXKAGE2YTLHS2BFCGIZ67N6O": 1,
+            "GDUGHLYZGMEHZTFNESQ6VQSGKBJMS3PRZUFEPVR6VOBYQTNNRA6JROIO": 1
+          }
+        }
+      },
+      "match": true
+    }
+  ],
+  "differing": []
+}

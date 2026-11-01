@@ -19,7 +19,7 @@ unresolved decision. `BLOCKED` requires an external gate.
 | 2. Research, validation and architecture | No dedicated records | Added [ecosystem research](../research/ecosystem-recon.md), [problem record](../research/problem-validation.md) and [architecture](architecture.md), with official sources and limits. | CONDITIONAL | Adoption, user demand and program eligibility remain unverified. |
 | 3. Core correctness and security | 269 tests in historical CI; security review incomplete | Reproduced local gates, added failing regressions before three corrections, reached 277 passing tests; recorded [security review](security-review.md). | CONDITIONAL | No independent audit or current live Protocol 30 verification. |
 | 4. CI coverage and safety | Rust jobs passed historically; no replay dry run or release build in CI | Added Ubuntu release build and offline replay job; [post-merge CI](https://github.com/signerreach/signerreach/actions/runs/41182773470) passed all six jobs on `be8b082`, including 277 Rust tests and the Ubuntu release build. | PASS | Recheck after any further commit. |
-| 5. Testnet evidence and protocol transition | Two historical protocol 29 records; second replay omitted follow-up attempts | Preserved both records, inspected [issue #3](https://github.com/signerreach/signerreach/issues/3), kept protocol 29 gate, updated replay SDK and added live protocol guard; opened [issue #7](https://github.com/signerreach/signerreach/issues/7). | CONDITIONAL | Protocol 30 rules and live compatibility have not been verified. |
+| 5. Testnet evidence and protocol transition | Two historical protocol 29 records; second replay omitted follow-up attempts | Preserved both records; later captured a guarded [FX-01 follow-up replay](evidence/replay-2026-11-01-fx-01-followup/README.md) after the approved [issue #3](https://github.com/signerreach/signerreach/issues/3) format, while keeping the protocol 29 gate; opened [issue #7](https://github.com/signerreach/signerreach/issues/7). | CONDITIONAL | Protocol 30 rules and live compatibility have not been verified; other historical follow-ups have not been replayed. |
 | 6. Evidence and public claims | No central ledger | Added [evidence and claim ledger](../evidence/index.md) and linked the merged main-branch CI result. | PASS | Update records after protocol verification and any new release. |
 | 7. External documentation experience | README and specification existed without a short route through them | Added [documentation index](README.md), architecture and evidence links; checked 177 Markdown links with zero errors. | PASS | Repository documentation is the review surface; a hosted site is not required. |
 | 8. Identity, issues and release decision | Correct description, Apache-2.0 license and topics; no release | Verified identity, retained issues #1 to #3, added only protocol issue #7, recorded a truthful first release boundary in the [submission pack](../submission/submission-pack.md). | CONDITIONAL | Release remains a maintainer decision; no tag or artifact exists. |
@@ -41,8 +41,8 @@ The original playbook's research and scope phases are represented by the
 research records, specification, and architecture. Its implementation,
 environment, testing, security, CI, documentation, and evidence requirements
 are represented by source, tests, CI, reviews, and the evidence ledger.
-Historical Testnet observations support only protocol 29. Protocol 30 and
-repeatable follow-up replay remain tracked issues. The release, demo,
+Historical Testnet observations support only protocol 29. Protocol 30 and any
+expansion beyond the observed FX-01 follow-up replay remain tracked issues. The release, demo,
 eligibility, submission, and final maintenance phases remain decisions or
 future work, not completed claims. The original playbook's branch-protection
 phase is intentionally moved to the final operational step.
@@ -58,7 +58,7 @@ phase is intentionally moved to the final operational step.
 | 5. Can the examples run? | [Walkthrough](walkthrough/README.md) and [submission commands](../submission/submission-pack.md#reproducible-demonstration) give real unsafe and corrected output. |
 | 6. Where is the design? | [Architecture](architecture.md) shows the CLI, core, adapter and replay tool. |
 | 7. What are its limits? | [Architecture limits](architecture.md#inputs-and-trust-boundaries) and [security review](security-review.md#outstanding-limitations) state the assumptions. |
-| 8. Is there real Testnet evidence? | [Evidence index](../evidence/index.md) links both historical runs and explains their differing coverage. |
+| 8. Is there real Testnet evidence? | [Evidence index](../evidence/index.md) links all three historical records and explains their differing coverage. |
 | 9. Can claims be traced? | [Claim ledger](../evidence/index.md#public-claim-ledger) links public wording to source and tests. |
 | 10. How are security reports handled? | [SECURITY.md](../SECURITY.md) names private reporting; the repository API returned `enabled: true`. |
 | 11. Can someone contribute? | [CONTRIBUTING.md](../CONTRIBUTING.md) gives setup, tests and evidence rules. |
@@ -76,7 +76,7 @@ content remains unchanged.
 - [Main-branch CI](https://github.com/signerreach/signerreach/actions/runs/41182773470): six jobs successful, with 277 Rust tests,
   minimum-Rust testing, offline replay dry run, and Ubuntu release build.
 - Open issues: #1, #2, #3, and #7. No open pull requests at the review time.
-- No new live Testnet transaction or independent audit was performed here.
+- No independent audit or live Protocol 30 transaction was performed here. A subsequent guarded Protocol-29 [FX-01 follow-up replay](evidence/replay-2026-11-01-fx-01-followup/README.md) is recorded separately.
 
 ## Remaining findings
 
@@ -88,12 +88,14 @@ content remains unchanged.
   are corrected in this post-merge documentation change.
 - **C, known limitations:** Only protocol 29 is verified; snapshot freshness,
   key availability, reserve sufficiency, and current live compatibility
-  are not guaranteed. Follow-up lockout replay is incomplete and there is
-  no independent audit or measured adoption.
+  are not guaranteed. FX-01 follow-up replay has been repeated once, but
+  remaining follow-up coverage is incomplete and there is no independent audit
+  or measured adoption.
 - **D, important fix:** This documentation-only correction reconciles
   public readiness records with GitHub's actual merged and tested state.
 - **E, legitimate backlog:** Issues #1 and #2 are contributor enhancements;
-  #3 needs a fixture-format decision; #7 tracks Protocol 30 verification.
+  #3 remains open for maintainer review of the FX-01 follow-up evidence; #7
+  tracks Protocol 30 verification.
 
 ## Release and final decision
 
