@@ -106,14 +106,16 @@ changed to satisfy the checker.
 The replay harness is not linked into the shipped binary. Its dry run builds
 and signs fixture transactions in memory without network requests. Live mode
 uses temporary Testnet keys, Friendbot and Horizon, and refuses any protocol
-other than 29 before funding or submission. It checks plans' own transactions;
-the follow-up lockout attempts in the original 2026-10-13 evidence are not
-replayed by this harness. See [issue #3](https://github.com/signerreach/signerreach/issues/3).
+other than 29 before funding or submission. It checks plans' own transactions
+and, where a fixture supplies an approved `after.json`, its ordered follow-up
+attempts. The 2026-11-01 Protocol-29 run repeated FX-01 Case 1b; it does not
+establish live coverage for the other historical follow-ups. See
+[issue #3](https://github.com/signerreach/signerreach/issues/3).
 
 ## Future work and explicit exclusions
 
-The existing issues cover JSON Schema output, Markdown reports and a proposed
-format for replaying follow-up attempts. None is required to operate the
+The existing issues cover JSON Schema output, Markdown reports and maintainer
+review of the replay-only follow-up evidence. None is required to operate the
 current CLI. Protocol 30 rules need independent verification before the support
 boundary changes. There is no requirement for a frontend, database, API,
 contract, custody path or live replay in ordinary CI.
