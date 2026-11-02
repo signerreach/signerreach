@@ -24,6 +24,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Test documentation checker
+        run: python3 -m unittest discover -s tools/docs -p 'test_*.py'
+
       - name: Check documentation source links
         run: python3 tools/docs/check_book.py book --source-only
 
@@ -38,6 +41,9 @@ jobs:
           tar -xzf "$RUNNER_TEMP/mdbook.tar.gz" -C "$RUNNER_TEMP" mdbook
           "$RUNNER_TEMP/mdbook" --version
           "$RUNNER_TEMP/mdbook" build book
+
+      - name: Test book examples
+        run: "$RUNNER_TEMP/mdbook" test book
 
       - name: Validate generated book and links
         run: python3 tools/docs/check_book.py book
