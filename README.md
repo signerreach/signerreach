@@ -5,10 +5,16 @@ thresholds. Before you submit a change, it tells you whether the account can
 still be administered afterwards, under the assumptions you state.
 
 [![CI](https://github.com/signerreach/signerreach/actions/workflows/ci.yml/badge.svg)](https://github.com/signerreach/signerreach/actions/workflows/ci.yml)
+[![Documentation build](https://github.com/signerreach/signerreach/actions/workflows/docs.yml/badge.svg)](https://github.com/signerreach/signerreach/actions/workflows/docs.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-496c8e)](LICENSE)
+[![Rust 1.87+](https://img.shields.io/badge/Rust-1.87%2B-496c8e)](Cargo.toml)
+[![Verified protocol: 29](https://img.shields.io/badge/verified%20protocol-29-267aa9)](docs/SPEC.md)
 
-[Documentation](docs/README.md) · [Architecture](docs/architecture.md) ·
+[Book source](book/src/index.md) · [Technical documentation](docs/README.md) · [Architecture](docs/architecture.md) ·
 [Evidence index](evidence/index.md) · [Security](SECURITY.md) ·
 [Contributing](CONTRIBUTING.md)
+
+The GitHub Pages book is being prepared. Its public URL will be linked only after Pages deployment succeeds.
 
 > **Status: early and unreleased.** The tool runs end to end and is tested, but
 > it has not been independently audited and there is no release yet. It cannot know whether
@@ -136,6 +142,8 @@ The rules were not assumed. They were read in stellar-core and then observed on
 Testnet at protocol 29: [`docs/evidence/testnet-2026-10-13`](docs/evidence/testnet-2026-10-13/README.md).
 The chain fixtures were replayed on a fresh Testnet on 2026-10-19, and every
 outcome matched: [`docs/evidence/replay-2026-10-19`](docs/evidence/replay-2026-10-19/README.md).
+A new [November 1, 2026 FX-01 follow-up replay](docs/evidence/replay-2026-11-01-fx-01-followup/README.md) confirmed the master-only rejection after raising HIGH to 2. That historical run is Protocol 29 evidence only.
+
 One finding matters most:
 
 > All operations in a transaction are authorized against the account **as it was
