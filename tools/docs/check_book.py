@@ -70,6 +70,50 @@ def check_source(book: Path) -> list[str]:
     return errors
 
 
+def check_generated_links(site: Path, pages: list[Path] | None = None) -> list[str]:
+    """Check generated HTML links and fragments independently of build metadata."""
+    site = site.resolve()
+    pages = (
+        [path.resolve() for path in pages]
+        if pages is not None
+        else sorted(path.resolve() for path in site.rglob("*.html"))
+    )
+    ids_by_page = {
+        page: set(re.findall(r"\bid=[\"']([^\"']+)[\"']", page.read_text(encoding="utf-8")))
+        for page in pages
+    }
+    errors: list[str] = []
+
+    for page in pages:
+        html = page.read_text(encoding="utf-8")
+        parser = Links()
+        parser.feed(html)
+        for raw_target in parser.targets:
+            parsed = urlsplit(raw_target)
+            if parsed.scheme or parsed.netloc:
+                continue
+            rel = unquote(parsed.path)
+            if not rel:
+                candidate = page
+            else:
+                # mdBook uses site-relative links for its 404 handler; other links are page-relative.
+                if rel.startswith("/signerreach/"):
+                    candidate = site / rel.removeprefix("/signerreach/")
+                elif rel.startswith("/"):
+                    continue
+                else:
+                    candidate = page.parent / rel
+                candidate = candidate.resolve()
+                if not candidate.is_relative_to(site) or not candidate.exists():
+                    errors.append(f"{page.relative_to(site)}: broken generated link {raw_target}")
+                    continue
+            if parsed.fragment:
+                fragment = unquote(parsed.fragment)
+                if fragment not in ids_by_page.get(candidate, set()):
+                    errors.append(f"{page.relative_to(site)}: missing anchor {raw_target}")
+    return errors
+
+
 def check_output(book: Path) -> list[str]:
     errors: list[str] = []
     site = book / "site"
@@ -93,37 +137,11 @@ def check_output(book: Path) -> list[str]:
     pages = sorted(site.rglob("*.html"))
     if len(pages) < 7:
         errors.append(f"Expected multiple HTML pages, got {len(pages)}")
-    ids_by_page: dict[Path, set[str]] = {}
     for page in pages:
         html = page.read_text(encoding="utf-8")
-        ids_by_page[page] = set(re.findall(r"\bid=[\"']([^\"']+)[\"']", html))
-        parser = Links()
-        parser.feed(html)
         if 'name="viewport"' not in html and "name='viewport'" not in html:
             errors.append(f"{page.relative_to(site)}: no responsive viewport metadata")
-        for raw_target in parser.targets:
-            parsed = urlsplit(raw_target)
-            if parsed.scheme or parsed.netloc or raw_target.startswith(("#", "data:", "mailto:")):
-                continue
-            rel = unquote(parsed.path)
-            if not rel:
-                candidate = page
-            else:
-                # mdBook uses site-relative links for its 404 handler; other links are page-relative.
-                if rel.startswith("/signerreach/"):
-                    candidate = site / rel.removeprefix("/signerreach/")
-                elif rel.startswith("/"):
-                    continue
-                else:
-                    candidate = page.parent / rel
-                candidate = candidate.resolve()
-                if not candidate.is_relative_to(site.resolve()) or not candidate.exists():
-                    errors.append(f"{page.relative_to(site)}: broken generated link {raw_target}")
-                    continue
-            if parsed.fragment:
-                fragment = unquote(parsed.fragment)
-                if fragment not in ids_by_page.get(candidate, set()):
-                    errors.append(f"{page.relative_to(site)}: missing anchor {raw_target}")
+    errors.extend(check_generated_links(site, pages))
 
     index = (site / "index.html").read_text(encoding="utf-8")
     if 'id="mdbook-sidebar"' not in index:
