@@ -14,9 +14,13 @@ protected environment used by the workflow:
    exposes that environment control.
 
 The workflow's publish job has `contents: write` only after this environment
-gate. The verification and native build jobs have read-only permissions. If
-the environment has no required reviewer, the workflow's confirmation input is
-not a substitute for the required protection configuration.
+gate. The verification and native build jobs have read-only permissions. The
+`PUBLISH v0.1.0` input records operator intent only; it is not an approval and
+is never equivalent to a protected-environment review. GitHub does not expose a
+reliable read-only API signal for all of the environment's required-reviewer
+settings to this workflow, so maintainer verification of the configuration is
+mandatory before the first use and after any environment-policy change. Do not
+run the publication workflow if that protected environment is not configured.
 
 ## Manual publication
 
@@ -37,9 +41,12 @@ annotated `v0.1.0` tag, creates a draft release with nine verified assets, and
 publishes it only after the asset set is complete.
 
 If a pre-publication step fails after this workflow creates a tag or draft
-release, the same job removes the tag and draft release that it created. It
-never overwrites an existing tag or release. A published release is preserved
-for maintainer investigation if the final API response is ambiguous.
+release, cleanup removes only a release whose ID was returned by this run and
+whose current API state is still a draft for the expected tag, plus the tag if
+its annotated object is confirmed to belong to this run and no release lookup
+is public or unresolved. It never overwrites an existing tag or release. A
+published release, a foreign resource, or any ambiguous API response is
+preserved for maintainer investigation.
 
 The published notes retain the Protocol 29-only boundary. They do not claim
 Protocol 30 compatibility, crates.io publication, live Testnet submission or
