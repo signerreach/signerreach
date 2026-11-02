@@ -59,11 +59,20 @@ Testnet submission is part of this release-preparation task.
 ## Candidate artifacts
 
 Native Linux, macOS and Windows packages are produced by the preparation-only
-GitHub Actions workflow. The workflow records the exact source commit, native
-target triple, toolchain versions, archive name and SHA-256 checksum in each
-artifact. These are CI artifacts for review, not GitHub Release assets. They
-must be rebuilt or re-verified from the final approved main commit before
-publication.
+[GitHub Actions run 41431206670](https://github.com/signerreach/signerreach/actions/runs/41431206670).
+That run built the following review-only artifacts from source commit
+`9d7985f6dfec05f92db472de6304212f16ffcc6c`:
+
+| Platform | Target triple | Toolchain | Archive | SHA-256 |
+|---|---|---|---|---|
+| Linux | `x86_64-unknown-linux-gnu` | `rustc 1.99.1 (58cf8f9c3 2026-10-13)` / `cargo 1.99.1 (5f94df478 2026-08-27)` | `signerreach-v0.1.0-x86_64-unknown-linux-gnu.tar.gz` | `188a14b5f3ff65f2e770d56104a96c4b3bb640f27cc6d9a3549e1370e54c15d0` |
+| macOS | `aarch64-apple-darwin` | `rustc 1.99.1 (58cf8f9c3 2026-10-13)` / `cargo 1.99.1 (5f94df478 2026-08-27)` | `signerreach-v0.1.0-aarch64-apple-darwin.tar.gz` | `bfa9e9f48a1f1ab489fad78479e43105cd291092e7797f05aee249bc30f93b43` |
+| Windows | `x86_64-pc-windows-msvc` | `rustc 1.99.1 (58cf8f9c3 2026-10-13)` / `cargo 1.99.1 (5f94df478 2026-08-27)` | `signerreach-v0.1.0-x86_64-pc-windows-msvc.zip` | `d7e043d8eee93e8ace9aa8278897f54fa5303624bdd0c2c7129c6b308bd09d56` |
+
+The manifests and downloaded archives were checked against these values, and
+each package contains only the intended CLI binary, `LICENSE` and `README.md`.
+These are CI artifacts for review, not GitHub Release assets. They must be
+rebuilt or re-verified from the final approved main commit before publication.
 
 ## Publication checklist — maintainer action required
 

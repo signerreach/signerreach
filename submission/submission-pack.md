@@ -16,9 +16,13 @@ does not authorize crates.io publication. Draft notes are in
 The candidate scope is the implemented `check` and `fetch` CLI, text and JSON
 reports, Protocol 29 rules, fixtures, evidence and the development-only replay
 harness. Native Linux, macOS and Windows packages are prepared through a
-review-only CI workflow; their exact source commit, target triples, toolchains
-and checksums must be taken from the completed workflow artifacts. No live
-Testnet submission is part of this preparation.
+review-only CI workflow. [Run 41431206670](https://github.com/signerreach/signerreach/actions/runs/41431206670)
+completed all three native jobs from source commit
+`9d7985f6dfec05f92db472de6304212f16ffcc6c`; its manifests record the exact
+target triples, toolchains and checksums in the [draft release notes](../RELEASE_NOTES_v0.1.0.md#candidate-artifacts).
+These are review artifacts, not release assets, and must be rebuilt from the
+final approved main commit. No live Testnet submission is part of this
+preparation.
 
 ## November 2026 current-state addendum
 
