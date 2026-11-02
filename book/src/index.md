@@ -22,6 +22,6 @@ A classic account has two signers, each with weight 1, and HIGH threshold 1. A p
 
 SignerReach evaluates the plan **in transaction order**, with the declared signer availability, and reports the resulting reachability. It does not sign or submit account changes.
 
-> **Important:** SignerReach is an early, unreleased tool. Its verified authorization model is limited to Stellar **Protocol 29**, one classic G-address account, ed25519 signers, and a subset of `SetOptions`. It has not undergone an independent security audit. A result is evidence for review, not a guarantee.
+> **Important:** SignerReach is in v0.1.0 release-candidate preparation; no tag or GitHub Release has been published. Its verified authorization model is limited to Stellar **Protocol 29**, one classic G-address account, ed25519 signers, and a subset of `SetOptions`. It has not undergone an independent security audit. A result is evidence for review, not a guarantee.
 
 [Read the specification on GitHub](https://github.com/signerreach/signerreach/blob/main/docs/SPEC.md) · [Browse the source](https://github.com/signerreach/signerreach) · [See the evidence ledger](https://github.com/signerreach/signerreach/blob/main/evidence/index.md)

@@ -14,12 +14,14 @@ unresolved decision. `BLOCKED` requires an external gate.
 
 The following updates supersede mutable status statements in the historical review below:
 
-- `main` is `57324abcfe52f331ad28f4d3ab406e21f425edec`; [post-merge CI](https://github.com/signerreach/signerreach/actions/runs/41297086801) completed all six jobs.
+- Upstream `main` is now `15105788b60f8d3d05188cbe0d23d6ad51dbafe6` after the documentation PR was merged. The published mdBook was independently verified at [https://signerreach.github.io/signerreach/](https://signerreach.github.io/signerreach/) with HTTP 200 pages/assets, valid internal links, navigation, search, responsive metadata and light/dark theme assets.
+- The release-preparation branch changes the workspace to `0.1.0` while retaining `publish = false`; no tag, GitHub Release or crates.io publication exists. [Draft v0.1.0 notes](../RELEASE_NOTES_v0.1.0.md) define the candidate boundary and maintainer-only publication checklist.
+
+- `main` was `57324abcfe52f331ad28f4d3ab406e21f425edec` before the documentation merge; the current merged head is `15105788b60f8d3d05188cbe0d23d6ad51dbafe6`.
 - The latest verification recorded 278 Rust tests and 51 replay tests.
 - [PR #12](https://github.com/signerreach/signerreach/pull/12) delivered replay-only `after.json` support. [PR #13](https://github.com/signerreach/signerreach/pull/13) recorded a fresh Protocol 29 FX-01 follow-up rejection.
 - Issue [#3](https://github.com/signerreach/signerreach/issues/3) is closed; issues #1, #2, and #7 remain open.
-- The maintained README and documentation book are being prepared for publication, and GitHub Pages is not yet verified live.
-- No release/tag, Protocol 30 support, or independent security audit is claimed. Detailed branch-protection verification remains the final operational step.
+- The maintained README and documentation book are published; the Pages URL above is verified live. No release/tag, Protocol 30 support, or independent security audit is claimed. Detailed branch-protection verification remains the final operational step.
 
 ## Gap matrix
 
@@ -112,9 +114,9 @@ content remains unchanged.
 
 The implemented `check` and `fetch` commands, text and JSON reports,
 protocol 29 fixtures and documentation are a coherent initial-release
-candidate. The readiness changes are on upstream `main`, with successful
-CI; the workspace remains version `0.0.0` and no release exists.
-An initial release needs maintainer authorization, intentional versioning,
-release notes, and a fresh review of protocol limits. No program application
-has been submitted or its eligibility verified. **CONDITIONALLY READY**
-for the remaining maintainer and program checks, not cleared for submission.
+candidate. The release-preparation branch versions the workspace `0.1.0` and
+retains `publish = false`; no tag or GitHub Release exists. Native artifact
+builds, final CI and maintainer approval remain release gates. No program
+application has been submitted or its eligibility verified. **CONDITIONALLY
+READY** for the remaining maintainer and program checks, not cleared for
+publication or submission.

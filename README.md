@@ -17,11 +17,14 @@ still be administered afterwards, under the assumptions you state.
 
 The primary documentation is the [SignerReach mdBook](https://signerreach.github.io/signerreach/).
 
-> **Status: early and unreleased.** The tool runs end to end and is tested, but
-> it has not been independently audited and there is no release yet. It cannot know whether
+> **Status: v0.1.0 release-candidate preparation.** The tool runs end to end and is tested, but
+> it has not been independently audited and no `v0.1.0` tag or GitHub Release has been published. It cannot know whether
 > anyone holds a key. Treat a result as an aid to your own review, not as a
 > guarantee. SignerReach is an independent project, not affiliated with or
 > endorsed by the Stellar Development Foundation.
+
+The draft [v0.1.0 release notes](RELEASE_NOTES_v0.1.0.md) describe the candidate
+scope, Protocol 29 boundary, evidence and maintainer-only publication checklist.
 
 ## The problem
 
@@ -100,8 +103,8 @@ network evidence behind it and a corrected plan, is in
 
 ## Building
 
-There is no release yet, so build from source. You need Rust 1.87 or later and
-nothing else.
+There is no published release artifact yet, so build the candidate from source.
+You need Rust 1.87 or later and nothing else.
 
 ```bash
 cargo build --release
