@@ -104,3 +104,27 @@ jobs:
       - name: Build replay fixtures without network requests
         working-directory: tools/replay
         run: node replay.mjs --dry-run > "$RUNNER_TEMP/replay-dry-run.json"
+
+  release-tools:
+    name: Release tools and workflow lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Test release tools
+        run: python3 -m unittest discover -s tools/release -p 'test_*.py'
+      - name: Install actionlint 1.7.7
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 3 \
+            --proto '=https' --proto-redir '=https' \
+            --output "$RUNNER_TEMP/actionlint.tar.gz" \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.7/actionlint_1.7.7_linux_amd64.tar.gz
+          echo "023070a287cd8cccd71515fedc843f1985bf96c436b7effaecce67290e7e0757  $RUNNER_TEMP/actionlint.tar.gz" | sha256sum --check -
+          tar -xzf "$RUNNER_TEMP/actionlint.tar.gz" -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" --version
+      - name: Validate GitHub workflows
+        run: "$RUNNER_TEMP/actionlint .github/workflows/*.yml"
