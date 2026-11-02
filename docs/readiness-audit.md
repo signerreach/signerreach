@@ -2,13 +2,24 @@
 
 Original readiness work checked 2026-10-31; post-merge state rechecked the same day.
 [PR #6](https://github.com/signerreach/signerreach/pull/6) merged into upstream `main` at `be8b082e9c6e5dad4be2ab4f9ddd5d353e39e702`, and
-[main CI](https://github.com/signerreach/signerreach/actions/runs/41182773470) completed successfully. This 13-stage matrix
+[main CI](https://github.com/signerreach/signerreach/actions/runs/41182773470) completed successfully. The historical 13-stage matrix
 tracks the maintainer's implementation assignment derived from Playbook v2.0.0;
 its stage numbers are not the playbook's 36 phase numbers. This post-merge
 review also considers applicability of the complete playbook, without claiming
 external project approval or an independent security audit. `PASS` means the
 stated repository work was checked. `CONDITIONAL` preserves a limitation or
 unresolved decision. `BLOCKED` requires an external gate.
+
+## Current-state addendum (2026-11-02)
+
+The following updates supersede mutable status statements in the historical review below:
+
+- `main` is `57324abcfe52f331ad28f4d3ab406e21f425edec`; [post-merge CI](https://github.com/signerreach/signerreach/actions/runs/41297086801) completed all six jobs.
+- The latest verification recorded 278 Rust tests and 51 replay tests.
+- [PR #12](https://github.com/signerreach/signerreach/pull/12) delivered replay-only `after.json` support. [PR #13](https://github.com/signerreach/signerreach/pull/13) recorded a fresh Protocol 29 FX-01 follow-up rejection.
+- Issue [#3](https://github.com/signerreach/signerreach/issues/3) is closed; issues #1, #2, and #7 remain open.
+- The maintained README and documentation book are being prepared for publication, and GitHub Pages is not yet verified live.
+- No release/tag, Protocol 30 support, or independent security audit is claimed. Detailed branch-protection verification remains the final operational step.
 
 ## Gap matrix
 
@@ -22,14 +33,14 @@ unresolved decision. `BLOCKED` requires an external gate.
 | 5. Testnet evidence and protocol transition | Two historical protocol 29 records; second replay omitted follow-up attempts | Preserved both records; later captured a guarded [FX-01 follow-up replay](evidence/replay-2026-11-01-fx-01-followup/README.md) after the approved [issue #3](https://github.com/signerreach/signerreach/issues/3) format, while keeping the protocol 29 gate; opened [issue #7](https://github.com/signerreach/signerreach/issues/7). | CONDITIONAL | Protocol 30 rules and live compatibility have not been verified; other historical follow-ups have not been replayed. |
 | 6. Evidence and public claims | No central ledger | Added [evidence and claim ledger](../evidence/index.md) and linked the merged main-branch CI result. | PASS | Update records after protocol verification and any new release. |
 | 7. External documentation experience | README and specification existed without a short route through them | Added [documentation index](README.md), architecture and evidence links; checked 177 Markdown links with zero errors. | PASS | Repository documentation is the review surface; a hosted site is not required. |
-| 8. Identity, issues and release decision | Correct description, Apache-2.0 license and topics; no release | Verified identity, retained issues #1 to #3, added only protocol issue #7, recorded a truthful first release boundary in the [submission pack](../submission/submission-pack.md). | CONDITIONAL | Release remains a maintainer decision; no tag or artifact exists. |
+| 8. Identity, issues and release decision | Correct description, Apache-2.0 license and topics; no release | Verified identity, retained open issues #1 and #2, closed issue #3 through the replay follow-up work, added only protocol issue #7, and recorded a truthful first release boundary in the [submission pack](../submission/submission-pack.md). | CONDITIONAL | Release remains a maintainer decision; no tag or artifact exists. |
 | 9. Submission pack | Absent | Added a [draft pack](../submission/submission-pack.md) based on the ledger and real CLI output. | PASS | No application submitted. |
 | 10. External reviewer simulation | Not recorded | Walked 12 reviewer questions, corrected stale wording and checked links; readiness changes are now visible on upstream `main`. | CONDITIONAL | Program-specific eligibility and final submission links still need review. |
 | 11. Commit, PR and verification discipline | No readiness branch | Hollujay's focused [PR #6](https://github.com/signerreach/signerreach/pull/6) was merged as `be8b082`; upstream CI passed. | PASS | Keep future corrections in focused PRs and do not bypass protection. |
 | 12. Final audit and freeze | Previously blocked pending PR #6 | Main contains the readiness changes and the main-head CI passed; this post-merge documentation correction removes old blocked claims. | CONDITIONAL | Merge this documentation-only correction, recheck final main, verify current eligibility, and complete submission freeze. |
 | 13. Branch protection, last operational task | Main marked protected; detailed settings inaccessible | Read-only inspection reports main protected, but the integration cannot read required-check/review/bypass details. No policy change was made. | BLOCKED | An authorized maintainer must inspect the actual policy only after every other readiness task is complete. |
 
-Hosting a documentation site is **NOT APPLICABLE** to this CLI workflow.
+Hosting the CLI itself is not applicable. A GitHub Pages documentation book is an optional, now planned presentation and reviewer-readiness improvement.
 A contract, frontend, database, deployed backend, and cross-repository parity are
 also **NOT APPLICABLE** to its current architecture. The maintainer excluded
 Dependabot work from this assessment. Release and submission are maintainer
@@ -62,7 +73,7 @@ phase is intentionally moved to the final operational step.
 | 9. Can claims be traced? | [Claim ledger](../evidence/index.md#public-claim-ledger) links public wording to source and tests. |
 | 10. How are security reports handled? | [SECURITY.md](../SECURITY.md) names private reporting; the repository API returned `enabled: true`. |
 | 11. Can someone contribute? | [CONTRIBUTING.md](../CONTRIBUTING.md) gives setup, tests and evidence rules. |
-| 12. What remains open? | Issues [#1](https://github.com/signerreach/signerreach/issues/1), [#2](https://github.com/signerreach/signerreach/issues/2), [#3](https://github.com/signerreach/signerreach/issues/3) and [#7](https://github.com/signerreach/signerreach/issues/7) remain open. |
+| 12. What remains open? | Issues [#1](https://github.com/signerreach/signerreach/issues/1), [#2](https://github.com/signerreach/signerreach/issues/2) and [#7](https://github.com/signerreach/signerreach/issues/7) remain open; [#3](https://github.com/signerreach/signerreach/issues/3) is closed. |
 
 The local link checker reported 177 checked Markdown links and zero errors
 after two broken SPEC anchors were corrected. This checks reachability and
@@ -75,7 +86,7 @@ content remains unchanged.
 - [PR #6](https://github.com/signerreach/signerreach/pull/6): merged on 2026-10-31.
 - [Main-branch CI](https://github.com/signerreach/signerreach/actions/runs/41182773470): six jobs successful, with 277 Rust tests,
   minimum-Rust testing, offline replay dry run, and Ubuntu release build.
-- Open issues: #1, #2, #3, and #7. No open pull requests at the review time.
+- Open issues: #1, #2, and #7; issue #3 is closed. No open pull requests at the review time.
 - No independent audit or live Protocol 30 transaction was performed here. A subsequent guarded Protocol-29 [FX-01 follow-up replay](evidence/replay-2026-11-01-fx-01-followup/README.md) is recorded separately.
 
 ## Remaining findings
@@ -94,7 +105,7 @@ content remains unchanged.
 - **D, important fix:** This documentation-only correction reconciles
   public readiness records with GitHub's actual merged and tested state.
 - **E, legitimate backlog:** Issues #1 and #2 are contributor enhancements;
-  #3 remains open for maintainer review of the FX-01 follow-up evidence; #7
+  #3 is now closed after FX-01 follow-up verification; #7
   tracks Protocol 30 verification.
 
 ## Release and final decision

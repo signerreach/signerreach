@@ -1,0 +1,98 @@
+/* SignerReach documentation identity. No remotely loaded fonts or assets. */
+:root {
+  --sr-blue: #1470cf;
+  --sr-cyan: #14a6c9;
+  --sr-border: rgba(58, 119, 188, .24);
+}
+.light {
+  --links: #125bb6;
+  --sr-card: #f4f9ff;
+  --sr-text: #17304f;
+}
+.rust, .coal, .navy, .ayu {
+  --links: #69b9ff;
+  --sr-card: #182b43;
+  --sr-text: #e9f5ff;
+}
+#content main {
+  line-height: 1.7;
+}
+#content main h1,
+#content main h2,
+#content main h3 {
+  letter-spacing: -.025em;
+  line-height: 1.2;
+}
+#content main h1 { font-weight: 780; }
+#content main h2 { margin-top: 1.8em; }
+#content main a { text-underline-offset: .18em; }
+#content main a:focus-visible,
+#sidebar a:focus-visible {
+  outline: 3px solid var(--sr-cyan);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+.sr-hero {
+  border: 1px solid var(--sr-border);
+  border-radius: 18px;
+  background: var(--sr-card);
+  padding: 1.7rem 2.2rem;
+  margin: 1.7rem 0 2rem;
+  box-shadow: 0 14px 40px rgba(8, 42, 91, .07);
+}
+.sr-eyebrow {
+  color: var(--links);
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  margin: 0 0 .8rem;
+}
+.sr-headline {
+  color: var(--sr-text);
+  font-size: clamp(1.55rem, 3vw, 2.5rem);
+  font-weight: 790;
+  letter-spacing: -.04em;
+  line-height: 1.16;
+  margin: 0 0 1.1rem;
+  max-width: 24ch;
+}
+.sr-lede {
+  max-width: 65ch;
+  margin: 0 0 1.4rem;
+}
+.sr-pill {
+  display: inline-block;
+  font-size: .77rem;
+  font-weight: 670;
+  padding: .22rem .62rem;
+  margin: .12rem .22rem .12rem 0;
+  border-radius: 99px;
+  border: 1px solid var(--sr-border);
+  color: var(--sr-text);
+}
+#content main table {
+  border-collapse: collapse;
+  overflow-wrap: anywhere;
+}
+#content main th {
+  text-align: left;
+  font-weight: 750;
+}
+#content main th, #content main td { padding: .72rem .85rem; }
+#content main blockquote {
+  border-inline-start: 4px solid var(--sr-cyan);
+  padding: .55rem 1rem;
+}
+#content main pre { border-radius: 10px; }
+@media (max-width: 600px) {
+  .sr-hero { padding: 1.25rem 1rem; border-radius: 12px; }
+  .sr-headline { font-size: 1.55rem; }
+  #content main th, #content main td { padding: .5rem; }
+  #content main table { display: block; max-width: 100%; overflow-x: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #content main *, #content main *::before, #content main *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
