@@ -16,7 +16,7 @@ Quick links: [architecture](architecture.md) · [security policy](../SECURITY.md
 | Why Stellar and how the tool differs | [Ecosystem research](../research/ecosystem-recon.md) |
 | Architecture and trust boundaries | [Architecture](architecture.md) |
 | Supported protocol, networks and exclusions | [Specification, scope](SPEC.md#3-scope) and [architecture limits](architecture.md#future-work-and-explicit-exclusions) |
-| Install and run `check` or `fetch` | [README, building](../README.md#building), [making a snapshot](../README.md#making-a-snapshot), [command reference](SPEC.md#9-command-line) |
+| Install and run `check` or `fetch` | [README, build from source](../README.md#build-from-source), [making a snapshot](../README.md#making-a-snapshot), [command reference](SPEC.md#9-command-line) |
 | Snapshot, plan and availability formats | [Specification, inputs](SPEC.md#5-inputs) and [fixtures](../fixtures/README.md) |
 | Authorization and transaction pre-state semantics | [Specification, verified rules](SPEC.md#4-verified-rules-this-specification-relies-on) and [evaluation](SPEC.md#6-evaluation) |
 | Verdicts, diagnostics and exit codes | [Specification, diagnostics](SPEC.md#7-diagnostic-codes) and [README exit codes](../README.md#exit-codes) |
