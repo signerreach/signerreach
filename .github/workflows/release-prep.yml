@@ -13,6 +13,7 @@ concurrency:
 
 env:
   VERSION: 0.1.0
+  SOURCE_COMMIT: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
 jobs:
   package:
@@ -28,6 +29,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          ref: ${{ env.SOURCE_COMMIT }}
           persist-credentials: false
 
       - name: Install stable Rust
@@ -97,7 +99,7 @@ jobs:
           cat > "$RUNNER_TEMP/$PACKAGE.manifest.json" <<EOF
           {
             "version": "${VERSION}",
-            "source_commit": "${GITHUB_SHA}",
+            "source_commit": "${SOURCE_COMMIT}",
             "runner": "${RUNNER_OS}",
             "target": "${TARGET}",
             "rustc": "${RUSTC_VERSION}",
@@ -122,12 +124,12 @@ jobs:
           Copy-Item target/release/signerreach.exe (Join-Path $root 'signerreach.exe')
           Copy-Item LICENSE, README.md $root
           $archive = Join-Path $env:RUNNER_TEMP "$($env:PACKAGE).zip"
-          Compress-Archive -Path (Join-Path $root '*') -DestinationPath $archive -Force
+          Compress-Archive -Path $root -DestinationPath $archive -Force
           $checksum = (Get-FileHash -Algorithm SHA256 -Path $archive).Hash.ToLowerInvariant()
           "$checksum  $($env:PACKAGE).zip" | Set-Content -Encoding ascii (Join-Path $env:RUNNER_TEMP "$($env:PACKAGE).sha256")
           $manifest = [ordered]@{
             version = $env:VERSION
-            source_commit = $env:GITHUB_SHA
+            source_commit = $env:SOURCE_COMMIT
             runner = $env:RUNNER_OS
             target = $env:TARGET
             rustc = $env:RUSTC_VERSION
