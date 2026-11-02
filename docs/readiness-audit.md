@@ -14,12 +14,15 @@ unresolved decision. `BLOCKED` requires an external gate.
 
 The following updates supersede mutable status statements in the historical review below:
 
-- `main` is `57324abcfe52f331ad28f4d3ab406e21f425edec`; [post-merge CI](https://github.com/signerreach/signerreach/actions/runs/41297086801) completed all six jobs.
+- Upstream `main` is now `15105788b60f8d3d05188cbe0d23d6ad51dbafe6` after the documentation PR was merged. The published mdBook was independently verified at [https://signerreach.github.io/signerreach/](https://signerreach.github.io/signerreach/) with HTTP 200 pages/assets, valid internal links, navigation, search, responsive metadata and light/dark theme assets.
+- The release-preparation branch changes the workspace to `0.1.0` while retaining `publish = false`; no tag, GitHub Release or crates.io publication exists. [Draft v0.1.0 notes](../RELEASE_NOTES_v0.1.0.md) define the candidate boundary and maintainer-only publication checklist.
+- Review-only native candidate artifacts were built successfully in [run 41431206670](https://github.com/signerreach/signerreach/actions/runs/41431206670) from preparation-branch commit `9d7985f6dfec05f92db472de6304212f16ffcc6c`; their exact manifests and checksums are recorded in the draft notes. They are not release assets and must be rebuilt from the final approved main commit.
+
+- `main` was `57324abcfe52f331ad28f4d3ab406e21f425edec` before the documentation merge; the current merged head is `15105788b60f8d3d05188cbe0d23d6ad51dbafe6`.
 - The latest verification recorded 278 Rust tests and 51 replay tests.
 - [PR #12](https://github.com/signerreach/signerreach/pull/12) delivered replay-only `after.json` support. [PR #13](https://github.com/signerreach/signerreach/pull/13) recorded a fresh Protocol 29 FX-01 follow-up rejection.
 - Issue [#3](https://github.com/signerreach/signerreach/issues/3) is closed; issues #1, #2, and #7 remain open.
-- The maintained README and documentation book are being prepared for publication, and GitHub Pages is not yet verified live.
-- No release/tag, Protocol 30 support, or independent security audit is claimed. Detailed branch-protection verification remains the final operational step.
+- The maintained README and documentation book are published; the Pages URL above is verified live. No release/tag, Protocol 30 support, or independent security audit is claimed. Detailed branch-protection verification remains the final operational step.
 
 ## Gap matrix
 
@@ -33,14 +36,15 @@ The following updates supersede mutable status statements in the historical revi
 | 5. Testnet evidence and protocol transition | Two historical protocol 29 records; second replay omitted follow-up attempts | Preserved both records; later captured a guarded [FX-01 follow-up replay](evidence/replay-2026-11-01-fx-01-followup/README.md) after the approved [issue #3](https://github.com/signerreach/signerreach/issues/3) format, while keeping the protocol 29 gate; opened [issue #7](https://github.com/signerreach/signerreach/issues/7). | CONDITIONAL | Protocol 30 rules and live compatibility have not been verified; other historical follow-ups have not been replayed. |
 | 6. Evidence and public claims | No central ledger | Added [evidence and claim ledger](../evidence/index.md) and linked the merged main-branch CI result. | PASS | Update records after protocol verification and any new release. |
 | 7. External documentation experience | README and specification existed without a short route through them | Added [documentation index](README.md), architecture and evidence links; checked 177 Markdown links with zero errors. | PASS | Repository documentation is the review surface; a hosted site is not required. |
-| 8. Identity, issues and release decision | Correct description, Apache-2.0 license and topics; no release | Verified identity, retained open issues #1 and #2, closed issue #3 through the replay follow-up work, added only protocol issue #7, and recorded a truthful first release boundary in the [submission pack](../submission/submission-pack.md). | CONDITIONAL | Release remains a maintainer decision; no tag or artifact exists. |
+| 8. Identity, issues and release decision | Correct description, Apache-2.0 license and topics; no release | Verified identity, retained open issues #1 and #2, closed issue #3 through the replay follow-up work, added only protocol issue #7, and recorded a truthful first release boundary in the [submission pack](../submission/submission-pack.md). Review-only candidate artifacts are now recorded, but no tag or release exists. | CONDITIONAL | Release remains a maintainer decision; candidate artifacts must be rebuilt from the final approved main commit. |
 | 9. Submission pack | Absent | Added a [draft pack](../submission/submission-pack.md) based on the ledger and real CLI output. | PASS | No application submitted. |
 | 10. External reviewer simulation | Not recorded | Walked 12 reviewer questions, corrected stale wording and checked links; readiness changes are now visible on upstream `main`. | CONDITIONAL | Program-specific eligibility and final submission links still need review. |
 | 11. Commit, PR and verification discipline | No readiness branch | Hollujay's focused [PR #6](https://github.com/signerreach/signerreach/pull/6) was merged as `be8b082`; upstream CI passed. | PASS | Keep future corrections in focused PRs and do not bypass protection. |
 | 12. Final audit and freeze | Previously blocked pending PR #6 | Main contains the readiness changes and the main-head CI passed; this post-merge documentation correction removes old blocked claims. | CONDITIONAL | Merge this documentation-only correction, recheck final main, verify current eligibility, and complete submission freeze. |
 | 13. Branch protection, last operational task | Main marked protected; detailed settings inaccessible | Read-only inspection reports main protected, but the integration cannot read required-check/review/bypass details. No policy change was made. | BLOCKED | An authorized maintainer must inspect the actual policy only after every other readiness task is complete. |
 
-Hosting the CLI itself is not applicable. A GitHub Pages documentation book is an optional, now planned presentation and reviewer-readiness improvement.
+Hosting the CLI itself is not applicable. The GitHub Pages documentation book is
+published and verified at the URL recorded in the current-state addendum.
 A contract, frontend, database, deployed backend, and cross-repository parity are
 also **NOT APPLICABLE** to its current architecture. The maintainer excluded
 Dependabot work from this assessment. Release and submission are maintainer
@@ -112,9 +116,9 @@ content remains unchanged.
 
 The implemented `check` and `fetch` commands, text and JSON reports,
 protocol 29 fixtures and documentation are a coherent initial-release
-candidate. The readiness changes are on upstream `main`, with successful
-CI; the workspace remains version `0.0.0` and no release exists.
-An initial release needs maintainer authorization, intentional versioning,
-release notes, and a fresh review of protocol limits. No program application
-has been submitted or its eligibility verified. **CONDITIONALLY READY**
-for the remaining maintainer and program checks, not cleared for submission.
+candidate. The release-preparation branch versions the workspace `0.1.0` and
+retains `publish = false`; no tag or GitHub Release exists. Native artifact
+builds, final CI and maintainer approval remain release gates. No program
+application has been submitted or its eligibility verified. **CONDITIONALLY
+READY** for the remaining maintainer and program checks, not cleared for
+publication or submission.

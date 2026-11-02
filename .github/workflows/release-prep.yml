@@ -1,0 +1,149 @@
+name: Release candidate artifacts
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: signerreach-release-prep-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VERSION: 0.1.0
+  SOURCE_COMMIT: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  package:
+    name: Package (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: ${{ env.SOURCE_COMMIT }}
+          persist-credentials: false
+
+      - name: Install stable Rust
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+
+      - name: Verify candidate version
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_id="$(cargo pkgid -p signerreach-cli)"
+          case "$package_id" in
+            *"#${VERSION}") ;;
+            *)
+              echo "expected signerreach-cli ${VERSION}, got ${package_id}" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Capture native target and toolchain
+        id: metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$(rustc -vV | awk '$1 == "host:" {print $2}')"
+          case "${RUNNER_OS}:${target}" in
+            Linux:*-unknown-linux-gnu) ;;
+            macOS:*-apple-darwin) ;;
+            Windows:*-windows-msvc) ;;
+            *)
+              echo "runner is not using an expected native target: ${RUNNER_OS} ${target}" >&2
+              exit 1
+              ;;
+          esac
+          echo "target=${target}" >> "$GITHUB_OUTPUT"
+          echo "package=signerreach-v${VERSION}-${target}" >> "$GITHUB_OUTPUT"
+          echo "rustc=$(rustc --version)" >> "$GITHUB_OUTPUT"
+          echo "cargo=$(cargo --version)" >> "$GITHUB_OUTPUT"
+          rustc --version --verbose
+          cargo --version --verbose
+
+      - name: Build release binary
+        run: cargo build --release --locked
+
+      - name: Package Unix archive
+        id: package-unix
+        if: runner.os != 'Windows'
+        shell: bash
+        env:
+          TARGET: ${{ steps.metadata.outputs.target }}
+          PACKAGE: ${{ steps.metadata.outputs.package }}
+          RUSTC_VERSION: ${{ steps.metadata.outputs.rustc }}
+          CARGO_VERSION: ${{ steps.metadata.outputs.cargo }}
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/$PACKAGE"
+          mkdir -p "$root"
+          cp target/release/signerreach "$root/signerreach"
+          cp LICENSE README.md "$root/"
+          archive="$RUNNER_TEMP/$PACKAGE.tar.gz"
+          tar -C "$RUNNER_TEMP" -czf "$archive" "$PACKAGE"
+          checksum="$(sha256sum "$archive" | awk '{print $1}')"
+          printf '%s  %s\n' "$checksum" "$(basename "$archive")" > "$RUNNER_TEMP/$PACKAGE.sha256"
+          cat > "$RUNNER_TEMP/$PACKAGE.manifest.json" <<EOF
+          {
+            "version": "${VERSION}",
+            "source_commit": "${SOURCE_COMMIT}",
+            "runner": "${RUNNER_OS}",
+            "target": "${TARGET}",
+            "rustc": "${RUSTC_VERSION}",
+            "cargo": "${CARGO_VERSION}",
+            "archive": "$(basename "$archive")",
+            "sha256": "${checksum}"
+          }
+          EOF
+
+      - name: Package Windows archive
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          TARGET: ${{ steps.metadata.outputs.target }}
+          PACKAGE: ${{ steps.metadata.outputs.package }}
+          RUSTC_VERSION: ${{ steps.metadata.outputs.rustc }}
+          CARGO_VERSION: ${{ steps.metadata.outputs.cargo }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP $env:PACKAGE
+          New-Item -ItemType Directory -Force -Path $root | Out-Null
+          Copy-Item target/release/signerreach.exe (Join-Path $root 'signerreach.exe')
+          Copy-Item LICENSE, README.md $root
+          $archive = Join-Path $env:RUNNER_TEMP "$($env:PACKAGE).zip"
+          Compress-Archive -Path $root -DestinationPath $archive -Force
+          $checksum = (Get-FileHash -Algorithm SHA256 -Path $archive).Hash.ToLowerInvariant()
+          "$checksum  $($env:PACKAGE).zip" | Set-Content -Encoding ascii (Join-Path $env:RUNNER_TEMP "$($env:PACKAGE).sha256")
+          $manifest = [ordered]@{
+            version = $env:VERSION
+            source_commit = $env:SOURCE_COMMIT
+            runner = $env:RUNNER_OS
+            target = $env:TARGET
+            rustc = $env:RUSTC_VERSION
+            cargo = $env:CARGO_VERSION
+            archive = "$($env:PACKAGE).zip"
+            sha256 = $checksum
+          }
+          $manifest | ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $env:RUNNER_TEMP "$($env:PACKAGE).manifest.json")
+
+      # This workflow creates review artifacts only. It never creates a tag or release.
+      - name: Upload candidate package and manifest
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ${{ steps.metadata.outputs.package }}
+          path: ${{ runner.temp }}/${{ steps.metadata.outputs.package }}.*
+          if-no-files-found: error
+          retention-days: 14

@@ -1,13 +1,32 @@
 # SignerReach submission pack
 
-Prepared for maintainer review. Updated 2026-11-02 with the merged FX-01 follow-up evidence and current repository status.
+Prepared for maintainer review. Updated 2026-11-02 for v0.1.0 release preparation.
 This is a draft information pack, not a submission, release announcement,
 approval request or funding claim.
 The [readiness audit](../docs/readiness-audit.md) records the remaining gates.
 
+## v0.1.0 release-preparation addendum
+
+The Rust workspace is now versioned `0.1.0`, with `publish = false` retained
+and all internal crate requirements and `Cargo.lock` aligned. This branch
+prepares a release candidate; it has not created a tag or GitHub Release and
+does not authorize crates.io publication. Draft notes are in
+[`RELEASE_NOTES_v0.1.0.md`](../RELEASE_NOTES_v0.1.0.md).
+
+The candidate scope is the implemented `check` and `fetch` CLI, text and JSON
+reports, Protocol 29 rules, fixtures, evidence and the development-only replay
+harness. Native Linux, macOS and Windows packages are prepared through a
+review-only CI workflow. [Run 41431206670](https://github.com/signerreach/signerreach/actions/runs/41431206670)
+completed all three native jobs from source commit
+`9d7985f6dfec05f92db472de6304212f16ffcc6c`; its manifests record the exact
+target triples, toolchains and checksums in the [draft release notes](../RELEASE_NOTES_v0.1.0.md#candidate-artifacts).
+These are review artifacts, not release assets, and must be rebuilt from the
+final approved main commit. No live Testnet submission is part of this
+preparation.
+
 ## November 2026 current-state addendum
 
-PRs [#12](https://github.com/signerreach/signerreach/pull/12) and [#13](https://github.com/signerreach/signerreach/pull/13) are merged. [Main CI run 41297086801](https://github.com/signerreach/signerreach/actions/runs/41297086801) passed all six jobs on `57324abcfe52f331ad28f4d3ab406e21f425edec`. The latest evidence PR reported 278 Rust tests and 51 Node replay tests. Initial follow-up scope issue [#3](https://github.com/signerreach/signerreach/issues/3) is closed. [The November 1 FX-01 replay](../docs/evidence/replay-2026-11-01-fx-01-followup/README.md) observed a new Protocol 29 submission rejection with `tx_failed` / `op_bad_auth`; it does not verify Protocol 30. The older October tests and CI details below remain historical observations, not current-head claims. The mdBook website and initial release remain preparatory, not yet published.
+PRs [#12](https://github.com/signerreach/signerreach/pull/12), [#13](https://github.com/signerreach/signerreach/pull/13) and the documentation PR [#15](https://github.com/signerreach/signerreach/pull/15) are merged. The current main before this preparation branch is `15105788b60f8d3d05188cbe0d23d6ad51dbafe6`; its Pages documentation is published at [signerreach.github.io/signerreach](https://signerreach.github.io/signerreach/). The latest evidence PR reported 278 Rust tests and 51 Node replay tests. Initial follow-up scope issue [#3](https://github.com/signerreach/signerreach/issues/3) is closed. [The November 1 FX-01 replay](../docs/evidence/replay-2026-11-01-fx-01-followup/README.md) observed a new Protocol 29 submission rejection with `tx_failed` / `op_bad_auth`; it does not verify Protocol 30. The older October tests and CI details below remain historical observations, not current-head claims. The v0.1.0 release and its tag remain preparatory, not published.
 
 ## Project
 
@@ -44,8 +63,9 @@ link the protocol sources and observations.
   plans on Testnet. Its dry run builds and signs without network requests.
 
 The shipped binary never holds private signing keys or submits transactions.
-There is no hosted app, smart contract, API server, database or release.
-Workspace version remains `0.0.0`.
+There is no hosted app, smart contract, API server or published release.
+Workspace version is `0.1.0` on this preparation branch, with crates.io
+publication still disabled.
 
 ## Supported scope and evidence
 
@@ -133,11 +153,11 @@ persist their secrets. This is not an independent security audit.
 
 Contributor work remains open: [#1 JSON Schema command](https://github.com/signerreach/signerreach/issues/1), [#2 Markdown report](https://github.com/signerreach/signerreach/issues/2), and [#7 Protocol 30 verification](https://github.com/signerreach/signerreach/issues/7). The initial follow-up replay scope in [#3](https://github.com/signerreach/signerreach/issues/3) is closed.
 
-A coherent first release could contain the implemented `check` and `fetch`
+A coherent first release contains the implemented `check` and `fetch`
 commands, text and JSON reports, protocol 29 support, fixtures, source
-documentation and the stated limitations. It would require an intentional
-version, release build, current CI, release notes and maintainer authorization.
-No tag or release has been created. The current
+documentation and the stated limitations. It requires reviewed native release
+artifacts, current CI, release notes and maintainer authorization. No tag or
+GitHub Release has been created. The current
 [SCF Build Award information](https://communityfund.stellar.org/awards)
 lists tracks, but this project's eligibility and any application choice remain
 unverified. No application has been submitted and no approval or funding is
