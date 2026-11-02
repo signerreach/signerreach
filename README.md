@@ -5,16 +5,17 @@ thresholds. Before you submit a change, it tells you whether the account can
 still be administered afterwards, under the assumptions you state.
 
 [![CI](https://github.com/signerreach/signerreach/actions/workflows/ci.yml/badge.svg)](https://github.com/signerreach/signerreach/actions/workflows/ci.yml)
-[![Documentation build](https://github.com/signerreach/signerreach/actions/workflows/docs.yml/badge.svg)](https://github.com/signerreach/signerreach/actions/workflows/docs.yml)
+[![Documentation build](https://github.com/signerreach/signerreach/actions/workflows/docs.yml/badge.svg)](https://signerreach.github.io/signerreach/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-496c8e)](LICENSE)
 [![Rust 1.87+](https://img.shields.io/badge/Rust-1.87%2B-496c8e)](Cargo.toml)
 [![Verified protocol: 29](https://img.shields.io/badge/verified%20protocol-29-267aa9)](docs/SPEC.md)
 
-[Book source](book/src/index.md) · [Technical documentation](docs/README.md) · [Architecture](docs/architecture.md) ·
+[Documentation book](https://signerreach.github.io/signerreach/) · [Book source](book/src/index.md) ·
+[Technical documentation](docs/README.md) · [Architecture](docs/architecture.md) ·
 [Evidence index](evidence/index.md) · [Security](SECURITY.md) ·
 [Contributing](CONTRIBUTING.md)
 
-The GitHub Pages book is being prepared. Its public URL will be linked only after Pages deployment succeeds.
+The primary documentation is the [SignerReach mdBook](https://signerreach.github.io/signerreach/).
 
 > **Status: early and unreleased.** The tool runs end to end and is tested, but
 > it has not been independently audited and there is no release yet. It cannot know whether
