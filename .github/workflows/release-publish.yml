@@ -123,6 +123,7 @@ jobs:
             "Minimum Rust version"
             "Replay dry run (offline)"
             "Book build"
+            "Release tools and workflow lint"
           )
           for check in "${required_checks[@]}"; do
             result="$(jq -r --arg name "$check" '
@@ -334,24 +335,165 @@ jobs:
           release_id=""
           published=false
 
+          api_get() {
+            local endpoint="$1"
+            local output="$2"
+            if ! API_STATUS="$(curl --silent --show-error --retry 3 --retry-all-errors \
+              --proto '=https' --proto-redir '=https' \
+              -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              --output "$output" --write-out '%{http_code}' \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/${endpoint}")"; then
+              API_STATUS="000"
+            fi
+          }
+
+          api_delete() {
+            local endpoint="$1"
+            if ! API_STATUS="$(curl --silent --show-error --retry 3 --retry-all-errors \
+              --proto '=https' --proto-redir '=https' \
+              -X DELETE \
+              -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              --output /dev/null --write-out '%{http_code}' \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/${endpoint}")"; then
+              API_STATUS="000"
+            fi
+          }
+
           cleanup() {
             exit_code=$?
             if [[ "$exit_code" -ne 0 && "$published" != true ]]; then
-              if [[ -z "$release_id" ]]; then
-                release_id="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.id' 2>/dev/null || true)"
-              fi
+              cleanup_state="$RUNNER_TEMP/cleanup-state.json"
+              tag_response="$RUNNER_TEMP/cleanup-tag.json"
+              release_response="$RUNNER_TEMP/cleanup-release.json"
+              tag_state="unknown"
+              tag_sha=""
+              tag_type=""
+              release_state="unknown"
+              observed_release_id=""
+              observed_release_tag=""
+
+              api_get "git/ref/tags/${TAG}" "$tag_response"
+              case "$API_STATUS" in
+                200)
+                  if tag_sha="$(jq -r '.object.sha // empty' "$tag_response" 2>/dev/null)" \
+                    && tag_type="$(jq -r '.object.type // empty' "$tag_response" 2>/dev/null)" \
+                    && [[ -n "$tag_sha" && -n "$tag_type" ]]; then
+                    tag_state="found"
+                  fi
+                  ;;
+                404) tag_state="absent" ;;
+              esac
+
               if [[ -n "$release_id" ]]; then
-                release_state="$(gh api "repos/${GITHUB_REPOSITORY}/releases/${release_id}" --jq '[.draft, .tag_name] | @tsv' 2>/dev/null || true)"
-                if [[ "$release_state" == $'true\t'"$TAG" ]]; then
-                  gh api --method DELETE "repos/${GITHUB_REPOSITORY}/releases/${release_id}" >/dev/null || true
-                elif [[ "$release_state" == $'false\t'"$TAG" ]]; then
-                  published=true
+                api_get "releases/${release_id}" "$release_response"
+                case "$API_STATUS" in
+                  200)
+                    if observed_release_id="$(jq -r '.id // empty' "$release_response" 2>/dev/null)" \
+                      && observed_release_tag="$(jq -r '.tag_name // empty' "$release_response" 2>/dev/null)" \
+                      && [[ "$observed_release_id" == "$release_id" && "$observed_release_tag" == "$TAG" ]]; then
+                      if jq -e '.draft == true' "$release_response" >/dev/null 2>&1; then
+                        release_state="draft"
+                      elif jq -e '.draft == false' "$release_response" >/dev/null 2>&1; then
+                        release_state="published"
+                      fi
+                    else
+                      release_state="foreign"
+                    fi
+                    ;;
+                  404) release_state="absent" ;;
+                esac
+              else
+                # A successful lookup by tag is never owned by this run because
+                # this run has no confirmed release ID. It is preserved.
+                api_get "releases/tags/${TAG}" "$release_response"
+                case "$API_STATUS" in
+                  200) release_state="foreign" ;;
+                  404) release_state="absent" ;;
+                esac
+              fi
+
+              jq -n \
+                --arg tag_name "$TAG" \
+                --arg owned_tag_object_sha "$tag_object_sha" \
+                --arg owned_release_id "$release_id" \
+                --arg tag_state "$tag_state" \
+                --arg tag_sha "$tag_sha" \
+                --arg tag_type "$tag_type" \
+                --arg release_state "$release_state" \
+                --arg observed_release_id "$observed_release_id" \
+                --arg observed_release_tag "$observed_release_tag" \
+                '{tag_name: $tag_name, owned_tag_object_sha: $owned_tag_object_sha,
+                  owned_release_id: $owned_release_id,
+                  tag: {state: $tag_state, object_sha: $tag_sha, object_type: $tag_type},
+                  release: {state: $release_state, id: $observed_release_id,
+                            tag_name: $observed_release_tag}}' > "$cleanup_state"
+              cleanup_plan="$(python3 tools/release/release_cleanup.py "$cleanup_state")"
+              delete_release="$(jq -r '.delete_release' <<<"$cleanup_plan")"
+              delete_tag="$(jq -r '.delete_tag' <<<"$cleanup_plan")"
+              echo "cleanup decision: $(jq -r '.reason' <<<"$cleanup_plan")"
+
+              if [[ "$delete_release" == true ]]; then
+                # Reconfirm the release immediately before deletion. A public
+                # or otherwise unresolved response always wins over cleanup.
+                api_get "releases/${release_id}" "$release_response"
+                if [[ "$API_STATUS" != 200 ]] \
+                  || ! jq -e --arg id "$release_id" --arg tag "$TAG" \
+                    '.id == ($id | tonumber) and .tag_name == $tag and .draft == true' \
+                    "$release_response" >/dev/null 2>&1; then
+                  echo "release ownership/draft state changed or is unresolved; preserving release and tag" >&2
+                  delete_release=false
+                  delete_tag=false
                 fi
               fi
-              if [[ -n "$tag_object_sha" ]]; then
-                current_tag_object="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" --jq '.object.sha' 2>/dev/null || true)"
-                if [[ "$current_tag_object" == "$tag_object_sha" ]]; then
-                  gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/${TAG}" >/dev/null || true
+
+              if [[ "$delete_release" == true ]]; then
+                api_delete "releases/${release_id}"
+                case "$API_STATUS" in
+                  204|404) echo "deleted confirmed workflow-owned draft release ${release_id}" ;;
+                  *)
+                    echo "release deletion was ambiguous (${API_STATUS}); preserving release and tag" >&2
+                    delete_tag=false
+                    ;;
+                esac
+              fi
+
+              if [[ "$delete_tag" == true ]]; then
+                # A release created by another process could have appeared
+                # after the first lookup. Do not remove a tag while any
+                # release lookup is public or unresolved.
+                api_get "releases/tags/${TAG}" "$release_response"
+                case "$API_STATUS" in
+                  404) ;;
+                  200)
+                    echo "a release still references ${TAG}; preserving tag" >&2
+                    delete_tag=false
+                    ;;
+                  *)
+                    echo "release lookup for ${TAG} was ambiguous; preserving tag" >&2
+                    delete_tag=false
+                    ;;
+                esac
+              fi
+
+              if [[ "$delete_tag" == true ]]; then
+                # Re-read the tag after any release deletion. An unknown or
+                # changed response never authorizes deleting a tag.
+                api_get "git/ref/tags/${TAG}" "$tag_response"
+                if [[ "$API_STATUS" == 200 ]] \
+                  && current_tag_object="$(jq -r '.object.sha // empty' "$tag_response" 2>/dev/null)" \
+                  && current_tag_type="$(jq -r '.object.type // empty' "$tag_response" 2>/dev/null)" \
+                  && [[ "$current_tag_object" == "$tag_object_sha" && "$current_tag_type" == tag ]]; then
+                  api_delete "git/refs/tags/${TAG}"
+                  case "$API_STATUS" in
+                    204|404) echo "deleted confirmed workflow-owned tag ${TAG}" ;;
+                    *) echo "tag deletion was ambiguous (${API_STATUS}); preserving tag" >&2 ;;
+                  esac
+                else
+                  echo "tag ownership could not be reconfirmed; preserving tag" >&2
                 fi
               fi
             fi
@@ -387,14 +529,25 @@ jobs:
           for asset in "${assets[@]}"; do
             gh release upload "$TAG" "$asset" --repo "$GITHUB_REPOSITORY"
           done
-          expected_names="$RUNNER_TEMP/expected-assets.txt"
-          printf '%s\n' "${assets[@]##*/}" | sort > "$expected_names"
-          gh api "repos/${GITHUB_REPOSITORY}/releases/${release_id}/assets?per_page=100" \
-            --jq '.[].name' | sort > "$RUNNER_TEMP/actual-assets.txt"
-          cmp -s "$expected_names" "$RUNNER_TEMP/actual-assets.txt" || {
-            echo "draft release assets do not match verified package files" >&2
-            exit 1
-          }
+          asset_metadata="$RUNNER_TEMP/release-assets.json"
+          downloaded_assets="$RUNNER_TEMP/release-asset-bytes"
+          mkdir -p "$downloaded_assets"
+          gh api "repos/${GITHUB_REPOSITORY}/releases/${release_id}/assets?per_page=100" > "$asset_metadata"
+          while IFS=$'\t' read -r asset_id asset_name; do
+            [[ -n "$asset_id" && -n "$asset_name" ]] || {
+              echo "release asset metadata contains an incomplete entry" >&2
+              exit 1
+            }
+            [[ "$asset_name" == "$(basename "$asset_name")" ]] || {
+              echo "release asset filename is not a safe basename: ${asset_name}" >&2
+              exit 1
+            }
+            gh api -H 'Accept: application/octet-stream' \
+              "repos/${GITHUB_REPOSITORY}/releases/assets/${asset_id}" \
+              > "$downloaded_assets/$asset_name"
+          done < <(jq -r '.[] | [.id, .name] | @tsv' "$asset_metadata")
+          python3 tools/release/verify_release_assets.py \
+            "$RUNNER_TEMP/release-packages" "$asset_metadata" "$downloaded_assets"
 
           response="$RUNNER_TEMP/published-release.json"
           if ! gh api --method PATCH "repos/${GITHUB_REPOSITORY}/releases/${release_id}" \
