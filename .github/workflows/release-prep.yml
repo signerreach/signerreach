@@ -43,7 +43,7 @@ jobs:
           set -euo pipefail
           package_id="$(cargo pkgid -p signerreach-cli)"
           case "$package_id" in
-            *"#signerreach-cli@${VERSION}") ;;
+            *"#${VERSION}") ;;
             *)
               echo "expected signerreach-cli ${VERSION}, got ${package_id}" >&2
               exit 1
