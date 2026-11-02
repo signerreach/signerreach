@@ -1,0 +1,566 @@
+name: Publish v0.1.0
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_commit:
+        description: Full 40-character SHA of the current main commit to publish
+        required: true
+        type: string
+      confirmation:
+        description: Select the explicit publication confirmation
+        required: true
+        type: choice
+        options:
+          - DO NOT PUBLISH
+          - PUBLISH v0.1.0
+        default: DO NOT PUBLISH
+
+permissions: {}
+
+concurrency:
+  group: signerreach-v0.1.0-publication
+  cancel-in-progress: false
+
+env:
+  VERSION: 0.1.0
+  TAG: v0.1.0
+
+jobs:
+  verify:
+    name: Verify selected main commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      checks: read
+    outputs:
+      source_commit: ${{ steps.source.outputs.commit }}
+    steps:
+      - name: Check out selected source without credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_commit }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify manual confirmation and current main
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_COMMIT: ${{ inputs.source_commit }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "This workflow must be started with the main branch selected." >&2
+            exit 1
+          fi
+          if [[ "$CONFIRMATION" != "PUBLISH v0.1.0" ]]; then
+            echo "The explicit PUBLISH v0.1.0 confirmation was not selected." >&2
+            exit 1
+          fi
+          if ! [[ "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "source_commit must be a lowercase 40-character SHA." >&2
+            exit 1
+          fi
+          main_commit="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
+          if [[ "$SOURCE_COMMIT" != "$main_commit" ]]; then
+            echo "selected ${SOURCE_COMMIT} is not current main ${main_commit}" >&2
+            exit 1
+          fi
+          checked_out="$(git rev-parse HEAD)"
+          if [[ "$checked_out" != "$SOURCE_COMMIT" ]]; then
+            echo "checkout resolved to ${checked_out}, not ${SOURCE_COMMIT}" >&2
+            exit 1
+          fi
+          echo "commit=${SOURCE_COMMIT}" >> "$GITHUB_OUTPUT"
+          echo "verified source commit ${SOURCE_COMMIT} is current main"
+
+      - name: Verify v0.1.0 is not already tagged or released
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" >/dev/null 2>&1; then
+            echo "${TAG} already exists; refusing to overwrite it." >&2
+            exit 1
+          fi
+          if gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" >/dev/null 2>&1; then
+            echo "a release for ${TAG} already exists; refusing to replace it." >&2
+            exit 1
+          fi
+
+      - name: Verify workspace version and publication boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_id="$(cargo pkgid -p signerreach-cli)"
+          case "$package_id" in
+            *"#${VERSION}") ;;
+            *) echo "expected signerreach-cli ${VERSION}, got ${package_id}" >&2; exit 1 ;;
+          esac
+          grep -Fx 'version = "0.1.0"' <(sed -n '1,24p' Cargo.toml)
+          grep -Fx 'publish = false' <(sed -n '1,24p' Cargo.toml)
+          cargo metadata --locked --no-deps --format-version 1 >/dev/null
+
+      - name: Verify required main checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_COMMIT: ${{ steps.source.outputs.commit }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          checks_json="$RUNNER_TEMP/check-runs.json"
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${SOURCE_COMMIT}/check-runs?per_page=100" > "$checks_json"
+          required_checks=(
+            "Format and lint"
+            "Test (ubuntu-latest)"
+            "Test (windows-latest)"
+            "Test (macos-latest)"
+            "Minimum Rust version"
+            "Replay dry run (offline)"
+            "Book build"
+            "Release tools and workflow lint"
+          )
+          for check in "${required_checks[@]}"; do
+            result="$(jq -r --arg name "$check" '
+              [.check_runs[] | select(.name == $name)]
+              | sort_by(.completed_at // "")
+              | if length == 0 then "missing" else (.[-1].status + "\t" + (.[-1].conclusion // "")) end
+            ' "$checks_json")"
+            if [[ "$result" != $'completed\tsuccess' ]]; then
+              echo "required check ${check}: ${result}" >&2
+              exit 1
+            fi
+            echo "required check ${check}: success"
+          done
+
+  build:
+    name: Build package (${{ matrix.os }})
+    needs: verify
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    env:
+      SOURCE_COMMIT: ${{ needs.verify.outputs.source_commit }}
+    steps:
+      - name: Check out verified source without credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.verify.outputs.source_commit }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Install stable Rust
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+
+      - name: Verify candidate version
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_id="$(cargo pkgid -p signerreach-cli)"
+          case "$package_id" in
+            *"#${VERSION}") ;;
+            *) echo "expected signerreach-cli ${VERSION}, got ${package_id}" >&2; exit 1 ;;
+          esac
+
+      - name: Capture native target and toolchain
+        id: metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$(rustc -vV | awk '$1 == "host:" {print $2}')"
+          case "${RUNNER_OS}:${target}" in
+            Linux:*-unknown-linux-gnu) ;;
+            macOS:*-apple-darwin) ;;
+            Windows:*-windows-msvc) ;;
+            *) echo "unexpected native target ${RUNNER_OS} ${target}" >&2; exit 1 ;;
+          esac
+          {
+            echo "target=${target}"
+            echo "package=signerreach-v${VERSION}-${target}"
+            echo "rustc=$(rustc --version)"
+            echo "cargo=$(cargo --version)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build release binary
+        run: cargo build --release --locked
+
+      - name: Package Unix archive
+        if: runner.os != 'Windows'
+        env:
+          TARGET: ${{ steps.metadata.outputs.target }}
+          PACKAGE: ${{ steps.metadata.outputs.package }}
+          RUSTC_VERSION: ${{ steps.metadata.outputs.rustc }}
+          CARGO_VERSION: ${{ steps.metadata.outputs.cargo }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/$PACKAGE"
+          mkdir -p "$root"
+          cp target/release/signerreach "$root/signerreach"
+          cp LICENSE README.md "$root/"
+          archive="$RUNNER_TEMP/$PACKAGE.tar.gz"
+          tar -C "$RUNNER_TEMP" -czf "$archive" "$PACKAGE"
+          checksum="$(sha256sum "$archive" | awk '{print $1}')"
+          printf '%s  %s\n' "$checksum" "$(basename "$archive")" > "$RUNNER_TEMP/$PACKAGE.sha256"
+          cat > "$RUNNER_TEMP/$PACKAGE.manifest.json" <<EOF
+          {
+            "version": "${VERSION}",
+            "source_commit": "${SOURCE_COMMIT}",
+            "runner": "${RUNNER_OS}",
+            "target": "${TARGET}",
+            "rustc": "${RUSTC_VERSION}",
+            "cargo": "${CARGO_VERSION}",
+            "archive": "$(basename "$archive")",
+            "sha256": "${checksum}"
+          }
+          EOF
+
+      - name: Package Windows archive
+        if: runner.os == 'Windows'
+        env:
+          TARGET: ${{ steps.metadata.outputs.target }}
+          PACKAGE: ${{ steps.metadata.outputs.package }}
+          RUSTC_VERSION: ${{ steps.metadata.outputs.rustc }}
+          CARGO_VERSION: ${{ steps.metadata.outputs.cargo }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP $env:PACKAGE
+          New-Item -ItemType Directory -Force -Path $root | Out-Null
+          Copy-Item target/release/signerreach.exe (Join-Path $root 'signerreach.exe')
+          Copy-Item LICENSE, README.md $root
+          $archive = Join-Path $env:RUNNER_TEMP "$($env:PACKAGE).zip"
+          Compress-Archive -Path $root -DestinationPath $archive -Force
+          $checksum = (Get-FileHash -Algorithm SHA256 -Path $archive).Hash.ToLowerInvariant()
+          "$checksum  $($env:PACKAGE).zip" | Set-Content -Encoding ascii (Join-Path $env:RUNNER_TEMP "$($env:PACKAGE).sha256")
+          $manifest = [ordered]@{
+            version = $env:VERSION
+            source_commit = $env:SOURCE_COMMIT
+            runner = $env:RUNNER_OS
+            target = $env:TARGET
+            rustc = $env:RUSTC_VERSION
+            cargo = $env:CARGO_VERSION
+            archive = "$($env:PACKAGE).zip"
+            sha256 = $checksum
+          }
+          $manifest | ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $env:RUNNER_TEMP "$($env:PACKAGE).manifest.json")
+
+      - name: Upload package for publication verification
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-package-${{ steps.metadata.outputs.target }}
+          path: ${{ runner.temp }}/${{ steps.metadata.outputs.package }}.*
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Approve, tag and publish release
+    needs: [verify, build]
+    if: needs.verify.result == 'success' && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: read
+    environment:
+      name: signerreach-release
+    env:
+      SOURCE_COMMIT: ${{ needs.verify.outputs.source_commit }}
+    steps:
+      - name: Check out verified source without credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.verify.outputs.source_commit }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Download all native packages
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: release-package-*
+          path: ${{ runner.temp }}/release-packages
+          merge-multiple: false
+
+      - name: Verify final packages and render release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/release/verify_artifacts.py "$RUNNER_TEMP/release-packages" \
+            --version "$VERSION" --source-commit "$SOURCE_COMMIT"
+          python3 tools/release/render_release_notes.py \
+            .github/release-notes/v0.1.0.md.tmpl \
+            "$RUNNER_TEMP/release-packages" \
+            "$RUNNER_TEMP/release-notes.md" \
+            --version "$VERSION" --source-commit "$SOURCE_COMMIT"
+
+      - name: Reconfirm main and tag absence immediately before publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          main_commit="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
+          [[ "$main_commit" == "$SOURCE_COMMIT" ]] || {
+            echo "main moved to ${main_commit} while packages were being built" >&2
+            exit 1
+          }
+          if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" >/dev/null 2>&1; then
+            echo "${TAG} appeared before publication; refusing to overwrite it." >&2
+            exit 1
+          fi
+          if gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" >/dev/null 2>&1; then
+            echo "a release for ${TAG} appeared before publication; refusing to replace it." >&2
+            exit 1
+          fi
+
+      - name: Create annotated tag and publish verified release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag_object_sha=""
+          release_id=""
+          published=false
+
+          api_get() {
+            local endpoint="$1"
+            local output="$2"
+            if ! API_STATUS="$(curl --silent --show-error --retry 3 --retry-all-errors \
+              --proto '=https' --proto-redir '=https' \
+              -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              --output "$output" --write-out '%{http_code}' \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/${endpoint}")"; then
+              API_STATUS="000"
+            fi
+          }
+
+          api_delete() {
+            local endpoint="$1"
+            if ! API_STATUS="$(curl --silent --show-error --retry 3 --retry-all-errors \
+              --proto '=https' --proto-redir '=https' \
+              -X DELETE \
+              -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              --output /dev/null --write-out '%{http_code}' \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/${endpoint}")"; then
+              API_STATUS="000"
+            fi
+          }
+
+          cleanup() {
+            exit_code=$?
+            if [[ "$exit_code" -ne 0 && "$published" != true ]]; then
+              cleanup_state="$RUNNER_TEMP/cleanup-state.json"
+              tag_response="$RUNNER_TEMP/cleanup-tag.json"
+              release_response="$RUNNER_TEMP/cleanup-release.json"
+              tag_state="unknown"
+              tag_sha=""
+              tag_type=""
+              release_state="unknown"
+              observed_release_id=""
+              observed_release_tag=""
+
+              api_get "git/ref/tags/${TAG}" "$tag_response"
+              case "$API_STATUS" in
+                200)
+                  if tag_sha="$(jq -r '.object.sha // empty' "$tag_response" 2>/dev/null)" \
+                    && tag_type="$(jq -r '.object.type // empty' "$tag_response" 2>/dev/null)" \
+                    && [[ -n "$tag_sha" && -n "$tag_type" ]]; then
+                    tag_state="found"
+                  fi
+                  ;;
+                404) tag_state="absent" ;;
+              esac
+
+              if [[ -n "$release_id" ]]; then
+                api_get "releases/${release_id}" "$release_response"
+                case "$API_STATUS" in
+                  200)
+                    if observed_release_id="$(jq -r '.id // empty' "$release_response" 2>/dev/null)" \
+                      && observed_release_tag="$(jq -r '.tag_name // empty' "$release_response" 2>/dev/null)" \
+                      && [[ "$observed_release_id" == "$release_id" && "$observed_release_tag" == "$TAG" ]]; then
+                      if jq -e '.draft == true' "$release_response" >/dev/null 2>&1; then
+                        release_state="draft"
+                      elif jq -e '.draft == false' "$release_response" >/dev/null 2>&1; then
+                        release_state="published"
+                      fi
+                    else
+                      release_state="foreign"
+                    fi
+                    ;;
+                  404) release_state="absent" ;;
+                esac
+              else
+                # A successful lookup by tag is never owned by this run because
+                # this run has no confirmed release ID. It is preserved.
+                api_get "releases/tags/${TAG}" "$release_response"
+                case "$API_STATUS" in
+                  200) release_state="foreign" ;;
+                  404) release_state="absent" ;;
+                esac
+              fi
+
+              jq -n \
+                --arg tag_name "$TAG" \
+                --arg owned_tag_object_sha "$tag_object_sha" \
+                --arg owned_release_id "$release_id" \
+                --arg tag_state "$tag_state" \
+                --arg tag_sha "$tag_sha" \
+                --arg tag_type "$tag_type" \
+                --arg release_state "$release_state" \
+                --arg observed_release_id "$observed_release_id" \
+                --arg observed_release_tag "$observed_release_tag" \
+                '{tag_name: $tag_name, owned_tag_object_sha: $owned_tag_object_sha,
+                  owned_release_id: $owned_release_id,
+                  tag: {state: $tag_state, object_sha: $tag_sha, object_type: $tag_type},
+                  release: {state: $release_state, id: $observed_release_id,
+                            tag_name: $observed_release_tag}}' > "$cleanup_state"
+              cleanup_plan="$(python3 tools/release/release_cleanup.py "$cleanup_state")"
+              delete_release="$(jq -r '.delete_release' <<<"$cleanup_plan")"
+              delete_tag="$(jq -r '.delete_tag' <<<"$cleanup_plan")"
+              echo "cleanup decision: $(jq -r '.reason' <<<"$cleanup_plan")"
+
+              if [[ "$delete_release" == true ]]; then
+                # Reconfirm the release immediately before deletion. A public
+                # or otherwise unresolved response always wins over cleanup.
+                api_get "releases/${release_id}" "$release_response"
+                if [[ "$API_STATUS" != 200 ]] \
+                  || ! jq -e --arg id "$release_id" --arg tag "$TAG" \
+                    '.id == ($id | tonumber) and .tag_name == $tag and .draft == true' \
+                    "$release_response" >/dev/null 2>&1; then
+                  echo "release ownership/draft state changed or is unresolved; preserving release and tag" >&2
+                  delete_release=false
+                  delete_tag=false
+                fi
+              fi
+
+              if [[ "$delete_release" == true ]]; then
+                api_delete "releases/${release_id}"
+                case "$API_STATUS" in
+                  204|404) echo "deleted confirmed workflow-owned draft release ${release_id}" ;;
+                  *)
+                    echo "release deletion was ambiguous (${API_STATUS}); preserving release and tag" >&2
+                    delete_tag=false
+                    ;;
+                esac
+              fi
+
+              if [[ "$delete_tag" == true ]]; then
+                # A release created by another process could have appeared
+                # after the first lookup. Do not remove a tag while any
+                # release lookup is public or unresolved.
+                api_get "releases/tags/${TAG}" "$release_response"
+                case "$API_STATUS" in
+                  404) ;;
+                  200)
+                    echo "a release still references ${TAG}; preserving tag" >&2
+                    delete_tag=false
+                    ;;
+                  *)
+                    echo "release lookup for ${TAG} was ambiguous; preserving tag" >&2
+                    delete_tag=false
+                    ;;
+                esac
+              fi
+
+              if [[ "$delete_tag" == true ]]; then
+                # Re-read the tag after any release deletion. An unknown or
+                # changed response never authorizes deleting a tag.
+                api_get "git/ref/tags/${TAG}" "$tag_response"
+                if [[ "$API_STATUS" == 200 ]] \
+                  && current_tag_object="$(jq -r '.object.sha // empty' "$tag_response" 2>/dev/null)" \
+                  && current_tag_type="$(jq -r '.object.type // empty' "$tag_response" 2>/dev/null)" \
+                  && [[ "$current_tag_object" == "$tag_object_sha" && "$current_tag_type" == tag ]]; then
+                  api_delete "git/refs/tags/${TAG}"
+                  case "$API_STATUS" in
+                    204|404) echo "deleted confirmed workflow-owned tag ${TAG}" ;;
+                    *) echo "tag deletion was ambiguous (${API_STATUS}); preserving tag" >&2 ;;
+                  esac
+                else
+                  echo "tag ownership could not be reconfirmed; preserving tag" >&2
+                fi
+              fi
+            fi
+            exit "$exit_code"
+          }
+          trap cleanup EXIT
+
+          mapfile -t assets < <(find "$RUNNER_TEMP/release-packages" -type f \( -name '*.tar.gz' -o -name '*.zip' -o -name '*.sha256' -o -name '*.manifest.json' \) | sort)
+          [[ "${#assets[@]}" -eq 9 ]] || { echo "expected 9 release assets, got ${#assets[@]}" >&2; exit 1; }
+          release_body="$(cat "$RUNNER_TEMP/release-notes.md")"
+
+          tag_object_sha="$(gh api --method POST "repos/${GITHUB_REPOSITORY}/git/tags" \
+            -f tag="$TAG" \
+            -f message="SignerReach $TAG" \
+            -f object="$SOURCE_COMMIT" \
+            -f type=commit --jq '.sha')"
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs" \
+            -f ref="refs/tags/${TAG}" -f sha="$tag_object_sha" >/dev/null
+          ref_type="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" --jq '.object.type')"
+          ref_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" --jq '.object.sha')"
+          target_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/tags/${tag_object_sha}" --jq '.object.sha')"
+          [[ "$ref_type" == "tag" && "$ref_sha" == "$tag_object_sha" && "$target_sha" == "$SOURCE_COMMIT" ]] || {
+            echo "annotated tag verification failed" >&2
+            exit 1
+          }
+
+          release_id="$(gh api --method POST "repos/${GITHUB_REPOSITORY}/releases" \
+            -f tag_name="$TAG" \
+            -f target_commitish="$SOURCE_COMMIT" \
+            -f name="SignerReach $TAG" \
+            -f body="$release_body" \
+            -F draft=true -F prerelease=false --jq '.id')"
+          for asset in "${assets[@]}"; do
+            gh release upload "$TAG" "$asset" --repo "$GITHUB_REPOSITORY"
+          done
+          asset_metadata="$RUNNER_TEMP/release-assets.json"
+          downloaded_assets="$RUNNER_TEMP/release-asset-bytes"
+          mkdir -p "$downloaded_assets"
+          gh api "repos/${GITHUB_REPOSITORY}/releases/${release_id}/assets?per_page=100" > "$asset_metadata"
+          while IFS=$'\t' read -r asset_id asset_name; do
+            [[ -n "$asset_id" && -n "$asset_name" ]] || {
+              echo "release asset metadata contains an incomplete entry" >&2
+              exit 1
+            }
+            [[ "$asset_name" == "$(basename "$asset_name")" ]] || {
+              echo "release asset filename is not a safe basename: ${asset_name}" >&2
+              exit 1
+            }
+            gh api -H 'Accept: application/octet-stream' \
+              "repos/${GITHUB_REPOSITORY}/releases/assets/${asset_id}" \
+              > "$downloaded_assets/$asset_name"
+          done < <(jq -r '.[] | [.id, .name] | @tsv' "$asset_metadata")
+          python3 tools/release/verify_release_assets.py \
+            "$RUNNER_TEMP/release-packages" "$asset_metadata" "$downloaded_assets"
+
+          response="$RUNNER_TEMP/published-release.json"
+          if ! gh api --method PATCH "repos/${GITHUB_REPOSITORY}/releases/${release_id}" \
+            -F draft=false -F prerelease=false > "$response"; then
+            echo "release publication request failed; cleanup will preserve it only if it is already public" >&2
+            exit 1
+          fi
+          if ! jq -e --arg tag "$TAG" '.draft == false and .prerelease == false and .tag_name == $tag and (.assets | length) == 9' "$response" >/dev/null; then
+            published=true
+            echo "release API did not return the expected published release state" >&2
+            exit 1
+          fi
+          published=true
+          echo "published $(jq -r '.html_url' "$response")"

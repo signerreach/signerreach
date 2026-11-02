@@ -1,0 +1,58 @@
+<!-- Rendered only after the protected release environment approves publication. -->
+# SignerReach v0.1.0
+
+SignerReach v0.1.0 is published from verified main commit
+`{{SOURCE_COMMIT}}`.
+
+## Included
+
+- `signerreach check` evaluates an account snapshot, ordered transaction plan
+  and declared signer availability, returning deterministic text or JSON with
+  `SAFE WITHIN SCOPE`, `UNSAFE` or `INCONCLUSIVE`.
+- `signerreach fetch` performs a constrained, read-only Horizon account read
+  and emits a provenance-bearing snapshot.
+- The release includes bounded JSON parsing, stable diagnostics and reports,
+  offline checking, fixture coverage and the documentation book.
+- The `tools/replay` program remains a development-only Testnet harness and is
+  not part of the shipped CLI or its release dependencies.
+
+## Protocol 29 scope
+
+This release supports the verified Stellar **Protocol 29** rules for one
+classic G-address account, ed25519 signers and the implemented `SetOptions`
+subset. It models transaction pre-state authorization, ordered transactions,
+availability scenarios and the LOW envelope plus MEDIUM/HIGH operation
+thresholds relevant to that subset.
+
+Protocol 30 is **not supported or advertised**. Contract and muxed accounts,
+fee-bump transactions, unsupported signer types, other operation types,
+additional source accounts, sponsorship, account flags and reserve effects
+remain outside the safe-verdict boundary and are reported or documented as
+`INCONCLUSIVE` where applicable.
+
+## Security boundaries and limitations
+
+The shipped CLI never accepts, stores or uses private signing keys, never signs
+transactions and never submits them. `check` is offline. `fetch` uses
+constrained read-only Horizon requests. The replay harness creates temporary
+Testnet keys only for explicitly run development experiments and is not a
+production transaction path.
+
+This project has not received an independent security audit. Results aid human
+review and do not guarantee key custody, current state, reserve sufficiency or
+successful future submission. No live Testnet submission is claimed by this
+release. Crates.io publication remains disabled (`publish = false`).
+
+## Reproducible Protocol 29 evidence
+
+- [2026-10-13 Testnet observations](https://github.com/signerreach/signerreach/blob/main/docs/evidence/testnet-2026-10-13/README.md)
+- [2026-10-19 seven-fixture replay](https://github.com/signerreach/signerreach/blob/main/docs/evidence/replay-2026-10-19/README.md)
+- [2026-11-01 FX-01 follow-up replay](https://github.com/signerreach/signerreach/blob/main/docs/evidence/replay-2026-11-01-fx-01-followup/README.md)
+
+The FX-01 follow-up repeated the master-only rejection after raising HIGH to 2.
+It does not verify Protocol 30, every historical follow-up case, current account
+state or behavior beyond the recorded evidence.
+
+## Verified native artifacts
+
+{{ARTIFACT_TABLE}}
