@@ -16,19 +16,16 @@ still be administered afterwards, under the assumptions you state.
 [Evidence index](evidence/index.md) · [Security](SECURITY.md) ·
 [Contributing](CONTRIBUTING.md)
 
-The primary documentation is the [SignerReach mdBook](https://signerreach.github.io/signerreach/).
+**Latest release:** [SignerReach v0.1.0](https://github.com/signerreach/signerreach/releases/tag/v0.1.0) |
+[Documentation](https://signerreach.github.io/signerreach/)
 
-> **Status: v0.1.0 was published on November 2, 2026**, from verified main
-> commit `e1a37cea9101bbf2cb68372f111c6e4a5ecd1ba4`. SignerReach has not been
-> independently audited and cannot know whether anyone holds a key. Treat a
-> result as an aid to your own review, not as a guarantee. SignerReach is an
-> independent project, not affiliated with or endorsed by the Stellar
-> Development Foundation.
+SignerReach helps Stellar account administrators check whether planned signer
+and threshold changes could leave an account unmanageable. It evaluates
+changes before submission, without requiring private keys or signing
+transactions.
 
-The [published v0.1.0 release](https://github.com/signerreach/signerreach/releases/tag/v0.1.0)
-contains the authoritative release notes and final artifact checksums. The
-repository's [release-preparation notes](RELEASE_NOTES_v0.1.0.md) preserve the
-earlier candidate artifacts and their original source commit.
+The current release supports the verified Stellar Protocol 29 rules within its
+documented scope.
 
 ## The problem
 
@@ -207,7 +204,9 @@ scripts**, with a reproducible trace.
 ## Limits
 
 - Availability is what you declare. Nothing here can check that a key exists.
-- A snapshot goes stale. The result applies to the ledger it was read at.
+- A snapshot goes stale. The result applies only to the ledger it was read at.
+- Results are not guarantees; use them as an aid to review.
+- The project has not received an independent security audit.
 - Only protocol 29 rules are verified, only `SetOptions` operations, and only
   ed25519 signers on a single classic account.
 - Recognized unsupported inputs, including fee-bump transactions,
@@ -244,3 +243,6 @@ especially a result that says `SAFE WITHIN SCOPE` when it should not, see
 ## License
 
 [Apache License 2.0](LICENSE).
+
+SignerReach is an independent project and is not affiliated with or endorsed
+by the Stellar Development Foundation.
