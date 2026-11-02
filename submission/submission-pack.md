@@ -1,6 +1,6 @@
 # SignerReach submission pack
 
-Prepared for maintainer review. Current state updated 2026-11-02 after v0.1.0 publication.
+Prepared for maintainer review. Current state updated 2026-11-02 after v0.1.0 publication and final read-only audit.
 This is a draft information pack, not a submission, release announcement,
 approval request or funding claim.
 The [readiness audit](../docs/readiness-audit.md) records the remaining gates.
@@ -24,13 +24,65 @@ and the [documentation build](https://github.com/signerreach/signerreach/actions
 passed. The published [mdBook](https://signerreach.github.io/signerreach/)
 returns HTTP 200, and the repository Homepage field points to that URL.
 
-Release publication does not determine submission readiness. No program
-application has been submitted, accepted or approved. Eligibility and
-program-specific requirements remain for the next separate final
-submission-readiness audit. Detailed branch-protection verification remains
-its last operational task. Issues [#1](https://github.com/signerreach/signerreach/issues/1),
+Release publication does not establish program eligibility. No program
+application has been submitted, accepted or approved. The final audit below
+records that eligibility and program-specific requirements remain unverified.
+Detailed branch-protection verification remains the last operational task.
+Issues [#1](https://github.com/signerreach/signerreach/issues/1),
 [#2](https://github.com/signerreach/signerreach/issues/2) and
 [#7](https://github.com/signerreach/signerreach/issues/7) remain open.
+
+## Final read-only audit (2026-11-02)
+
+The latest verified `main` is
+`1c4c92ee4e26aba2b08ca50dec905e9097108ef1`; PR #19 merged the README cleanup.
+Current-main [CI](https://github.com/signerreach/signerreach/actions/runs/41459984154)
+and [documentation build](https://github.com/signerreach/signerreach/actions/runs/41459984009)
+passed. The push-triggered Pages deploy was skipped, so the existing manual
+[Documentation workflow](https://github.com/signerreach/signerreach/actions/runs/41464392358)
+was run on that commit and deployed successfully. The live book and its
+release-status page return HTTP 200 and show the publication details from PR
+#18. The v0.1.0 release remains from source commit
+`e1a37cea9101bbf2cb68372f111c6e4a5ecd1ba4`; its tag and nine verified assets
+were not changed.
+
+The code sets `SUPPORTED_PROTOCOL_VERSION` to 29 and rejects other snapshot
+versions. Its Horizon regression test confirms a Protocol 30 response cannot
+produce a safe verdict. The supported release scope remains Protocol 29, one
+classic G-address account, ed25519 signers and the implemented `SetOptions`
+subset.
+
+The unsafe FX-01 example is backed by historical Protocol 29 Testnet evidence.
+The corrected plan at `docs/walkthrough/corrected-plan.json` returns
+`SAFE WITHIN SCOPE` locally, but that exact plan was not submitted to Testnet;
+the mechanism is supported by separate Protocol 29 cases. Historical evidence
+does not prove current network behavior. `check` is offline and the shipped CLI
+does not hold keys, sign or submit transactions. `fetch` is constrained and
+read-only. The separate development replay harness can submit disposable
+Testnet transactions when explicitly run; this audit made no Testnet
+submission.
+
+The [security policy](../SECURITY.md) and [security review](../docs/security-review.md)
+disclose that there has been no independent security audit. Signer availability
+is declared, snapshots can become stale, and reserve sufficiency and other
+external conditions are not guaranteed.
+
+On this audit date, the Stellar Development Foundation's [Bell announcement](https://stellar.org/blog/developers/introducing-bell-protocol-30-on-stellar)
+listed the Protocol 30 Testnet upgrade vote for November 3, 2026 at 17:00 UTC;
+its proposed dates may change. If the vote passes and Testnet moves to Protocol
+30, `fetch` may record version 30, but the checker will reject that snapshot as
+unsupported and return `INCONCLUSIVE`. Verify the current network protocol
+before any future live demonstration. After a Testnet upgrade, do not present
+the shipped release as a supported live checker; Protocol 30 requires separate
+implementation and verification. The existing Protocol 29 fixtures remain
+historical offline demonstrations.
+
+Technical evidence and program eligibility are separate. Eligibility,
+program-specific requirements, adoption evidence and an application plan are
+unverified. No award, invitation, budget, application, acceptance or approval
+is claimed. **NOT READY FOR PROGRAM SUBMISSION** until those matters and the
+submission contents are verified. Detailed branch-protection verification
+remains the final operational task after the other readiness work.
 
 ## Historical pre-publication release-preparation record (2026-11-02)
 
