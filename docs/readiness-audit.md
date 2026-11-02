@@ -12,13 +12,32 @@ unresolved decision. `BLOCKED` requires an external gate.
 
 ## Current state after publication (2026-11-02)
 
-- Upstream `main` is `e1a37cea9101bbf2cb68372f111c6e4a5ecd1ba4`, the verified source commit for the published release. [PR #17](https://github.com/signerreach/signerreach/pull/17) merged to that commit.
+- At the final audit, upstream `main` is `1c4c92ee4e26aba2b08ca50dec905e9097108ef1`; [PR #19](https://github.com/signerreach/signerreach/pull/19) merged the README correction. The published v0.1.0 release remains built from verified source commit `e1a37cea9101bbf2cb68372f111c6e4a5ecd1ba4`, merged by [PR #17](https://github.com/signerreach/signerreach/pull/17).
 - SignerReach v0.1.0 was published, not as a draft or prerelease, on November 2, 2026. Annotated tag `v0.1.0` (tag object `2a01d2eedb4800fa7b443f344eb931a7f1eadb5f`) points to the exact source commit above. The [publication workflow](https://github.com/signerreach/signerreach/actions/runs/41451872483) succeeded.
 - The release contains nine uploaded and verified assets: a package, SHA-256 file and manifest for Linux `x86_64-unknown-linux-gnu`, macOS `aarch64-apple-darwin`, and Windows `x86_64-pc-windows-msvc`. The workflow verified them; a follow-up download also confirmed each archive checksum and each manifest's source commit.
 - The [published release](https://github.com/signerreach/signerreach/releases/tag/v0.1.0) is limited to Protocol 29 for one classic G-address account, ed25519 signers and the implemented `SetOptions` subset. The CLI does not hold keys, sign or submit transactions. No independent audit is claimed. Historical Testnet records do not prove current network compatibility; snapshot freshness, signer availability and reserve sufficiency are not guaranteed.
-- [Final-main CI](https://github.com/signerreach/signerreach/actions/runs/41447399997) and the [documentation build](https://github.com/signerreach/signerreach/actions/runs/41447399730) succeeded for the release commit. The published book returns HTTP 200 at [signerreach.github.io/signerreach](https://signerreach.github.io/signerreach/); the repository Homepage field is set to that URL.
-- Issues [#1](https://github.com/signerreach/signerreach/issues/1), [#2](https://github.com/signerreach/signerreach/issues/2), and [#7](https://github.com/signerreach/signerreach/issues/7) were open at the repository-state check on 2026-11-02. No pull request was open at that check, before this post-release documentation PR.
-- Release publication is complete. Submission readiness remains unassessed pending the separate final submission audit. No program application has been submitted, accepted or approved. Detailed branch-protection verification remains the last operational task. Protocol 30 support and an independent security audit are not claimed.
+- The release-commit CI and documentation build passed. Current-main [CI](https://github.com/signerreach/signerreach/actions/runs/41459984154) and the [documentation build](https://github.com/signerreach/signerreach/actions/runs/41459984009) passed at `1c4c92e`; the push-triggered deploy was skipped. The manual [Documentation workflow](https://github.com/signerreach/signerreach/actions/runs/41464392358) then deployed successfully from that same commit. The published book and release-status page return HTTP 200 and show the post-PR #18 publication status. The repository Homepage field points to the book.
+- Issues [#1](https://github.com/signerreach/signerreach/issues/1), [#2](https://github.com/signerreach/signerreach/issues/2), and [#7](https://github.com/signerreach/signerreach/issues/7) remain open. No other pull request was open at the final audit check before this audit PR.
+- Release publication is complete. The read-only audit below verifies the limited technical claims; it does not establish program eligibility. No program application has been submitted, accepted or approved. Detailed branch-protection verification remains the last operational task. Protocol 30 support and an independent security audit are not claimed.
+
+## Final read-only submission audit (2026-11-02)
+
+### Technical scope and demonstration evidence
+
+- The source defines `SUPPORTED_PROTOCOL_VERSION` as 29. Snapshot parsing rejects other versions with the rules diagnostic, and the Horizon adapter test `a_stable_protocol_30_horizon_root_cannot_produce_a_safe_snapshot` confirms that a Protocol 30 response cannot be used for a safe verdict. The published v0.1.0 rules claim is limited to Protocol 29, one classic G-address account, ed25519 signers and the implemented `SetOptions` subset.
+- The unsafe walkthrough uses the FX-01 fixture and records the historical Protocol 29 Testnet authorization result. The corrected plan in `docs/walkthrough/corrected-plan.json` returns `SAFE WITHIN SCOPE` locally; that exact corrected plan was not submitted to Testnet. Its mechanism is supported by separate Protocol 29 cases. Neither result guarantees current state or future network behavior.
+- The shipped CLI does not hold keys, sign or submit transactions. `check` is offline; `fetch` makes constrained read-only Horizon requests. The separate replay harness can submit disposable Testnet transactions only when explicitly run. This audit made no Testnet submission.
+- The security policy and review state that there is no independent audit. Signer availability is declared, snapshots can become stale, and reserve sufficiency and external conditions are not guaranteed. The evidence index and preserved Testnet records support Protocol 29 claims only.
+
+### Scheduled Protocol 30 Testnet vote
+
+On this audit date, the [Stellar Development Foundation's Bell announcement](https://stellar.org/blog/developers/introducing-bell-protocol-30-on-stellar) listed the Protocol 30 Testnet upgrade vote for November 3, 2026 at 17:00 UTC. Its proposed timeline says dates may change. This schedule does not change SignerReach's verified scope.
+
+If validators approve the upgrade and Testnet moves to Protocol 30, `fetch` can record that protocol version, but the current checker will reject the snapshot as unsupported and return `INCONCLUSIVE`. Before any future live demonstration, verify the network's current protocol. After a move to Protocol 30, do not present the shipped release as a supported live checker; use the preserved Protocol 29 fixtures only as historical offline examples until Protocol 30 is separately implemented and verified. No Protocol 30 support or live demonstration is claimed here.
+
+### Program eligibility and submission verdict
+
+The release and current-main CI establish technical status within the documented Protocol 29 boundary. They do not establish eligibility for any funding program. Eligibility, program-specific requirements, adoption evidence and any application plan remain unverified; no target award, invitation, budget, application, acceptance or approval is claimed. **NOT READY FOR PROGRAM SUBMISSION** until those facts and requirements are verified and the submission is reviewed. Detailed branch-protection verification is reserved as the final operational task after the other readiness work.
 
 The dated pre-publication findings below are retained as historical evidence.
 Use this section for current release status; older candidate and authorization
