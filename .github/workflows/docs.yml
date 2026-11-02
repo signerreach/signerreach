@@ -43,7 +43,9 @@ jobs:
           "$RUNNER_TEMP/mdbook" build book
 
       - name: Test book examples
-        run: "$RUNNER_TEMP/mdbook" test book
+        shell: bash
+        run: |
+          "$RUNNER_TEMP/mdbook" test book
 
       - name: Validate generated book and links
         run: python3 tools/docs/check_book.py book
