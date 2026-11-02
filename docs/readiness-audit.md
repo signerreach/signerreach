@@ -10,9 +10,24 @@ external project approval or an independent security audit. `PASS` means the
 stated repository work was checked. `CONDITIONAL` preserves a limitation or
 unresolved decision. `BLOCKED` requires an external gate.
 
-## Current-state addendum (2026-11-02)
+## Current state after publication (2026-11-02)
 
-The following updates supersede mutable status statements in the historical review below:
+- Upstream `main` is `e1a37cea9101bbf2cb68372f111c6e4a5ecd1ba4`, the verified source commit for the published release. [PR #17](https://github.com/signerreach/signerreach/pull/17) merged to that commit.
+- SignerReach v0.1.0 was published, not as a draft or prerelease, on November 2, 2026. Annotated tag `v0.1.0` (tag object `2a01d2eedb4800fa7b443f344eb931a7f1eadb5f`) points to the exact source commit above. The [publication workflow](https://github.com/signerreach/signerreach/actions/runs/41451872483) succeeded.
+- The release contains nine uploaded and verified assets: a package, SHA-256 file and manifest for Linux `x86_64-unknown-linux-gnu`, macOS `aarch64-apple-darwin`, and Windows `x86_64-pc-windows-msvc`. The workflow verified them; a follow-up download also confirmed each archive checksum and each manifest's source commit.
+- The [published release](https://github.com/signerreach/signerreach/releases/tag/v0.1.0) is limited to Protocol 29 for one classic G-address account, ed25519 signers and the implemented `SetOptions` subset. The CLI does not hold keys, sign or submit transactions. No independent audit is claimed. Historical Testnet records do not prove current network compatibility; snapshot freshness, signer availability and reserve sufficiency are not guaranteed.
+- [Final-main CI](https://github.com/signerreach/signerreach/actions/runs/41447399997) and the [documentation build](https://github.com/signerreach/signerreach/actions/runs/41447399730) succeeded for the release commit. The published book returns HTTP 200 at [signerreach.github.io/signerreach](https://signerreach.github.io/signerreach/); the repository Homepage field is set to that URL.
+- Issues [#1](https://github.com/signerreach/signerreach/issues/1), [#2](https://github.com/signerreach/signerreach/issues/2), and [#7](https://github.com/signerreach/signerreach/issues/7) were open at the repository-state check on 2026-11-02. No pull request was open at that check, before this post-release documentation PR.
+- Release publication is complete. Submission readiness remains unassessed pending the separate final submission audit. No program application has been submitted, accepted or approved. Detailed branch-protection verification remains the last operational task. Protocol 30 support and an independent security audit are not claimed.
+
+The dated pre-publication findings below are retained as historical evidence.
+Use this section for current release status; older candidate and authorization
+statements describe the state before publication.
+
+## Pre-publication status record (2026-11-02)
+
+The following notes recorded release preparation before the tag was created.
+They are preserved as a snapshot and are superseded by the current state above.
 
 - Upstream `main` is now `15105788b60f8d3d05188cbe0d23d6ad51dbafe6` after the documentation PR was merged. The published mdBook was independently verified at [https://signerreach.github.io/signerreach/](https://signerreach.github.io/signerreach/) with HTTP 200 pages/assets, valid internal links, navigation, search, responsive metadata and light/dark theme assets.
 - The release-preparation branch changes the workspace to `0.1.0` while retaining `publish = false`; no tag, GitHub Release or crates.io publication exists. [Draft v0.1.0 notes](../RELEASE_NOTES_v0.1.0.md) define the candidate boundary and maintainer-only publication checklist.
@@ -24,7 +39,7 @@ The following updates supersede mutable status statements in the historical revi
 - Issue [#3](https://github.com/signerreach/signerreach/issues/3) is closed; issues #1, #2, and #7 remain open.
 - The maintained README and documentation book are published; the Pages URL above is verified live. No release/tag, Protocol 30 support, or independent security audit is claimed. Detailed branch-protection verification remains the final operational step.
 
-## Gap matrix
+## Historical gap matrix (reviewed before publication)
 
 | Stage and requirement | Starting status | Action and evidence | Final gate | Remaining condition |
 |---|---|---|---|---|
@@ -44,11 +59,12 @@ The following updates supersede mutable status statements in the historical revi
 | 13. Branch protection, last operational task | Main marked protected; detailed settings inaccessible | Read-only inspection reports main protected, but the integration cannot read required-check/review/bypass details. No policy change was made. | BLOCKED | An authorized maintainer must inspect the actual policy only after every other readiness task is complete. |
 
 Hosting the CLI itself is not applicable. The GitHub Pages documentation book is
-published and verified at the URL recorded in the current-state addendum.
+published and verified at the URL recorded in the current-state section above.
 A contract, frontend, database, deployed backend, and cross-repository parity are
 also **NOT APPLICABLE** to its current architecture. The maintainer excluded
-Dependabot work from this assessment. Release and submission are maintainer
-decisions, not completed actions.
+Dependabot work from this assessment. At the time of this historical review,
+release and submission were future maintainer decisions. Release publication
+is now complete; submission readiness remains unassessed.
 
 ## Playbook v2.0.0 applicability
 
@@ -57,12 +73,15 @@ research records, specification, and architecture. Its implementation,
 environment, testing, security, CI, documentation, and evidence requirements
 are represented by source, tests, CI, reviews, and the evidence ledger.
 Historical Testnet observations support only protocol 29. Protocol 30 and any
-expansion beyond the observed FX-01 follow-up replay remain tracked issues. The release, demo,
-eligibility, submission, and final maintenance phases remain decisions or
-future work, not completed claims. The original playbook's branch-protection
-phase is intentionally moved to the final operational step.
+expansion beyond the observed FX-01 follow-up replay remain tracked issues.
+At the time of the original review, release, eligibility, submission, and final
+maintenance were future work. Release publication is now complete; submission
+readiness and the final branch-protection check remain for the separate audit.
 
-## Reviewer simulation
+## Historical reviewer simulation
+
+The simulated review below was recorded before publication. Release-status
+answers reflect that earlier snapshot.
 
 | First-time reviewer question | Result and path |
 |---|---|
@@ -112,7 +131,7 @@ content remains unchanged.
   #3 is now closed after FX-01 follow-up verification; #7
   tracks Protocol 30 verification.
 
-## Release and final decision
+## Historical release and submission decision (before publication)
 
 The implemented `check` and `fetch` commands, text and JSON reports,
 protocol 29 fixtures and documentation are a coherent initial-release
