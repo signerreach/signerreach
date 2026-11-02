@@ -22,6 +22,20 @@ Read these three things first. They are short.
 For anything larger than a small fix, open an issue and say what you plan to do
 before you write it. That avoids work that cannot be merged.
 
+Everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md).
+
+## Picking up an issue
+
+Issues labelled `good first issue` or `help wanted` are open to anyone.
+
+- Comment on the issue to say you are working on it. You do not need to be
+  assigned first.
+- If nothing has been pushed or said for about two weeks, a maintainer may
+  invite someone else to take it. Say so if you need to let go of it.
+- Keep to one open issue at a time until your first pull request is merged.
+- The `area:` labels show which part of the project an issue touches. An issue
+  that needs evidence from the network is labelled `needs evidence`.
+
 ## Ground rules
 
 These come from the purpose of the tool and are not negotiable.

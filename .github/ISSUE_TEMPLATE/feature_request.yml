@@ -1,0 +1,37 @@
+name: Feature request
+description: Suggest a change or an addition.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        SignerReach values being correct over being broad. Anything it does not model
+        must give `INCONCLUSIVE`, so a request that widens what it claims to cover
+        needs evidence for the rule involved. See
+        [CONTRIBUTING.md](https://github.com/signerreach/signerreach/blob/main/CONTRIBUTING.md)
+        and [docs/SPEC.md](https://github.com/signerreach/signerreach/blob/main/docs/SPEC.md).
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do, and what stops you today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like
+      description: The change you have in mind. Say which part of the project it touches.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence, if it changes a rule
+      description: A rule about how Stellar behaves needs evidence from the network or from the stellar-core source. Link it. Leave empty if this is not about a rule.
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contributing
+      options:
+        - label: I would like to work on this myself.

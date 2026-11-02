@@ -1,0 +1,49 @@
+name: Bug report
+description: A wrong result, a crash, or a confusing message.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting this. Please read this first.
+
+        - If `signerreach` said `SAFE WITHIN SCOPE` where the account would lose
+          administrative access, or a secret is exposed, **do not use this form.**
+          Report it privately, as described in
+          [SECURITY.md](https://github.com/signerreach/signerreach/blob/main/SECURITY.md).
+        - **Never paste a private key, a seed or a signature.** None is needed here.
+  - type: checkboxes
+    id: not-security
+    attributes:
+      label: This is not a false safe result or an exposed secret
+      options:
+        - label: I confirm this is not a false `SAFE WITHIN SCOPE` result or an exposed secret.
+          required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: The release (for example v0.1.0) or the commit you built.
+    validations:
+      required: true
+  - type: textarea
+    id: inputs
+    attributes:
+      label: Input files
+      description: The contents of `snapshot.json`, `plan.json` and `availability.json`, or a description that lets someone recreate them. Remove anything private.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What you got
+      description: The command you ran and its output, including the exit code.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: If you expected a different verdict, say why. A Testnet transaction hash or a link to the stellar-core source helps most.
+    validations:
+      required: true
