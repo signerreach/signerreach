@@ -1,0 +1,23 @@
+[book]
+title = "SignerReach"
+authors = ["SignerReach contributors"]
+description = "Understand Stellar classic-account signer and threshold changes before submitting them."
+language = "en"
+src = "src"
+
+[build]
+build-dir = "site"
+create-missing = false
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/signerreach/signerreach"
+edit-url-template = "https://github.com/signerreach/signerreach/edit/main/book/{path}"
+site-url = "/signerreach/"
+additional-css = ["theme/signerreach.css"]
+
+[output.html.search]
+enable = true
+limit-results = 30
+use-boolean-and = true
