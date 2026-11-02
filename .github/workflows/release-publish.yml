@@ -188,10 +188,12 @@ jobs:
             Windows:*-windows-msvc) ;;
             *) echo "unexpected native target ${RUNNER_OS} ${target}" >&2; exit 1 ;;
           esac
-          echo "target=${target}" >> "$GITHUB_OUTPUT"
-          echo "package=signerreach-v${VERSION}-${target}" >> "$GITHUB_OUTPUT"
-          echo "rustc=$(rustc --version)" >> "$GITHUB_OUTPUT"
-          echo "cargo=$(cargo --version)" >> "$GITHUB_OUTPUT"
+          {
+            echo "target=${target}"
+            echo "package=signerreach-v${VERSION}-${target}"
+            echo "rustc=$(rustc --version)"
+            echo "cargo=$(cargo --version)"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build release binary
         run: cargo build --release --locked
