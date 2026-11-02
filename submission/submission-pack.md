@@ -1,11 +1,41 @@
 # SignerReach submission pack
 
-Prepared for maintainer review. Updated 2026-11-02 for v0.1.0 release preparation.
+Prepared for maintainer review. Current state updated 2026-11-02 after v0.1.0 publication.
 This is a draft information pack, not a submission, release announcement,
 approval request or funding claim.
 The [readiness audit](../docs/readiness-audit.md) records the remaining gates.
 
-## v0.1.0 release-preparation addendum
+## Current state after publication (2026-11-02)
+
+PR [#17](https://github.com/signerreach/signerreach/pull/17) merged to
+upstream `main` at `e1a37cea9101bbf2cb68372f111c6e4a5ecd1ba4`. SignerReach
+v0.1.0 was published, not as a draft or prerelease, on November 2, 2026.
+Annotated tag `v0.1.0` (tag object
+`2a01d2eedb4800fa7b443f344eb931a7f1eadb5f`) points to that exact source
+commit, and the [publication workflow](https://github.com/signerreach/signerreach/actions/runs/41451872483)
+succeeded.
+
+The [GitHub Release](https://github.com/signerreach/signerreach/releases/tag/v0.1.0)
+contains nine verified assets: archives, checksums and
+manifests for Linux `x86_64-unknown-linux-gnu`, macOS `aarch64-apple-darwin`,
+and Windows `x86_64-pc-windows-msvc`. A download verification confirmed archive
+SHA-256 values and manifest source commits. [Final-main CI](https://github.com/signerreach/signerreach/actions/runs/41447399997)
+and the [documentation build](https://github.com/signerreach/signerreach/actions/runs/41447399730)
+passed. The published [mdBook](https://signerreach.github.io/signerreach/)
+returns HTTP 200, and the repository Homepage field points to that URL.
+
+Release publication does not determine submission readiness. No program
+application has been submitted, accepted or approved. Eligibility and
+program-specific requirements remain for the next separate final
+submission-readiness audit. Detailed branch-protection verification remains
+its last operational task. Issues [#1](https://github.com/signerreach/signerreach/issues/1),
+[#2](https://github.com/signerreach/signerreach/issues/2) and
+[#7](https://github.com/signerreach/signerreach/issues/7) remain open.
+
+## Historical pre-publication release-preparation record (2026-11-02)
+
+This section records the release-preparation state before publication and is
+kept as historical context. The current release status is recorded above.
 
 The Rust workspace is now versioned `0.1.0`, with `publish = false` retained
 and all internal crate requirements and `Cargo.lock` aligned. This branch
@@ -24,15 +54,19 @@ These are review artifacts, not release assets, and must be rebuilt from the
 final approved main commit. No live Testnet submission is part of this
 preparation.
 
-## November 2026 current-state addendum
+## Pre-publication repository status snapshot (2026-11-02)
+
+This snapshot predates the v0.1.0 publication. Its release and main-commit
+statements are preserved as historical findings and superseded by the current
+state above.
 
 PRs [#12](https://github.com/signerreach/signerreach/pull/12), [#13](https://github.com/signerreach/signerreach/pull/13) and the documentation PR [#15](https://github.com/signerreach/signerreach/pull/15) are merged. The current main before this preparation branch is `15105788b60f8d3d05188cbe0d23d6ad51dbafe6`; its Pages documentation is published at [signerreach.github.io/signerreach](https://signerreach.github.io/signerreach/). The latest evidence PR reported 278 Rust tests and 51 Node replay tests. Initial follow-up scope issue [#3](https://github.com/signerreach/signerreach/issues/3) is closed. [The November 1 FX-01 replay](../docs/evidence/replay-2026-11-01-fx-01-followup/README.md) observed a new Protocol 29 submission rejection with `tx_failed` / `op_bad_auth`; it does not verify Protocol 30. The older October tests and CI details below remain historical observations, not current-head claims. The v0.1.0 release and its tag remain preparatory, not published.
 
 ## Project
 
-**SignerReach** is an unreleased Rust command-line tool that reviews planned
-changes to a Stellar classic account's signers and thresholds before the user
-submits those changes. Repository:
+**SignerReach** is a published Rust command-line tool, currently at v0.1.0,
+that reviews planned changes to a Stellar classic account's signers and
+thresholds before the user submits those changes. Repository:
 [github.com/signerreach/signerreach](https://github.com/signerreach/signerreach).
 
 The intended users are people and teams administering multisig Stellar
@@ -63,9 +97,9 @@ link the protocol sources and observations.
   plans on Testnet. Its dry run builds and signs without network requests.
 
 The shipped binary never holds private signing keys or submits transactions.
-There is no hosted app, smart contract, API server or published release.
-Workspace version is `0.1.0` on this preparation branch, with crates.io
-publication still disabled.
+There is no hosted app, smart contract or API server. The published release is
+v0.1.0 from commit `e1a37cea9101bbf2cb68372f111c6e4a5ecd1ba4`; crates.io
+publication remains disabled (`publish = false`).
 
 ## Supported scope and evidence
 
@@ -88,15 +122,15 @@ from Hollujay's fork merged into upstream `main` as `be8b082e9c6e5dad4be2ab4f9dd
 jobs, including 277 Rust tests, minimum Rust verification, the offline replay
 dry run, formatting/linting, cross-platform tests and the Ubuntu release
 build. The earlier 269-test run on the pre-merge commit remains historical
-evidence, not the current main-branch result. This draft does not claim
-that a subsequent documentation-only PR has passed until its own CI runs.
+evidence, not the current main-branch result. Current final-main CI is linked
+in the post-publication status above.
 
 Real Testnet observations from [2026-10-13](../docs/evidence/testnet-2026-10-13/README.md)
 include accepted changes and rejected follow-up lockout attempts at protocol
 29. A [2026-10-19 replay](../docs/evidence/replay-2026-10-19/README.md)
 repeated seven chain fixture plans at protocol 29 and matched their expected
 outcomes, but did not repeat the follow-up attempts. Both records are
-historical and do not establish current live or Protocol 30 compatibility.
+historical and do not establish current network or Protocol 30 compatibility.
 The [documentation index](../docs/README.md) gives a short path through the
 CLI, schemas, examples, security model and reproduction steps.
 
@@ -143,7 +177,7 @@ Testnet. Its authorization mechanism is backed by separate protocol 29 cases.
 The verdict assumes an accurate snapshot, obtainable signatures and declared
 key availability. Reserves and live state changes remain outside the model.
 
-## Security, open work and release decision
+## Security and open work
 
 The [security policy](../SECURITY.md) uses GitHub private vulnerability
 reporting. The [security review](../docs/security-review.md) records fixed
@@ -153,11 +187,13 @@ persist their secrets. This is not an independent security audit.
 
 Contributor work remains open: [#1 JSON Schema command](https://github.com/signerreach/signerreach/issues/1), [#2 Markdown report](https://github.com/signerreach/signerreach/issues/2), and [#7 Protocol 30 verification](https://github.com/signerreach/signerreach/issues/7). The initial follow-up replay scope in [#3](https://github.com/signerreach/signerreach/issues/3) is closed.
 
+## Historical pre-publication release decision
+
 A coherent first release contains the implemented `check` and `fetch`
 commands, text and JSON reports, protocol 29 support, fixtures, source
 documentation and the stated limitations. It requires reviewed native release
-artifacts, current CI, release notes and maintainer authorization. No tag or
-GitHub Release has been created. The current
+artifacts, current CI, release notes and maintainer authorization. At the time
+of that assessment, no tag or GitHub Release had yet been created. The current
 [SCF Build Award information](https://communityfund.stellar.org/awards)
 lists tracks, but this project's eligibility and any application choice remain
 unverified. No application has been submitted and no approval or funding is

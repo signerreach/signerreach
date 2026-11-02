@@ -1,8 +1,13 @@
 # SignerReach v0.1.0
 
-**Draft release notes for maintainer review — not a published release.** No
-`v0.1.0` tag or GitHub Release has been created. The release-preparation PR and
-its native CI artifacts must be reviewed before publication.
+**Historical release-preparation notes.** This file preserves the draft and
+candidate-artifact record written before publication. The published v0.1.0
+release and its authoritative final notes, checksums and manifests are at
+the [GitHub Release](https://github.com/signerreach/signerreach/releases/tag/v0.1.0).
+The candidate checksums below belong to source commit
+`9d7985f6dfec05f92db472de6304212f16ffcc6c`; they are not the final release
+checksums. The publication checklist below is historical and has been
+completed. Do not use it to create or update the published tag.
 
 ## What is included
 

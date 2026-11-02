@@ -11,7 +11,7 @@
 
 ## Start here
 
-- **[Get started](getting-started.md):** build the Rust CLI and run the FX-01 example.
+- **[Get started](getting-started.md):** download a v0.1.0 binary or build the Rust CLI, then run the FX-01 example.
 - **[Understand the verdict](authorization.md):** learn what `SAFE WITHIN SCOPE`, `UNSAFE`, and `INCONCLUSIVE` mean.
 - **[Review real evidence](evidence.md):** see protocol 29 Testnet observations and the follow-up authorization rejection.
 - **[Know the limitations](security.md):** understand snapshots, unavailable keys, unsupported transactions, and protocol boundaries.
@@ -22,6 +22,6 @@ A classic account has two signers, each with weight 1, and HIGH threshold 1. A p
 
 SignerReach evaluates the plan **in transaction order**, with the declared signer availability, and reports the resulting reachability. It does not sign or submit account changes.
 
-> **Important:** SignerReach is in v0.1.0 release-candidate preparation; no tag or GitHub Release has been published. Its verified authorization model is limited to Stellar **Protocol 29**, one classic G-address account, ed25519 signers, and a subset of `SetOptions`. It has not undergone an independent security audit. A result is evidence for review, not a guarantee.
+> **Release status:** SignerReach v0.1.0 was published on November 2, 2026. See the [published release](https://github.com/signerreach/signerreach/releases/tag/v0.1.0). Its verified authorization model is limited to Stellar **Protocol 29**, one classic G-address account, ed25519 signers, and a subset of `SetOptions`. It has not undergone an independent security audit. The CLI does not hold keys, sign or submit transactions. A result is evidence for review, not a guarantee; it cannot establish snapshot freshness, signer availability or reserve sufficiency.
 
 [Read the specification on GitHub](https://github.com/signerreach/signerreach/blob/main/docs/SPEC.md) · [Browse the source](https://github.com/signerreach/signerreach) · [See the evidence ledger](https://github.com/signerreach/signerreach/blob/main/evidence/index.md)

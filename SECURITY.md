@@ -63,7 +63,8 @@ helps users understand the impact.
 
 ## Supported versions
 
-There are no releases yet. Only the `main` branch is supported.
+The only published version is [v0.1.0](https://github.com/signerreach/signerreach/releases/tag/v0.1.0).
+Changes on `main` are development changes and are not published releases.
 
 ## What this policy does not promise
 

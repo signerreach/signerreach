@@ -5,6 +5,7 @@ thresholds. Before you submit a change, it tells you whether the account can
 still be administered afterwards, under the assumptions you state.
 
 [![CI](https://github.com/signerreach/signerreach/actions/workflows/ci.yml/badge.svg)](https://github.com/signerreach/signerreach/actions/workflows/ci.yml)
+[![Release v0.1.0](https://img.shields.io/badge/release-v0.1.0-2ea44f)](https://github.com/signerreach/signerreach/releases/tag/v0.1.0)
 [![Documentation build](https://github.com/signerreach/signerreach/actions/workflows/docs.yml/badge.svg)](https://signerreach.github.io/signerreach/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-496c8e)](LICENSE)
 [![Rust 1.87+](https://img.shields.io/badge/Rust-1.87%2B-496c8e)](Cargo.toml)
@@ -17,14 +18,17 @@ still be administered afterwards, under the assumptions you state.
 
 The primary documentation is the [SignerReach mdBook](https://signerreach.github.io/signerreach/).
 
-> **Status: v0.1.0 release-candidate preparation.** The tool runs end to end and is tested, but
-> it has not been independently audited and no `v0.1.0` tag or GitHub Release has been published. It cannot know whether
-> anyone holds a key. Treat a result as an aid to your own review, not as a
-> guarantee. SignerReach is an independent project, not affiliated with or
-> endorsed by the Stellar Development Foundation.
+> **Status: v0.1.0 was published on November 2, 2026**, from verified main
+> commit `e1a37cea9101bbf2cb68372f111c6e4a5ecd1ba4`. SignerReach has not been
+> independently audited and cannot know whether anyone holds a key. Treat a
+> result as an aid to your own review, not as a guarantee. SignerReach is an
+> independent project, not affiliated with or endorsed by the Stellar
+> Development Foundation.
 
-The draft [v0.1.0 release notes](RELEASE_NOTES_v0.1.0.md) describe the candidate
-scope, Protocol 29 boundary, evidence and maintainer-only publication checklist.
+The [published v0.1.0 release](https://github.com/signerreach/signerreach/releases/tag/v0.1.0)
+contains the authoritative release notes and final artifact checksums. The
+repository's [release-preparation notes](RELEASE_NOTES_v0.1.0.md) preserve the
+earlier candidate artifacts and their original source commit.
 
 ## The problem
 
@@ -101,10 +105,25 @@ network evidence behind it and a corrected plan, is in
 | 2 | `INCONCLUSIVE`, including input that was rejected |
 | 64 | Usage error, or a file that cannot be read |
 
-## Building
+## Download v0.1.0
 
-There is no published release artifact yet, so build the candidate from source.
-You need Rust 1.87 or later and nothing else.
+Published packages are available for these native targets. Each archive
+contains the CLI, license and README. The checksum file and manifest are
+published beside each archive.
+
+| Platform | Target triple | Archive | SHA-256 | Manifest |
+|---|---|---|---|---|
+| Linux x86-64 | `x86_64-unknown-linux-gnu` | [tar.gz](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-x86_64-unknown-linux-gnu.tar.gz) | [checksum](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-x86_64-unknown-linux-gnu.sha256) | [manifest](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-x86_64-unknown-linux-gnu.manifest.json) |
+| macOS Apple Silicon | `aarch64-apple-darwin` | [tar.gz](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-aarch64-apple-darwin.tar.gz) | [checksum](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-aarch64-apple-darwin.sha256) | [manifest](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-aarch64-apple-darwin.manifest.json) |
+| Windows x86-64 | `x86_64-pc-windows-msvc` | [zip](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-x86_64-pc-windows-msvc.zip) | [checksum](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-x86_64-pc-windows-msvc.sha256) | [manifest](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-x86_64-pc-windows-msvc.manifest.json) |
+
+These are the published targets; other architectures are not included. See the
+[GitHub Release](https://github.com/signerreach/signerreach/releases/tag/v0.1.0)
+for the complete notes and asset list.
+
+## Build from source
+
+To build from source, use Rust 1.87 or later and nothing else.
 
 ```bash
 cargo build --release
@@ -196,6 +215,8 @@ scripts**, with a reproducible trace.
   accounts, are reported `INCONCLUSIVE`. Reserve sufficiency and other external
   conditions cannot always be established from the snapshot, even when the
   verdict is `SAFE WITHIN SCOPE`.
+- Historical Testnet observations do not establish current network
+  compatibility or the current state of an account.
 
 Every report ends with a coverage list stating what was and was not modelled.
 

@@ -1,7 +1,8 @@
 # Evidence and claim ledger
 
-Checked 2026-11-01. This is the central index for what the repository can
-support. Historical Testnet observations remain in their original directories.
+Release status checked 2026-11-02. This is the central index for what the
+repository can support. Historical Testnet observations remain in their
+original directories.
 `TESTED LOCALLY` means this review ran the named command; it does not imply
 hosted CI or independent audit. `VERIFIED` means a source or observation directly
 supports the narrow claim shown. `LOGICALLY COVERED` means code or tests support
@@ -29,7 +30,8 @@ gate that has not passed.
 | Protocol 30 pre-upgrade source review traced Core v29/v30 classic authorization call paths but did not establish full compatibility; Horizon v30 live behavior is unobserved | Tagged Stellar Core/Horizon source review and offline fake-server regression | [Protocol 30 pre-upgrade review](../research/protocol-30-preupgrade-review.md), [fetch tests](../crates/signerreach-stellar/tests/fetch.rs) | 2026-10-31 | PRE-UPGRADE / NOT VERIFIED FOR PROTOCOL 30 |
 | Current dependency scanners found no known advisory after narrow updates | RustSec and npm scanners | `cargo audit` on `Cargo.lock`; `npm audit --omit=dev` on [replay lockfile](../tools/replay/package-lock.json); findings and fixes in [security review](../docs/security-review.md) | 2026-10-31 | TESTED LOCALLY; scanner scope only |
 | Private vulnerability reporting is enabled | GitHub repository API | `gh api repos/signerreach/signerreach/private-vulnerability-reporting` returned `{"enabled":true}` | 2026-10-31 | VERIFIED |
-| No release or tag exists now | GitHub releases and tags API | `gh release list --repo signerreach/signerreach`; `gh api repos/signerreach/signerreach/tags` returned empty lists | 2026-10-31 | VERIFIED at check time |
+| SignerReach v0.1.0 is published from main commit `e1a37cea9101bbf2cb68372f111c6e4a5ecd1ba4`; its annotated tag points to that commit and nine assets passed release and downloaded-byte verification | GitHub Release, publication workflow, annotated tag and asset checksums/manifests | [Published release](https://github.com/signerreach/signerreach/releases/tag/v0.1.0), [publication run](https://github.com/signerreach/signerreach/actions/runs/41451872483), [final-main CI](https://github.com/signerreach/signerreach/actions/runs/41447399997) | 2026-11-02 | VERIFIED for the stated commit and targets |
+| No release or tag existed at the 2026-10-31 check | GitHub releases and tags API | `gh release list --repo signerreach/signerreach`; `gh api repos/signerreach/signerreach/tags` returned empty lists | 2026-10-31 | VERIFIED at check time |
 | Current project eligibility for a Stellar funding track | Official program information | [SCF Build Award](https://communityfund.stellar.org/awards), [research record](../research/ecosystem-recon.md#program-status-and-open-questions) | 2026-10-31 | UNVERIFIED for this project |
 
 ## Public claim ledger
