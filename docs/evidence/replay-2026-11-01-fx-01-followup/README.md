@@ -118,5 +118,6 @@ and Core version before the guarded command above is allowed to submit.
 This is a single fresh-account replay of FX-01 Case 1b. It does not repeat the
 other original follow-up attempts, prove key custody, prove account state at a
 later time, or change the Protocol-29-only support boundary. Issue
-[#3](https://github.com/signerreach/signerreach/issues/3) remains open for
-maintainer review of this evidence and any decision about additional cases.
+[#3](https://github.com/signerreach/signerreach/issues/3) is now closed after
+the replay-only format and this FX-01 evidence were merged; additional cases
+still require fresh scope approval.

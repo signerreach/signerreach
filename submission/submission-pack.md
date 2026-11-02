@@ -1,9 +1,13 @@
 # SignerReach submission pack
 
-Prepared for maintainer review and refreshed after the 2026-10-31 merge.
+Prepared for maintainer review. Updated 2026-11-02 with the merged FX-01 follow-up evidence and current repository status.
 This is a draft information pack, not a submission, release announcement,
 approval request or funding claim.
 The [readiness audit](../docs/readiness-audit.md) records the remaining gates.
+
+## November 2026 current-state addendum
+
+PRs [#12](https://github.com/signerreach/signerreach/pull/12) and [#13](https://github.com/signerreach/signerreach/pull/13) are merged. [Main CI run 41297086801](https://github.com/signerreach/signerreach/actions/runs/41297086801) passed all six jobs on `57324abcfe52f331ad28f4d3ab406e21f425edec`. The latest evidence PR reported 278 Rust tests and 51 Node replay tests. Initial follow-up scope issue [#3](https://github.com/signerreach/signerreach/issues/3) is closed. [The November 1 FX-01 replay](../docs/evidence/replay-2026-11-01-fx-01-followup/README.md) observed a new Protocol 29 submission rejection with `tx_failed` / `op_bad_auth`; it does not verify Protocol 30. The older October tests and CI details below remain historical observations, not current-head claims. The mdBook website and initial release remain preparatory, not yet published.
 
 ## Project
 
@@ -127,10 +131,7 @@ findings, tests and outstanding limits. The CLI has no key custody. The replay
 harness generates temporary Testnet keypairs in memory and must not print or
 persist their secrets. This is not an independent security audit.
 
-Contributor work remains open: [#1 JSON Schema command](https://github.com/signerreach/signerreach/issues/1),
-[#2 Markdown report](https://github.com/signerreach/signerreach/issues/2),
-[#3 follow-up replay format discussion](https://github.com/signerreach/signerreach/issues/3),
-and [#7 Protocol 30 verification](https://github.com/signerreach/signerreach/issues/7).
+Contributor work remains open: [#1 JSON Schema command](https://github.com/signerreach/signerreach/issues/1), [#2 Markdown report](https://github.com/signerreach/signerreach/issues/2), and [#7 Protocol 30 verification](https://github.com/signerreach/signerreach/issues/7). The initial follow-up replay scope in [#3](https://github.com/signerreach/signerreach/issues/3) is closed.
 
 A coherent first release could contain the implemented `check` and `fetch`
 commands, text and JSON reports, protocol 29 support, fixtures, source
