@@ -1,7 +1,7 @@
 # SignerReach V1 Specification (draft 0.1)
 
 Date: 2026-10-14
-Status as of 2026-10-31: This retains the original Draft 0.1 specification and fixture IDs. The Rust core, read-only Horizon adapter, `check` and `fetch` commands, text and JSON reports, and development Testnet replay harness are implemented and tested. Markdown reports and `signerreach schema KIND` remain planned in issues [#2](https://github.com/signerreach/signerreach/issues/2) and [#1](https://github.com/signerreach/signerreach/issues/1). The project is unreleased and has not been independently audited. Protocol 29 is the verified rules boundary. Sections below describe intended V1 behavior where they differ from the current implementation; the status notes identify those differences.
+Current publication status (2026-11-02): SignerReach v0.1.0 was published from verified main commit [`e1a37cea9101bbf2cb68372f111c6e4a5ecd1ba4`](https://github.com/signerreach/signerreach/releases/tag/v0.1.0). This file retains the original Draft 0.1 specification and fixture IDs. The Rust core, read-only Horizon adapter, `check` and `fetch` commands, text and JSON reports, and development Testnet replay harness are implemented and tested. Markdown reports and `signerreach schema KIND` remain planned in issues [#2](https://github.com/signerreach/signerreach/issues/2) and [#1](https://github.com/signerreach/signerreach/issues/1). The project has not been independently audited. Protocol 29 is the verified rules boundary. Sections below describe intended V1 behavior where they differ from the current implementation; the status notes identify those differences.
 
 ---
 

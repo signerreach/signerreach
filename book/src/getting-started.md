@@ -1,8 +1,24 @@
 # Get started
 
-SignerReach is a Rust command-line program. The released binary is not yet published. Build it from the source repository with Rust **1.87 or newer**.
+SignerReach is a Rust command-line program. Version **0.1.0** is published for Linux x86-64, macOS Apple Silicon and Windows x86-64. These are the only published binary targets.
 
-## Build
+## Download a release binary
+
+Open the [v0.1.0 GitHub Release](https://github.com/signerreach/signerreach/releases/tag/v0.1.0)
+and download the archive for your platform. The release also includes a
+SHA-256 checksum file and a build manifest for each archive. Check the
+checksum before extracting or running the binary. The archive contains the
+`signerreach` executable, `LICENSE` and `README.md`.
+
+| Platform | Target triple | Archive |
+|---|---|---|
+| Linux x86-64 | `x86_64-unknown-linux-gnu` | [tar.gz](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-x86_64-unknown-linux-gnu.tar.gz) |
+| macOS Apple Silicon | `aarch64-apple-darwin` | [tar.gz](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-aarch64-apple-darwin.tar.gz) |
+| Windows x86-64 | `x86_64-pc-windows-msvc` | [zip](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-x86_64-pc-windows-msvc.zip) |
+
+## Build from source
+
+Use Rust **1.87 or newer**.
 
 ```sh
 git clone https://github.com/signerreach/signerreach.git

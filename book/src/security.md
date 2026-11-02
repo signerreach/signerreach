@@ -8,6 +8,7 @@ SignerReach helps review a proposed transaction; it is **not** an account custod
 - The model covers one classic G-address account, ed25519 signers and the implemented `SetOptions` subset.
 - Signer availability is declared by the operator. No command can prove that a private key still exists or is accessible.
 - A snapshot describes a point in ledger history, not a guaranteed current account state.
+- Historical Testnet observations are not proof of current network compatibility.
 - Reserve sufficiency, account flags, fee-bump transactions, other operation sources, supported preconditions outside the model, sponsored signers, contract addresses and other unsupported inputs are not silently assumed safe.
 - The tool has **not** been independently audited or established as suitable for production account-security decisions.
 

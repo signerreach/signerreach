@@ -1,9 +1,14 @@
 # SignerReach documentation
 
-SignerReach is an unreleased Rust CLI for reviewing planned signer and
-threshold changes to one Stellar classic account. The current verified rules
-boundary is protocol 29. Start with the [repository README](../README.md) for
-the purpose, build command and short example.
+SignerReach v0.1.0 was published on November 2, 2026, for reviewing planned
+signer and threshold changes to one Stellar classic account. Its verified rules
+boundary is Stellar Protocol 29. Start with the [published release and
+downloads](https://github.com/signerreach/signerreach/releases/tag/v0.1.0),
+the [documentation book](https://signerreach.github.io/signerreach/) or the
+[repository README](../README.md).
+
+Quick links: [architecture](architecture.md) · [security policy](../SECURITY.md) ·
+[evidence index](../evidence/index.md).
 
 | Need | Read |
 |---|---|
@@ -24,6 +29,6 @@ the purpose, build command and short example.
 
 The Testnet records are historical protocol 29 evidence. The 2026-11-01 replay
 repeated FX-01's master-only follow-up rejection; other original follow-up
-attempts have not been repeated by the harness. No site URL or hosted
-application is needed to use this CLI. The repository documentation is the
-maintained review surface.
+attempts have not been repeated by the harness. The CLI does not require a
+hosted service. The [published documentation book](https://signerreach.github.io/signerreach/)
+is the maintained public guide.
