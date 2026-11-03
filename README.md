@@ -1,3 +1,5 @@
+<img src="docs/assets/logo.svg" alt="SignerReach logo" width="120" align="right">
+
 # SignerReach
 
 An offline checker for changes to Stellar classic-account signers and

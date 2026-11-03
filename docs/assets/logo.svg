@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160" role="img">
+  <title>SignerReach logo</title>
+  <desc>An account node at the centre, reached by two signer nodes. A third signer is dashed and hollow, a key that is lost.</desc>
+  <line x1="80" y1="92" x2="80" y2="35" stroke="#496c8e" stroke-width="4" stroke-linecap="round"/>
+  <line x1="80" y1="92" x2="30" y2="123" stroke="#496c8e" stroke-width="4" stroke-linecap="round"/>
+  <line x1="80" y1="92" x2="130" y2="123" stroke="#8a9bab" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/>
+  <circle cx="80" cy="92" r="20" fill="#496c8e"/>
+  <circle cx="80" cy="29" r="11" fill="#2ea44f"/>
+  <circle cx="25" cy="126" r="11" fill="#2ea44f"/>
+  <circle cx="135" cy="126" r="11" fill="none" stroke="#8a9bab" stroke-width="3" stroke-dasharray="3 5"/>
+</svg>
