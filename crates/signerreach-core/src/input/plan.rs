@@ -34,7 +34,7 @@ const MAX_ID_LENGTH: usize = 64;
 /// The longest home domain, in bytes (a Stellar protocol limit).
 const MAX_HOME_DOMAIN_BYTES: usize = 32;
 
-/// The account flag bits that exist at protocol 29.
+/// The account flag bits that exist at protocols 29 and 30.
 const ACCOUNT_FLAG_MASK: u32 = 0xF;
 
 /// A signer added, re-weighted or removed (weight 0) by an operation.

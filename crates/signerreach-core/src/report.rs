@@ -24,7 +24,7 @@ pub(crate) const MODELLED: [&str; 7] = [
     "one classic account (a G address) per run",
     "ed25519 signers, including the account's own key",
     "SetOptions operations",
-    "the authorization rules of protocol 29, checked against the state before each transaction",
+    "the authorization rules of protocols 29 and 30, checked against the state before each transaction",
     "the extra-signature rule, where it can be decided",
     "LOW, MEDIUM and HIGH reachability under the declared availability",
     "up to 20 additional signers, weights and thresholds from 0 to 255",
@@ -40,7 +40,7 @@ pub(crate) const NOT_MODELLED: [&str; 9] = [
     "pre_auth_tx, hash(x) and signed-payload signers",
     "operations other than SetOptions",
     "the order of signatures, where it decides the outcome",
-    "protocol versions other than 29",
+    "protocol versions other than 29 and 30",
     "changes to the account after the snapshot was taken",
 ];
 

@@ -253,11 +253,21 @@ fn a_good_answer_becomes_a_snapshot_the_checker_accepts() {
 }
 
 #[test]
-fn a_stable_protocol_30_horizon_root_cannot_produce_a_safe_snapshot() {
+fn a_protocol_30_horizon_root_becomes_a_snapshot_the_checker_accepts() {
     let server = Server::start(routes(good_account(), vec![testnet_root(30)]));
+    let text = fetch(&server, &account_id(), &quick()).expect("fetches");
+
+    let snapshot = parse_snapshot(&text).expect("protocol 30 is a verified protocol");
+    assert_eq!(snapshot.provenance().protocol_version(), 30);
+    assert_eq!(server.requests().len(), 3);
+}
+
+#[test]
+fn a_horizon_root_on_an_unverified_protocol_cannot_produce_a_safe_snapshot() {
+    let server = Server::start(routes(good_account(), vec![testnet_root(31)]));
     let text = fetch(&server, &account_id(), &quick()).expect("fetches provenance");
 
-    let issues = parse_snapshot(&text).expect_err("protocol 30 is unsupported");
+    let issues = parse_snapshot(&text).expect_err("protocol 31 is unsupported");
     assert!(
         issues
             .iter()

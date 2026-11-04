@@ -150,6 +150,59 @@ fn an_unsafe_plan_exits_1_and_prints_the_text_report() {
 }
 
 #[test]
+fn a_protocol_30_snapshot_gives_the_same_verdicts_as_protocol_29() {
+    let scratch = Scratch::new("protocol-30");
+    let at_30 = |text: String| text.replace(r#""protocol_version":29"#, r#""protocol_version":30"#);
+    let availability = availability(&[(1, "available"), (2, "lost")]);
+
+    let unsafe_at_29 = check(
+        &scratch,
+        &snapshot(1, &[(2, 1)], (1, 1, 1)),
+        &unsafe_plan(),
+        &availability,
+        &[],
+    );
+    let unsafe_at_30 = check(
+        &scratch,
+        &at_30(snapshot(1, &[(2, 1)], (1, 1, 1))),
+        &unsafe_plan(),
+        &availability,
+        &[],
+    );
+    assert_eq!(code(&unsafe_at_30), 1);
+    assert_eq!(code(&unsafe_at_30), code(&unsafe_at_29));
+    assert!(stdout(&unsafe_at_30).contains("VERDICT: UNSAFE\n"));
+
+    let safe_at_30 = check(
+        &scratch,
+        &at_30(snapshot(1, &[(2, 1)], (1, 1, 1))),
+        &plan(""),
+        &availability,
+        &[],
+    );
+    assert_eq!(code(&safe_at_30), 0);
+    assert!(stdout(&safe_at_30).contains("VERDICT: SAFE WITHIN SCOPE\n"));
+}
+
+#[test]
+fn a_protocol_31_snapshot_is_inconclusive() {
+    let scratch = Scratch::new("protocol-31");
+    let snapshot = snapshot(1, &[(2, 1)], (1, 1, 1))
+        .replace(r#""protocol_version":29"#, r#""protocol_version":31"#);
+    let output = check(
+        &scratch,
+        &snapshot,
+        &plan(""),
+        &availability(&[(1, "available"), (2, "available")]),
+        &[],
+    );
+    assert_eq!(code(&output), 2);
+    let text = stdout(&output);
+    assert!(text.contains("VERDICT: INCONCLUSIVE\n"));
+    assert!(text.contains("SR-RULES-01"));
+}
+
+#[test]
 fn a_safe_plan_exits_0() {
     let scratch = Scratch::new("safe");
     let output = check(
