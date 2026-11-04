@@ -15,8 +15,9 @@ use crate::diagnostic::Code;
 /// The schema identifier a snapshot must carry.
 pub const SNAPSHOT_SCHEMA: &str = "signerreach.snapshot/1";
 
-/// The only protocol version whose rules are verified.
-pub const SUPPORTED_PROTOCOL_VERSION: u32 = 29;
+/// The protocol versions whose rules are verified. See `docs/SPEC.md` and the
+/// evidence under `docs/evidence` for what was observed at each.
+pub const SUPPORTED_PROTOCOL_VERSIONS: [u32; 2] = [29, 30];
 
 /// The Stellar network a snapshot was taken from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -258,13 +259,20 @@ fn read_provenance(root: &mut Obj<'_>, issues: &mut Issues) -> Option<Provenance
     if let Some(value) = required_provenance(&mut obj, "protocol_version", issues) {
         let at = obj.path_of("protocol_version");
         if let Some(version) = as_u32(value, &at, issues) {
-            if version == SUPPORTED_PROTOCOL_VERSION {
+            if SUPPORTED_PROTOCOL_VERSIONS.contains(&version) {
                 protocol_version = Some(version);
             } else {
+                let supported: Vec<String> = SUPPORTED_PROTOCOL_VERSIONS
+                    .iter()
+                    .map(u32::to_string)
+                    .collect();
                 issues.push(
                     Code::Rules01,
                     &at,
-                    format!("only protocol {SUPPORTED_PROTOCOL_VERSION} is supported"),
+                    format!(
+                        "only protocol versions {} are supported",
+                        supported.join(", ")
+                    ),
                 );
             }
         }
@@ -548,14 +556,28 @@ mod tests {
     }
 
     #[test]
-    fn protocol_other_than_29_is_rules_01() {
-        let mut doc = valid();
-        doc["provenance"]["protocol_version"] = json!(28);
-        assert!(has(
-            &issues(&doc),
-            Code::Rules01,
-            "/provenance/protocol_version"
-        ));
+    fn protocols_29_and_30_are_accepted() {
+        for version in [29, 30] {
+            let mut doc = valid();
+            doc["provenance"]["protocol_version"] = json!(version);
+            let snapshot = parse(&doc).expect("a verified protocol is accepted");
+            assert_eq!(snapshot.provenance().protocol_version(), version);
+        }
+    }
+
+    #[test]
+    fn a_protocol_outside_the_verified_set_is_rules_01() {
+        for version in [0, 28, 31] {
+            let mut doc = valid();
+            doc["provenance"]["protocol_version"] = json!(version);
+            let found = issues(&doc);
+            assert!(has(&found, Code::Rules01, "/provenance/protocol_version"));
+            assert!(
+                found
+                    .iter()
+                    .any(|issue| issue.message == "only protocol versions 29, 30 are supported")
+            );
+        }
     }
 
     #[test]
