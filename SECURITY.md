@@ -63,7 +63,8 @@ helps users understand the impact.
 
 ## Supported versions
 
-The only published version is [v0.1.0](https://github.com/signerreach/signerreach/releases/tag/v0.1.0).
+The latest published version is [v0.1.1](https://github.com/signerreach/signerreach/releases/tag/v0.1.1). The earlier
+[v0.1.0](https://github.com/signerreach/signerreach/releases/tag/v0.1.0) is superseded by it.
 Changes on `main` are development changes and are not published releases.
 
 ## What this policy does not promise

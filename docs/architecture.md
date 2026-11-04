@@ -1,9 +1,9 @@
 # Architecture and scope
 
 Architecture checked against the repository on 2026-10-31. Publication status
-checked on 2026-11-02. This describes the implemented Rust CLI and the separate
-development replay tool. Version 0.1.0 is published from verified main commit
-[`e1a37cea9101bbf2cb68372f111c6e4a5ecd1ba4`](https://github.com/signerreach/signerreach/releases/tag/v0.1.0).
+checked on 2026-11-04. This describes the implemented Rust CLI and the separate
+development replay tool. Version 0.1.1 is published from verified main commit
+[`f950a821044c479c29550e6e003612b2de7b9175`](https://github.com/signerreach/signerreach/releases/tag/v0.1.1).
 
 ```mermaid
 flowchart LR
@@ -34,7 +34,7 @@ read-only way to obtain a snapshot. Neither command signs or submits.
 | `tools/replay` | Build throwaway Testnet accounts and replay chain fixtures | Separate Node development tool; live mode signs and submits on Testnet |
 
 The binary has no database, server, contract, cross-repository dependency, or
-hosted state. The published CLI version is `0.1.0`.
+hosted state. The published CLI version is `0.1.1`.
 
 ## Inputs and trust boundaries
 
@@ -121,6 +121,6 @@ for the other historical follow-ups. See
 The existing issues cover JSON Schema output, Markdown reports and maintainer
 review of the replay-only follow-up evidence. None is required to operate the
 current CLI. Protocol 30 was verified against the source and on Testnet (see the
-2026-11-04 evidence record) and is accepted on `main`. Any further protocol
+2026-11-04 evidence record) and is accepted since v0.1.1. Any further protocol
 needs its own verification before the support boundary changes. There is no requirement for a frontend, database, API,
 contract, custody path or live replay in ordinary CI.

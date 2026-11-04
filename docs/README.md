@@ -1,10 +1,10 @@
 # SignerReach documentation
 
-SignerReach v0.1.0 was published on November 2, 2026, for reviewing planned
+SignerReach v0.1.1 was published on November 4, 2026, for reviewing planned
 signer and threshold changes to one Stellar classic account. Its verified rules
-boundary is Stellar Protocol 29; `main` also accepts Protocol 30, which is not in
-a published release yet. Start with the [published release and
-downloads](https://github.com/signerreach/signerreach/releases/tag/v0.1.0),
+boundary is Stellar Protocol 29 and 30 (v0.1.0, published on November 2, 2026,
+accepts Protocol 29 only). Start with the [published release and
+downloads](https://github.com/signerreach/signerreach/releases/tag/v0.1.1),
 the [documentation book](https://signerreach.github.io/signerreach/) or the
 [repository README](../README.md).
 

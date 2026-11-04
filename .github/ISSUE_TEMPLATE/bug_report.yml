@@ -23,7 +23,7 @@ body:
     id: version
     attributes:
       label: Version or commit
-      description: The release (for example v0.1.0) or the commit you built.
+      description: The release (for example v0.1.1) or the commit you built.
     validations:
       required: true
   - type: textarea
