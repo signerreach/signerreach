@@ -7,7 +7,7 @@ thresholds. Before you submit a change, it tells you whether the account can
 still be administered afterwards, under the assumptions you state.
 
 [![CI](https://github.com/signerreach/signerreach/actions/workflows/ci.yml/badge.svg)](https://github.com/signerreach/signerreach/actions/workflows/ci.yml)
-[![Release v0.1.0](https://img.shields.io/badge/release-v0.1.0-2ea44f)](https://github.com/signerreach/signerreach/releases/tag/v0.1.0)
+[![Release v0.1.1](https://img.shields.io/badge/release-v0.1.1-2ea44f)](https://github.com/signerreach/signerreach/releases/tag/v0.1.1)
 [![Documentation build](https://github.com/signerreach/signerreach/actions/workflows/docs.yml/badge.svg)](https://signerreach.github.io/signerreach/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-496c8e)](LICENSE)
 [![Rust 1.87+](https://img.shields.io/badge/Rust-1.87%2B-496c8e)](Cargo.toml)
@@ -18,7 +18,7 @@ still be administered afterwards, under the assumptions you state.
 [Evidence index](evidence/index.md) · [Security](SECURITY.md) ·
 [Contributing](CONTRIBUTING.md)
 
-**Latest release:** [SignerReach v0.1.0](https://github.com/signerreach/signerreach/releases/tag/v0.1.0) |
+**Latest release:** [SignerReach v0.1.1](https://github.com/signerreach/signerreach/releases/tag/v0.1.1) |
 [Documentation](https://signerreach.github.io/signerreach/)
 
 SignerReach helps Stellar account administrators check whether planned signer
@@ -26,9 +26,9 @@ and threshold changes could leave an account unmanageable. It evaluates
 changes before submission, without requiring private keys or signing
 transactions.
 
-The published release (v0.1.0) supports the verified Stellar Protocol 29 rules
-within its documented scope. `main` also accepts Protocol 30, verified on Testnet
-as described below; that is not in a published release yet.
+The current release (v0.1.1) supports the verified Stellar Protocol 29 and 30
+rules within its documented scope. Protocol 30 is verified on Testnet as
+described below. The earlier v0.1.0 accepts Protocol 29 only.
 
 ## The problem
 
@@ -105,7 +105,7 @@ network evidence behind it and a corrected plan, is in
 | 2 | `INCONCLUSIVE`, including input that was rejected |
 | 64 | Usage error, or a file that cannot be read |
 
-## Download v0.1.0
+## Download v0.1.1
 
 Published packages are available for these native targets. Each archive
 contains the CLI, license and README. The checksum file and manifest are
@@ -113,12 +113,12 @@ published beside each archive.
 
 | Platform | Target triple | Archive | SHA-256 | Manifest |
 |---|---|---|---|---|
-| Linux x86-64 | `x86_64-unknown-linux-gnu` | [tar.gz](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-x86_64-unknown-linux-gnu.tar.gz) | [checksum](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-x86_64-unknown-linux-gnu.sha256) | [manifest](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-x86_64-unknown-linux-gnu.manifest.json) |
-| macOS Apple Silicon | `aarch64-apple-darwin` | [tar.gz](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-aarch64-apple-darwin.tar.gz) | [checksum](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-aarch64-apple-darwin.sha256) | [manifest](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-aarch64-apple-darwin.manifest.json) |
-| Windows x86-64 | `x86_64-pc-windows-msvc` | [zip](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-x86_64-pc-windows-msvc.zip) | [checksum](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-x86_64-pc-windows-msvc.sha256) | [manifest](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-x86_64-pc-windows-msvc.manifest.json) |
+| Linux x86-64 | `x86_64-unknown-linux-gnu` | [tar.gz](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-x86_64-unknown-linux-gnu.tar.gz) | [checksum](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-x86_64-unknown-linux-gnu.sha256) | [manifest](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-x86_64-unknown-linux-gnu.manifest.json) |
+| macOS Apple Silicon | `aarch64-apple-darwin` | [tar.gz](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-aarch64-apple-darwin.tar.gz) | [checksum](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-aarch64-apple-darwin.sha256) | [manifest](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-aarch64-apple-darwin.manifest.json) |
+| Windows x86-64 | `x86_64-pc-windows-msvc` | [zip](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-x86_64-pc-windows-msvc.zip) | [checksum](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-x86_64-pc-windows-msvc.sha256) | [manifest](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-x86_64-pc-windows-msvc.manifest.json) |
 
 These are the published targets; other architectures are not included. See the
-[GitHub Release](https://github.com/signerreach/signerreach/releases/tag/v0.1.0)
+[GitHub Release](https://github.com/signerreach/signerreach/releases/tag/v0.1.1)
 for the complete notes and asset list.
 
 ## Build from source
@@ -216,7 +216,7 @@ scripts**, with a reproducible trace.
 - Only the rules of protocols 29 and 30 are verified, only `SetOptions`
   operations, and only ed25519 signers on a single classic account. Protocol 30
   rests on one Testnet run of seven fixtures and one follow-up attempt, not on
-  every possible input. The published v0.1.0 accepts protocol 29 only.
+  every possible input. The earlier v0.1.0 accepts protocol 29 only.
 - Recognized unsupported inputs, including fee-bump transactions,
   preconditions, other source accounts, sponsored signers and Soroban contract
   accounts, are reported `INCONCLUSIVE`. Reserve sufficiency and other external

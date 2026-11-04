@@ -1,10 +1,10 @@
 # Get started
 
-SignerReach is a Rust command-line program. Version **0.1.0** is published for Linux x86-64, macOS Apple Silicon and Windows x86-64. These are the only published binary targets.
+SignerReach is a Rust command-line program. Version **0.1.1** is published for Linux x86-64, macOS Apple Silicon and Windows x86-64. These are the only published binary targets.
 
 ## Download a release binary
 
-Open the [v0.1.0 GitHub Release](https://github.com/signerreach/signerreach/releases/tag/v0.1.0)
+Open the [v0.1.1 GitHub Release](https://github.com/signerreach/signerreach/releases/tag/v0.1.1)
 and download the archive for your platform. The release also includes a
 SHA-256 checksum file and a build manifest for each archive. Check the
 checksum before extracting or running the binary. The archive contains the
@@ -12,9 +12,9 @@ checksum before extracting or running the binary. The archive contains the
 
 | Platform | Target triple | Archive |
 |---|---|---|
-| Linux x86-64 | `x86_64-unknown-linux-gnu` | [tar.gz](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-x86_64-unknown-linux-gnu.tar.gz) |
-| macOS Apple Silicon | `aarch64-apple-darwin` | [tar.gz](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-aarch64-apple-darwin.tar.gz) |
-| Windows x86-64 | `x86_64-pc-windows-msvc` | [zip](https://github.com/signerreach/signerreach/releases/download/v0.1.0/signerreach-v0.1.0-x86_64-pc-windows-msvc.zip) |
+| Linux x86-64 | `x86_64-unknown-linux-gnu` | [tar.gz](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-x86_64-unknown-linux-gnu.tar.gz) |
+| macOS Apple Silicon | `aarch64-apple-darwin` | [tar.gz](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-aarch64-apple-darwin.tar.gz) |
+| Windows x86-64 | `x86_64-pc-windows-msvc` | [zip](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-x86_64-pc-windows-msvc.zip) |
 
 ## Build from source
 

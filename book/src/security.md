@@ -4,7 +4,7 @@ SignerReach helps review a proposed transaction; it is **not** an account custod
 
 ## Deliberately limited scope
 
-- The verified rule sets are **Stellar Protocol 29** and **Protocol 30**. Other protocol versions return **INCONCLUSIVE**. The published v0.1.0 accepts Protocol 29 only; Protocol 30 is accepted on `main` and is not in a published release yet. See [issue #7](https://github.com/signerreach/signerreach/issues/7).
+- The verified rule sets are **Stellar Protocol 29** and **Protocol 30**. Other protocol versions return **INCONCLUSIVE**. Protocol 30 is accepted from v0.1.1; v0.1.0 accepts Protocol 29 only. See [issue #7](https://github.com/signerreach/signerreach/issues/7).
 - The model covers one classic G-address account, ed25519 signers and the implemented `SetOptions` subset.
 - Signer availability is declared by the operator. No command can prove that a private key still exists or is accessible.
 - A snapshot describes a point in ledger history, not a guaranteed current account state.
