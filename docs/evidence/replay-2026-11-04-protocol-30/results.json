@@ -1,0 +1,332 @@
+{
+  "meta": {
+    "tool": "signerreach-replay/1",
+    "sdk": "17.3.0",
+    "horizon": "https://horizon-testnet.stellar.org",
+    "dry_run": false,
+    "started": "2026-11-04T07:02:52.558Z",
+    "protocol": 30,
+    "core": "stellar-core 30.0.0 (0e49751aa9ddf892302cca02cea7f3f5d97df9f1)",
+    "ledger_at_start": 5550429,
+    "fixture_protocols": [
+      29
+    ],
+    "protocol_under_test": 30,
+    "finished": "2026-11-04T07:05:22.184Z"
+  },
+  "results": [
+    {
+      "fixture": "FX-01",
+      "directory": "fx-01-raise-high-with-lost-signer",
+      "account": "GDPKS3OT7DN4C6MDWFNOJBXJDXRZI4A7QAQ5LSXKXO5B7A74V7EV3NBU",
+      "transactions": [
+        {
+          "id": "raise-high",
+          "expected": "accepted",
+          "status": "accepted",
+          "hash": "32298aa37469220e3a2ffe9aeb9d9a3a9b5dfce4e1cf45ea12fd35f048e1ab63",
+          "ledger": 5550433,
+          "match": true
+        }
+      ],
+      "after": [
+        {
+          "id": "post-master-alone",
+          "expected": {
+            "stage": "rejected_at_submission",
+            "result_codes": {
+              "transaction": "tx_failed",
+              "operations": [
+                "op_bad_auth"
+              ]
+            }
+          },
+          "status": "rejected_at_submission",
+          "match": true,
+          "hash": "4f131d5ee1f25967aa029b89ad77b82f0dd4dc07443f1f8cf502853a98100804",
+          "history_checks": 5,
+          "sequence_before": "23838919623704578",
+          "sequence_after": "23838919623704578",
+          "authorization_state_before": {
+            "sequence": "23838919623704578",
+            "thresholds": {
+              "low": 1,
+              "medium": 1,
+              "high": 2
+            },
+            "signers": {
+              "GC7Z6XVQOGQK4JQWDZBW5UL45PUDMENBGRBNOC7EVBZN743B64IFP3DO": 1,
+              "GDPKS3OT7DN4C6MDWFNOJBXJDXRZI4A7QAQ5LSXKXO5B7A74V7EV3NBU": 1
+            }
+          },
+          "authorization_state_after": {
+            "sequence": "23838919623704578",
+            "thresholds": {
+              "low": 1,
+              "medium": 1,
+              "high": 2
+            },
+            "signers": {
+              "GC7Z6XVQOGQK4JQWDZBW5UL45PUDMENBGRBNOC7EVBZN743B64IFP3DO": 1,
+              "GDPKS3OT7DN4C6MDWFNOJBXJDXRZI4A7QAQ5LSXKXO5B7A74V7EV3NBU": 1
+            }
+          },
+          "result_codes": {
+            "transaction": "tx_failed",
+            "operations": [
+              "op_bad_auth"
+            ]
+          },
+          "non_inclusion_checks": 5,
+          "non_inclusion_is_absolute_proof": false,
+          "raw_response": {
+            "submission": {
+              "status_code": 400,
+              "error_name": "Error",
+              "response": {
+                "type": "https://stellar.org/horizon-errors/transaction_failed",
+                "title": "Transaction Failed",
+                "status": 400,
+                "extras": {
+                  "result_codes": {
+                    "transaction": "tx_failed",
+                    "operations": [
+                      "op_bad_auth"
+                    ]
+                  },
+                  "result_xdr": "AAAAAAAAAGT/////AAAAAf////8AAAAA"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "setup": {
+        "status": "accepted",
+        "hash": "84688db41139c2ad6594666235019b4138092537bbca84bea7fbd1f21e677c69",
+        "ledger": 5550432
+      },
+      "after_precondition": {
+        "status": "matched",
+        "expected_sequence": "23838919623704578",
+        "observed_sequence": "23838919623704578",
+        "observed_account_state": {
+          "sequence": "23838919623704578",
+          "thresholds": {
+            "low": 1,
+            "medium": 1,
+            "high": 2
+          },
+          "signers": {
+            "GC7Z6XVQOGQK4JQWDZBW5UL45PUDMENBGRBNOC7EVBZN743B64IFP3DO": 1,
+            "GDPKS3OT7DN4C6MDWFNOJBXJDXRZI4A7QAQ5LSXKXO5B7A74V7EV3NBU": 1
+          }
+        }
+      },
+      "match": true
+    },
+    {
+      "fixture": "FX-02",
+      "directory": "fx-02-safe-rotation",
+      "account": "GADD2XCLZRPU4A4Z2QZ2KJDWU3FWNXP3YGON3IKC2624IZD4AF5QGXBY",
+      "transactions": [
+        {
+          "id": "rotate",
+          "expected": "accepted",
+          "status": "accepted",
+          "hash": "28001364dec40e36049058a4ceb198c8435b69a8506b41180375314e3b0e3177",
+          "ledger": 5550438,
+          "match": true
+        }
+      ],
+      "after": [],
+      "setup": {
+        "status": "accepted",
+        "hash": "3a401d435c8e313b28c34bed3fe6b7c0f8ec92f039ed06f8b3486cc622b6e0f8",
+        "ledger": 5550437
+      },
+      "match": true
+    },
+    {
+      "fixture": "FX-03",
+      "directory": "fx-03-master-zero-structural-lock",
+      "account": "GDUOBGRTWAQFANCMKQ6HH7ER43OWXZ4ZCB47X44SPUQO2HM2OPATZOX4",
+      "transactions": [
+        {
+          "id": "zero-master",
+          "expected": "accepted",
+          "status": "accepted",
+          "hash": "a2a2d406ffc6fbd85df84b277c10fdbfa1f512eb274f3b279ed0f903f7dfcff5",
+          "ledger": 5550442,
+          "match": true
+        }
+      ],
+      "after": [],
+      "setup": {
+        "status": "accepted",
+        "hash": "bc58f8aca3a7d3b61c5121641152fcc85fa6a11b720210bcc443c32b4d68259b",
+        "ledger": 5550441
+      },
+      "match": true
+    },
+    {
+      "fixture": "FX-05a",
+      "directory": "fx-05a-two-changes-in-one-transaction",
+      "account": "GAULTTNXKUXMRCOY3HWIQHRO6PJTRSGIPRU2FJCFY2UOZZ7C6CLUR6DX",
+      "transactions": [
+        {
+          "id": "one",
+          "expected": "accepted",
+          "status": "accepted",
+          "hash": "176fb1f8a865c37c0af0c1bd106d55c7e55e9e25628aab9bcc3a8e17bb9c6ee8",
+          "ledger": 5550446,
+          "match": true
+        }
+      ],
+      "after": [],
+      "setup": {
+        "status": "accepted",
+        "hash": "dee2636c1e98931baa4fddcc0ec29147d786898e35861b11fb9a04c1bae808e5",
+        "ledger": 5550445
+      },
+      "match": true
+    },
+    {
+      "fixture": "FX-05b",
+      "directory": "fx-05b-two-changes-in-two-transactions",
+      "account": "GAZIWBTS4VEEQAD5TYEMYAQZMY6BOTA3HSB65QI4GAGTNB62VV7BNXEY",
+      "transactions": [
+        {
+          "id": "first",
+          "expected": "accepted",
+          "status": "accepted",
+          "hash": "c30e2d94abd10aa1a95cc0fb45e3a377863411387a8a85ad405140592447a869",
+          "ledger": 5550450,
+          "match": true
+        },
+        {
+          "id": "second",
+          "expected": "rejected",
+          "status": "rejected",
+          "hash": "18d4e7bc8d4c1616d1f2136defb6cca219b0bc7a5e0af4b94db1356189a586dd",
+          "codes": {
+            "transaction": "tx_failed",
+            "operations": [
+              "op_bad_auth"
+            ]
+          },
+          "raw_response": {
+            "submission": {
+              "status_code": 400,
+              "error_name": "Error",
+              "response": {
+                "type": "https://stellar.org/horizon-errors/transaction_failed",
+                "title": "Transaction Failed",
+                "status": 400,
+                "extras": {
+                  "result_codes": {
+                    "transaction": "tx_failed",
+                    "operations": [
+                      "op_bad_auth"
+                    ]
+                  },
+                  "result_xdr": "AAAAAAAAAGT/////AAAAAf////8AAAAA"
+                }
+              }
+            }
+          },
+          "match": true
+        }
+      ],
+      "after": [],
+      "setup": {
+        "status": "accepted",
+        "hash": "74cf151adff41067786a3b4424fdb8077f9913202047ced1e7d55de4bdfe1a6d",
+        "ledger": 5550449
+      },
+      "match": true
+    },
+    {
+      "fixture": "FX-05c",
+      "directory": "fx-05c-signature-by-a-future-signer",
+      "account": "GD5UTQWZQP2BVDWVWGJUVLVS467LHWPHLSGPMTR4VEDUJJ6WCR4LCFDJ",
+      "transactions": [
+        {
+          "id": "add-b",
+          "expected": "rejected",
+          "status": "rejected",
+          "hash": "b6c652db4c523a580428e000683d0fca3c02858c9a2199c9fb3ab253b6403040",
+          "codes": {
+            "transaction": "tx_bad_auth_extra",
+            "operations": []
+          },
+          "raw_response": {
+            "submission": {
+              "status_code": 400,
+              "error_name": "Error",
+              "response": {
+                "type": "https://stellar.org/horizon-errors/transaction_failed",
+                "title": "Transaction Failed",
+                "status": 400,
+                "extras": {
+                  "result_codes": {
+                    "transaction": "tx_bad_auth_extra",
+                    "operations": []
+                  },
+                  "result_xdr": "AAAAAAAAAMj////2AAAAAA=="
+                }
+              }
+            }
+          },
+          "match": true
+        }
+      ],
+      "after": [],
+      "setup": null,
+      "match": true
+    },
+    {
+      "fixture": "FX-07",
+      "directory": "fx-07-low-threshold-unreachable",
+      "account": "GAV3U3LJVP2DW5W2Q2LWWMA5H2LO2SBSHLOE7V65RAUYY7K4RAR5CHOO",
+      "transactions": [],
+      "after": [],
+      "setup": {
+        "status": "accepted",
+        "hash": "2feb65f8edf0f2ca5463c40707b793ea514215e6632276ad89839093392b2cbd",
+        "ledger": 5550456
+      },
+      "probe": {
+        "rule": "the envelope needs the source account's LOW threshold",
+        "expected": "rejected",
+        "status": "rejected",
+        "hash": "aa5684670279b6a5eb3cbb517e6932377228fa08c3e705119cb061d1633c0aa4",
+        "codes": {
+          "transaction": "tx_bad_auth",
+          "operations": []
+        },
+        "raw_response": {
+          "submission": {
+            "status_code": 400,
+            "error_name": "Error",
+            "response": {
+              "type": "https://stellar.org/horizon-errors/transaction_failed",
+              "title": "Transaction Failed",
+              "status": 400,
+              "extras": {
+                "result_codes": {
+                  "transaction": "tx_bad_auth",
+                  "operations": []
+                },
+                "result_xdr": "AAAAAAAAAGT////6AAAAAA=="
+              }
+            }
+          }
+        },
+        "match": true
+      },
+      "match": true
+    }
+  ],
+  "differing": []
+}
