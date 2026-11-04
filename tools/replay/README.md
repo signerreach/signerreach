@@ -69,6 +69,9 @@ node replay.mjs --out results.json
   `after.json` attempts too; they show `not_submitted` and never count as a
   match against network expectations.
 - `--only TEXT` runs the fixtures whose directory name contains `TEXT`.
+- `--network-protocol N` is the protocol the Testnet must be on for a live run:
+  29 (the default) or 30. It is an explicit choice, so a Testnet upgrade never
+  changes what a plain run does. The fixtures stay recorded at protocol 29.
 - Exit code 0: every outcome matched. 1: an outcome differed. 2: the run could
   not be completed or an outcome was unconfirmed/not run.
 
@@ -79,10 +82,13 @@ the `--out` file.
 
 - **It never touches mainnet.** The server address is fixed, and the run stops if
   the server's network passphrase is not Testnet's.
-- **Live replay requires protocol 29.** The script refuses a different live
-  protocol before funding an account or submitting a transaction. The SDK is
+- **Live replay is tied to a named protocol.** By default the script refuses any
+  live protocol other than 29, before funding an account or submitting a
+  transaction. `--network-protocol 30` allows a run against a protocol 30
+  Testnet, and the fixtures must still be recorded at protocol 29. The SDK is
   pinned to 17.3.0, the first published JavaScript SDK release with Protocol 30
-  XDR, but this does not verify SignerReach's Protocol 30 rules.
+  XDR. A matching run is evidence about network behaviour. It does not by itself
+  change what SignerReach supports.
 - **Secret keys exist only in memory.** They are not written or printed.
 - Existing `expected.json` plan outcomes retain their historical `accepted` /
   `rejected` model. The separate follow-up path distinguishes a submission
@@ -94,7 +100,8 @@ the `--out` file.
 
 ## When to run it
 
-When Testnet moves past protocol 29, first verify the relevant authorization
-rules against official protocol sources and new network evidence. Then update
-the explicit protocol guard and fixtures before live replay. The historical
-evidence stays unchanged. The output records the protocol and core versions.
+When Testnet moves past protocol 29, first read the relevant authorization rules
+in the official protocol sources. Then run with `--network-protocol N` and keep
+the output in a new dated evidence folder. The historical evidence stays
+unchanged. The output records the protocol and core versions, and the protocol
+the run was asked to test.
