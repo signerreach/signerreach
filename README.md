@@ -11,7 +11,7 @@ still be administered afterwards, under the assumptions you state.
 [![Documentation build](https://github.com/signerreach/signerreach/actions/workflows/docs.yml/badge.svg)](https://signerreach.github.io/signerreach/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-496c8e)](LICENSE)
 [![Rust 1.87+](https://img.shields.io/badge/Rust-1.87%2B-496c8e)](Cargo.toml)
-[![Verified protocol: 29](https://img.shields.io/badge/verified%20protocol-29-267aa9)](docs/SPEC.md)
+[![Verified protocols: 29, 30](https://img.shields.io/badge/verified%20protocols-29%2C%2030-267aa9)](docs/SPEC.md)
 
 [Documentation book](https://signerreach.github.io/signerreach/) · [Book source](book/src/index.md) ·
 [Technical documentation](docs/README.md) · [Architecture](docs/architecture.md) ·
@@ -26,8 +26,9 @@ and threshold changes could leave an account unmanageable. It evaluates
 changes before submission, without requiring private keys or signing
 transactions.
 
-The current release supports the verified Stellar Protocol 29 rules within its
-documented scope.
+The published release (v0.1.0) supports the verified Stellar Protocol 29 rules
+within its documented scope. `main` also accepts Protocol 30, verified on Testnet
+as described below; that is not in a published release yet.
 
 ## The problem
 
@@ -165,6 +166,9 @@ Testnet at protocol 29: [`docs/evidence/testnet-2026-10-13`](docs/evidence/testn
 The chain fixtures were replayed on a fresh Testnet on 2026-10-19, and every
 outcome matched: [`docs/evidence/replay-2026-10-19`](docs/evidence/replay-2026-10-19/README.md).
 A new [November 1, 2026 FX-01 follow-up replay](docs/evidence/replay-2026-11-01-fx-01-followup/README.md) confirmed the master-only rejection after raising HIGH to 2. That historical run is Protocol 29 evidence only.
+After Testnet moved to protocol 30 on 2026-11-03, the chain fixtures and that
+follow-up were replayed again and every outcome matched:
+[`docs/evidence/replay-2026-11-04-protocol-30`](docs/evidence/replay-2026-11-04-protocol-30/README.md).
 
 One finding matters most:
 
@@ -209,8 +213,10 @@ scripts**, with a reproducible trace.
 - A snapshot goes stale. The result applies only to the ledger it was read at.
 - Results are not guarantees; use them as an aid to review.
 - The project has not received an independent security audit.
-- Only protocol 29 rules are verified, only `SetOptions` operations, and only
-  ed25519 signers on a single classic account.
+- Only the rules of protocols 29 and 30 are verified, only `SetOptions`
+  operations, and only ed25519 signers on a single classic account. Protocol 30
+  rests on one Testnet run of seven fixtures and one follow-up attempt, not on
+  every possible input. The published v0.1.0 accepts protocol 29 only.
 - Recognized unsupported inputs, including fee-bump transactions,
   preconditions, other source accounts, sponsored signers and Soroban contract
   accounts, are reported `INCONCLUSIVE`. Reserve sufficiency and other external

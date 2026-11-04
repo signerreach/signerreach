@@ -8,7 +8,7 @@ A Stellar classic-account transaction has an envelope source and one or more ope
 
 A crucial distinction is that operations inside a single transaction are authorized against the account state **before that transaction**. Therefore, adding a signer and then changing a threshold inside one transaction can behave differently from doing those changes in separate transactions.
 
-The historical [FX-05a and FX-05b cases](evidence.md) demonstrate that difference on Protocol 29 Testnet.
+The historical [FX-05a and FX-05b cases](evidence.md) demonstrate that difference on Protocol 29 Testnet, and the same outcomes were observed on Protocol 30 Testnet.
 
 ## Administrative reachability
 

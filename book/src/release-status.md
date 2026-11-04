@@ -30,9 +30,11 @@ deterministic text and JSON reports, bounded input handling, fixtures, source
 and security documentation, the mdBook, and a development-only replay harness.
 
 Its verified rules boundary is Stellar **Protocol 29**: one classic G-address
-account, ed25519 signers and the implemented `SetOptions` subset. Protocol 30
-is not supported or advertised. Unsupported protocol versions and recognized
-unsupported inputs remain `INCONCLUSIVE` or outside the model as documented.
+account, ed25519 signers and the implemented `SetOptions` subset. This release
+does not support Protocol 30; `main` accepts it after a source review and a
+Testnet replay, and it needs a new release. Unsupported protocol versions and
+recognized unsupported inputs remain `INCONCLUSIVE` or outside the model as
+documented.
 
 ## Security and evidence boundary
 
@@ -45,8 +47,9 @@ claimed.
 The release notes refer to the preserved [2026-10-13 Testnet record](https://github.com/signerreach/signerreach/blob/main/docs/evidence/testnet-2026-10-13/README.md),
 [2026-10-19 replay](https://github.com/signerreach/signerreach/blob/main/docs/evidence/replay-2026-10-19/README.md)
 and [2026-11-01 FX-01 follow-up](https://github.com/signerreach/signerreach/blob/main/docs/evidence/replay-2026-11-01-fx-01-followup/README.md).
-These are Protocol 29 evidence only. They do not establish Protocol 30
-compatibility, current network compatibility, current account state or key
+These are Protocol 29 evidence only. A later
+[Protocol 30 replay](https://github.com/signerreach/signerreach/blob/main/docs/evidence/replay-2026-11-04-protocol-30/README.md)
+is recorded separately. They do not establish current network compatibility, current account state or key
 custody. Snapshot freshness, signer availability and reserve sufficiency are
 not guaranteed.
 

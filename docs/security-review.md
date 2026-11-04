@@ -55,8 +55,10 @@ outside its modeled `SetOptions` subset. A signer addition can fail for low
 reserve despite a safe authorization and reachability result. Horizon's
 root/account/root sequence checks network and protocol consistency, but is
 not an atomic ledger snapshot and cannot defeat a stale or dishonest server.
-Protocol 30 has not been verified for this checker. The historic Testnet runs
-were on protocol 29. A guarded 2026-11-01 replay repeated the FX-01 master-only
+At the time of this review Protocol 30 had not been verified for this checker;
+a Testnet replay on 2026-11-04 later matched (see the
+[evidence index](../evidence/index.md)). The historic Testnet runs were on
+protocol 29. A guarded 2026-11-01 replay repeated the FX-01 master-only
 follow-up rejection, but does not repeat every original follow-up lockout
 attempt. These are disclosed scope limits and must be considered when using
 `SAFE WITHIN SCOPE`.
