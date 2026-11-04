@@ -2,7 +2,8 @@
 
 SignerReach v0.1.0 was published on November 2, 2026, for reviewing planned
 signer and threshold changes to one Stellar classic account. Its verified rules
-boundary is Stellar Protocol 29. Start with the [published release and
+boundary is Stellar Protocol 29; `main` also accepts Protocol 30, which is not in
+a published release yet. Start with the [published release and
 downloads](https://github.com/signerreach/signerreach/releases/tag/v0.1.0),
 the [documentation book](https://signerreach.github.io/signerreach/) or the
 [repository README](../README.md).
@@ -27,7 +28,8 @@ Quick links: [architecture](architecture.md) · [security policy](../SECURITY.md
 | Reproduce the demonstration | [Walkthrough commands](walkthrough/README.md#2-check-the-plan), [replay instructions](../tools/replay/README.md) |
 | Repository review status | [Readiness audit](readiness-audit.md) |
 
-The Testnet records are historical protocol 29 evidence. The 2026-11-01 replay
+The October and early November Testnet records are historical protocol 29
+evidence. The 2026-11-04 replay is protocol 30 evidence. The 2026-11-01 replay
 repeated FX-01's master-only follow-up rejection; other original follow-up
 attempts have not been repeated by the harness. The CLI does not require a
 hosted service. The [published documentation book](https://signerreach.github.io/signerreach/)

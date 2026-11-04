@@ -1,7 +1,7 @@
 # SignerReach V1 Specification (draft 0.1)
 
 Date: 2026-10-14
-Current publication status (2026-11-02): SignerReach v0.1.0 was published from verified main commit [`e1a37cea9101bbf2cb68372f111c6e4a5ecd1ba4`](https://github.com/signerreach/signerreach/releases/tag/v0.1.0). This file retains the original Draft 0.1 specification and fixture IDs. The Rust core, read-only Horizon adapter, `check` and `fetch` commands, text and JSON reports, and development Testnet replay harness are implemented and tested. Markdown reports and `signerreach schema KIND` remain planned in issues [#2](https://github.com/signerreach/signerreach/issues/2) and [#1](https://github.com/signerreach/signerreach/issues/1). The project has not been independently audited. Protocol 29 is the verified rules boundary. Sections below describe intended V1 behavior where they differ from the current implementation; the status notes identify those differences.
+Current publication status (2026-11-02): SignerReach v0.1.0 was published from verified main commit [`e1a37cea9101bbf2cb68372f111c6e4a5ecd1ba4`](https://github.com/signerreach/signerreach/releases/tag/v0.1.0). This file retains the original Draft 0.1 specification and fixture IDs. The Rust core, read-only Horizon adapter, `check` and `fetch` commands, text and JSON reports, and development Testnet replay harness are implemented and tested. Markdown reports and `signerreach schema KIND` remain planned in issues [#2](https://github.com/signerreach/signerreach/issues/2) and [#1](https://github.com/signerreach/signerreach/issues/1). The project has not been independently audited. The published v0.1.0 accepts protocol 29 only. Update (2026-11-04): `main` also accepts protocol 30, after the chain fixtures and the FX-01 follow-up matched on a Testnet running protocol 30 ([evidence](evidence/replay-2026-11-04-protocol-30/README.md)); that is not in a published release yet. Sections below describe intended V1 behavior where they differ from the current implementation; the status notes identify those differences.
 
 ---
 
@@ -30,7 +30,7 @@ If any of these cannot be delivered correctly, V1 is reduced, not padded.
 ### 3.1 In scope
 
 - **Account kind:** one classic account (G address) per run.
-- **Network and rules:** Stellar network at **protocol 29** only (the version on which the rules were verified).
+- **Network and rules:** Stellar network at **protocol 29 or 30**. The rules were verified on protocol 29, and the chain fixtures were replayed on a Testnet running protocol 30 with the same outcomes. Any other protocol version gives `INCONCLUSIVE` (`SR-RULES-01`).
 - **Signer types:** `ed25519` keys, including the account's own master key.
 - **Operations in a plan:** `SetOptions` only. A `SetOptions` is *administrative* when it sets master weight, a threshold, or a signer. A home-domain-only or empty `SetOptions` needs MEDIUM authorization. Flag changes cannot be decided from this snapshot format.
 - **Transaction source:** the analysed account itself.
@@ -47,7 +47,7 @@ Key collection, signing, broadcasting, custody, fee optimization, payments, asse
 
 ## 4. Verified rules this specification relies on
 
-Each rule below was read in stellar-core source (commit `66defff`) and observed on Stellar Testnet at protocol 29. The evidence is in `docs/evidence/testnet-2026-10-13/`. Rule identifiers are used in test fixtures.
+Each rule below was read in stellar-core source (commit `66defff`) and observed on Stellar Testnet at protocol 29. The evidence is in `docs/evidence/testnet-2026-10-13/`. The chain-backed cases were replayed at protocol 30 on 2026-11-04 (`docs/evidence/replay-2026-11-04-protocol-30/`); in stellar-core 29.0.0 and 30.0.0 the files `SignatureChecker`, `SignatureUtils` and `SetOptionsOpFrame` are identical. Rule identifiers are used in test fixtures.
 
 | ID | Rule |
 |---|---|

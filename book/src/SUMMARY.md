@@ -11,7 +11,7 @@
 # Technical reference
 
 - [Architecture and trust boundaries](architecture.md)
-- [Protocol 29 evidence](evidence.md)
+- [Protocol 29 and 30 evidence](evidence.md)
 - [Security and limitations](security.md)
 
 # Project

@@ -1,6 +1,6 @@
 {
   "id": "FX-06e",
-  "summary": "The snapshot belongs to protocol 28; only protocol 29 rules are verified.",
+  "summary": "The snapshot belongs to protocol 28; only the rules of protocols 29 and 30 are verified.",
   "source": "synthetic",
   "verdict": "INCONCLUSIVE",
   "exit_code": 2,

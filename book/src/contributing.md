@@ -8,7 +8,7 @@ Start with the [contributing guide](https://github.com/signerreach/signerreach/b
 
 - [Issue #1](https://github.com/signerreach/signerreach/issues/1): add a JSON Schema inspection command.
 - [Issue #2](https://github.com/signerreach/signerreach/issues/2): add a Markdown report renderer.
-- [Issue #7](https://github.com/signerreach/signerreach/issues/7): investigate Protocol 30 with version-specific source review and new evidence; **do not enable a new protocol gate without approval**.
+- [Issue #7](https://github.com/signerreach/signerreach/issues/7): Protocol 30 was reviewed against the source and replayed on Testnet, and `main` accepts it; the issue stays open until it is in a published release. **Do not enable any further protocol without a source review, new evidence and maintainer approval.**
 
 The initial follow-up fixture-format work under [issue #3](https://github.com/signerreach/signerreach/issues/3) is **closed** after implementation and FX-01 live evidence. Further scenarios require fresh scope approval.
 
