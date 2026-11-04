@@ -9,10 +9,13 @@
 // `signerreach` binary never does. Secret keys exist only in memory and are
 // never written or printed. It refuses to run against anything but Testnet.
 //
-// Usage: node replay.mjs [--dry-run] [--only TEXT] [--out FILE]
+// Usage: node replay.mjs [--dry-run] [--only TEXT] [--out FILE] [--network-protocol N]
 //   --dry-run   build and sign every transaction, but touch no network
 //   --only      run only fixtures whose directory name contains TEXT
 //   --out       write the JSON results to FILE (default: standard output)
+//   --network-protocol
+//               the protocol the Testnet must be on for a live run: 29 (the
+//               default) or 30. The fixtures stay recorded at protocol 29.
 //
 // Exit code: 0 every outcome matched, 1 an outcome differed, 2 the run could
 // not be completed (including an unconfirmed follow-up), unsupported fixture,
@@ -56,18 +59,43 @@ const log = (text) => process.stderr.write(`${text}\n`);
 const short = (key) => `${key.slice(0, 5)}..${key.slice(-4)}`;
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 
-function parseArgs(argv) {
-  const options = { dryRun: false, only: null, out: null };
+// The fixtures record what the network did at protocol 29. A live run may test a
+// later protocol only when it is named explicitly, so that a Testnet upgrade
+// never changes what a plain run does.
+const FIXTURE_PROTOCOL = 29;
+const NETWORK_PROTOCOLS = [29, 30];
+
+export function parseArgs(argv) {
+  const options = { dryRun: false, only: null, out: null, networkProtocol: FIXTURE_PROTOCOL };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--dry-run") options.dryRun = true;
-    else if (arg === "--only" || arg === "--out") {
+    else if (arg === "--only" || arg === "--out" || arg === "--network-protocol") {
       i += 1;
       if (i >= argv.length) throw new Unusable(`${arg} needs a value`);
-      options[arg === "--only" ? "only" : "out"] = argv[i];
+      if (arg === "--network-protocol") {
+        const protocol = Number(argv[i]);
+        if (!NETWORK_PROTOCOLS.includes(protocol)) {
+          throw new Unusable(`--network-protocol must be one of ${NETWORK_PROTOCOLS.join(", ")}`);
+        }
+        options.networkProtocol = protocol;
+      } else options[arg === "--only" ? "only" : "out"] = argv[i];
     } else throw new Unusable(`unknown argument ${arg}`);
   }
   return options;
+}
+
+// Refuses a live run unless the Testnet is on exactly the protocol the run was
+// asked to test and every fixture was recorded at protocol 29.
+export function checkReplayProtocol(networkProtocol, fixtureProtocols, expectedNetworkProtocol) {
+  if (networkProtocol !== expectedNetworkProtocol) {
+    throw new Unusable(
+      `live replay was asked to test protocol ${expectedNetworkProtocol}, but Testnet is on protocol ${networkProtocol}`,
+    );
+  }
+  if (fixtureProtocols.some((protocol) => protocol !== FIXTURE_PROTOCOL)) {
+    throw new Unusable(`live replay needs fixtures recorded at protocol ${FIXTURE_PROTOCOL}`);
+  }
 }
 
 // ---------------------------------------------------------------- fixtures
@@ -1011,9 +1039,8 @@ async function main() {
       meta.ledger_at_start = root.history_latest_ledger;
       const fixtureProtocols = [...new Set(fixtures.map((f) => f.snapshot.provenance.protocol_version))];
       meta.fixture_protocols = fixtureProtocols;
-      if (meta.protocol !== 29 || fixtureProtocols.some((p) => p !== meta.protocol)) {
-        throw new Unusable("live replay requires protocol 29 fixtures on a protocol 29 Testnet");
-      }
+      meta.protocol_under_test = options.networkProtocol;
+      checkReplayProtocol(meta.protocol, fixtureProtocols, options.networkProtocol);
       log(`Testnet protocol ${meta.protocol}, ${meta.core}, ledger ${meta.ledger_at_start}`);
     } catch (error) {
       preflightFailure = error;

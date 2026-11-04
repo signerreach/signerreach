@@ -70,8 +70,9 @@ sanitized subset of Horizon responses.
 
 The offline dry run validates the optional file and builds/signs its attempts,
 but reports `not_submitted` and never compares expected network results.
-Live follow-up replay remains Testnet-only and protocol 29-only. It is not run
-in PR CI. Historical observation files are immutable; a new replay creates new
+Live follow-up replay remains Testnet-only. It runs against protocol 29 by
+default, and against protocol 30 only when `--network-protocol 30` is given; the
+fixtures stay recorded at protocol 29. It is not run in PR CI. Historical observation files are immutable; a new replay creates new
 results and never edits the October 13 or October 19 records.
 
 ## Adding a fixture
