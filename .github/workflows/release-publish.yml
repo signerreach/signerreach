@@ -1,4 +1,4 @@
-name: Publish v0.1.0
+name: Publish v0.1.1
 
 on:
   workflow_dispatch:
@@ -13,18 +13,18 @@ on:
         type: choice
         options:
           - DO NOT PUBLISH
-          - PUBLISH v0.1.0
+          - PUBLISH v0.1.1
         default: DO NOT PUBLISH
 
 permissions: {}
 
 concurrency:
-  group: signerreach-v0.1.0-publication
+  group: signerreach-v0.1.1-publication
   cancel-in-progress: false
 
 env:
-  VERSION: 0.1.0
-  TAG: v0.1.0
+  VERSION: 0.1.1
+  TAG: v0.1.1
 
 jobs:
   verify:
@@ -57,8 +57,8 @@ jobs:
             echo "This workflow must be started with the main branch selected." >&2
             exit 1
           fi
-          if [[ "$CONFIRMATION" != "PUBLISH v0.1.0" ]]; then
-            echo "The explicit PUBLISH v0.1.0 confirmation was not selected." >&2
+          if [[ "$CONFIRMATION" != "PUBLISH v0.1.1" ]]; then
+            echo "The explicit PUBLISH v0.1.1 confirmation was not selected." >&2
             exit 1
           fi
           if ! [[ "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
@@ -78,7 +78,7 @@ jobs:
           echo "commit=${SOURCE_COMMIT}" >> "$GITHUB_OUTPUT"
           echo "verified source commit ${SOURCE_COMMIT} is current main"
 
-      - name: Verify v0.1.0 is not already tagged or released
+      - name: Verify v0.1.1 is not already tagged or released
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -102,7 +102,7 @@ jobs:
             *"#${VERSION}") ;;
             *) echo "expected signerreach-cli ${VERSION}, got ${package_id}" >&2; exit 1 ;;
           esac
-          grep -Fx 'version = "0.1.0"' <(sed -n '1,24p' Cargo.toml)
+          grep -Fx 'version = "0.1.1"' <(sed -n '1,24p' Cargo.toml)
           grep -Fx 'publish = false' <(sed -n '1,24p' Cargo.toml)
           cargo metadata --locked --no-deps --format-version 1 >/dev/null
 
@@ -302,7 +302,7 @@ jobs:
           python3 tools/release/verify_artifacts.py "$RUNNER_TEMP/release-packages" \
             --version "$VERSION" --source-commit "$SOURCE_COMMIT"
           python3 tools/release/render_release_notes.py \
-            .github/release-notes/v0.1.0.md.tmpl \
+            .github/release-notes/v0.1.1.md.tmpl \
             "$RUNNER_TEMP/release-packages" \
             "$RUNNER_TEMP/release-notes.md" \
             --version "$VERSION" --source-commit "$SOURCE_COMMIT"

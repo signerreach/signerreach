@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the native packages used by the v0.1.0 publication workflow."""
+"""Verify the native packages used by the publication workflow."""
 
 from __future__ import annotations
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render final v0.1.0 notes from a reviewed template and verified artifacts."""
+"""Render final release notes from a reviewed template and verified artifacts."""
 
 from __future__ import annotations
 
