@@ -1,4 +1,6 @@
-<img src="docs/assets/logo.svg" alt="SignerReach logo" width="120" align="right">
+<div align="center">
+
+<img src="docs/assets/logo.svg" alt="SignerReach logo" width="120">
 
 # SignerReach
 
@@ -17,6 +19,8 @@ still be administered afterwards, under the assumptions you state.
 [Technical documentation](docs/README.md) · [Architecture](docs/architecture.md) ·
 [Evidence index](evidence/index.md) · [Security](SECURITY.md) ·
 [Contributing](CONTRIBUTING.md)
+
+</div>
 
 **Latest release:** [SignerReach v0.1.1](https://github.com/signerreach/signerreach/releases/tag/v0.1.1) |
 [Documentation](https://signerreach.github.io/signerreach/)
