@@ -1,5 +1,12 @@
 # SignerReach submission pack
 
+> **Status update, 2026-11-05.** The text below describes v0.1.0 (Protocol 29) as of 2026-11-02 and is kept as a
+> dated record. Since then: Testnet moved to protocol 30 on 2026-11-03, and
+> [v0.1.1](https://github.com/signerreach/signerreach/releases/tag/v0.1.1) (2026-11-04) accepts snapshots recorded at
+> protocol 29 or 30 (see the [evidence index](../evidence/index.md)); Mainnet is still on protocol 29. Statements
+> below that Protocol 30 is unsupported, or that branch protection is unverified, describe 2026-11-02. Unchanged:
+> no independent security audit, and eligibility for any program is not assessed here.
+
 Prepared for maintainer review. Current state updated 2026-11-02 after v0.1.0 publication and final read-only audit.
 This is a draft information pack, not a submission, release announcement,
 approval request or funding claim.

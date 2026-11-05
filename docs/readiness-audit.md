@@ -1,5 +1,15 @@
 # Repository readiness audit
 
+> **Status update, 2026-11-05.** Everything below is a dated record of v0.1.0 (Protocol 29), written between
+> 2026-10-31 and 2026-11-02, and is not rewritten. What has changed since: Testnet moved to protocol 30 on
+> 2026-11-03; [v0.1.1](https://github.com/signerreach/signerreach/releases/tag/v0.1.1), published 2026-11-04, accepts
+> snapshots recorded at protocol 29 or 30 (see the [evidence index](../evidence/index.md)); Mainnet is still on
+> protocol 29. Branch protection is now one active ruleset on `main` (pull request with code-owner review, the
+> required checks, no force-push, no deletion), so the "last operational task" notes below are done. What has not
+> changed: there is no independent security audit, and this repository does not assess eligibility for any
+> program. The "NOT READY FOR PROGRAM SUBMISSION" verdict below is the 2026-11-02 record of what was unverified
+> then; it is not re-issued here.
+
 Original readiness work checked 2026-10-31; post-merge state rechecked the same day.
 [PR #6](https://github.com/signerreach/signerreach/pull/6) merged into upstream `main` at `be8b082e9c6e5dad4be2ab4f9ddd5d353e39e702`, and
 [main CI](https://github.com/signerreach/signerreach/actions/runs/41182773470) completed successfully. The historical 13-stage matrix
