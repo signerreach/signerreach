@@ -1,0 +1,48 @@
+[package]
+name = "signerreach-fuzz"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.87"
+publish = false
+description = "Fuzz targets for the parts of SignerReach that read outside data."
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4.13"
+serde_json = "1"
+signerreach-core = { path = "../crates/signerreach-core" }
+signerreach-stellar = { path = "../crates/signerreach-stellar" }
+
+# This crate is its own workspace, so the main workspace, its lockfile and its
+# lints are untouched, and a normal `cargo build` never compiles the fuzz targets.
+[workspace]
+
+[[bin]]
+name = "parse_documents"
+path = "fuzz_targets/parse_documents.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "evaluate_report"
+path = "fuzz_targets/evaluate_report.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "horizon_mapping"
+path = "fuzz_targets/horizon_mapping.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "network_text"
+path = "fuzz_targets/network_text.rs"
+test = false
+doc = false
+bench = false

@@ -1,0 +1,72 @@
+name: Fuzz
+
+# Runs the fuzz targets in fuzz/ (see fuzz/README.md): a short run on pull requests
+# that touch the code they exercise, a longer run once a week, and on demand.
+# A short run is a smoke test: it shows the inputs tried did not break the stated
+# properties, not that no input can.
+
+on:
+  pull_request:
+    paths:
+      - crates/**
+      - fuzz/**
+      - fixtures/**
+      - .github/workflows/fuzz.yml
+  schedule:
+    - cron: '53 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      seconds:
+        description: Seconds to fuzz each target
+        default: '120'
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fuzz-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CARGO_TERM_COLOR: always
+  NIGHTLY: nightly-2026-11-01
+  # Seconds per target: a minute on a pull request, ten minutes on the weekly run.
+  SECONDS_PER_TARGET: ${{ github.event.inputs.seconds || (github.event_name == 'schedule' && '600' || '60') }}
+
+jobs:
+  fuzz:
+    name: Fuzz ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - parse_documents
+          - evaluate_report
+          - horizon_mapping
+          - network_text
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install the nightly toolchain
+        run: rustup toolchain install "$NIGHTLY" --profile minimal
+      - name: Install cargo-fuzz 0.13.2
+        run: cargo install cargo-fuzz --version 0.13.2 --locked
+      - name: Build the starting corpus from the fixtures
+        run: fuzz/seed.sh
+      - name: Fuzz ${{ matrix.target }}
+        run: >
+          cargo "+$NIGHTLY" fuzz run "${{ matrix.target }}"
+          "fuzz/corpus/${{ matrix.target }}"
+          -- -max_total_time="$SECONDS_PER_TARGET" -rss_limit_mb=2048
+      - name: Keep the failing input
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fuzz-failure-${{ matrix.target }}
+          path: fuzz/artifacts/${{ matrix.target }}
+          if-no-files-found: ignore
+          retention-days: 14
