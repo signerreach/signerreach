@@ -1,0 +1,58 @@
+name: CodeQL dry run
+
+# THROWAWAY: this file exists only on a pull request that is closed without merging.
+# It runs CodeQL and keeps the result as a build artifact and in the job log. It
+# uploads nothing to GitHub code scanning, so no alert appears in the Security tab.
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: CodeQL ${{ matrix.language }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+          - rust
+          - actions
+          - javascript-typescript
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+
+      - name: Analyze, without uploading
+        uses: github/codeql-action/analyze@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+        with:
+          category: dry-run-${{ matrix.language }}
+          upload: never
+          output: sarif-results
+
+      - name: What it found
+        run: |
+          set -u
+          ls -la sarif-results
+          for file in sarif-results/*.sarif; do
+            echo "== $file"
+            echo "findings: $(jq '[.runs[].results[]?] | length' "$file")"
+            jq -r '.runs[].results[]? | [(.ruleId // "?"), (.level // "warning"), (.locations[0].physicalLocation.artifactLocation.uri // "?"), ((.locations[0].physicalLocation.region.startLine // 0) | tostring), (.message.text // "" | .[0:140])] | @tsv' "$file"
+          done
+
+      - name: Keep the result
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: codeql-${{ matrix.language }}
+          path: sarif-results
+          retention-days: 7
