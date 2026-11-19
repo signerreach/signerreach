@@ -1,0 +1,56 @@
+name: RustSec
+
+# Checks Cargo.lock against the RustSec advisory database. This is a second check
+# beside Dependabot and GitHub's own security alerts: it fails on the pull request
+# itself, and it runs every week, because an advisory can be published against a
+# dependency that has not changed.
+#
+# What fails the job: a known vulnerability. "Unmaintained", "unsound" and "yanked"
+# warnings are reported in the log but do not fail it. See .cargo/audit.toml for how
+# to ignore an advisory that does not apply.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - Cargo.toml
+      - Cargo.lock
+      - '**/Cargo.toml'
+      - .cargo/audit.toml
+      - .github/workflows/rustsec.yml
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rustsec-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  audit:
+    name: RustSec advisories
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal
+      - name: Use the stable toolchain
+        run: rustup default stable
+      - name: Install cargo-audit 0.23.0
+        run: cargo install cargo-audit --version 0.23.0 --locked
+      - name: Show versions
+        run: |
+          rustc --version
+          cargo audit --version
+      - name: Audit Cargo.lock
+        run: cargo audit --file Cargo.lock

@@ -1,0 +1,18 @@
+# Policy for `cargo audit`, run by .github/workflows/rustsec.yml.
+#
+# A known vulnerability fails the job. Warnings (unmaintained, unsound, yanked) are
+# printed but do not fail it, so they are read in the log rather than ignored.
+#
+# To ignore an advisory that does not apply to SignerReach, add its ID to the list
+# below AND write a comment above it that says three things: why it does not apply,
+# who decided, and when to look at it again. Never ignore an advisory without a
+# written reason.
+#
+#   ignore = [
+#     # RUSTSEC-0000-0000: <why it does not apply>. Decided by <name> on <date>.
+#     # Revisit when <condition>.
+#     "RUSTSEC-0000-0000",
+#   ]
+
+[advisories]
+ignore = []
