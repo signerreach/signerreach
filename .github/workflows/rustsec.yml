@@ -5,9 +5,10 @@ name: RustSec
 # itself, and it runs every week, because an advisory can be published against a
 # dependency that has not changed.
 #
-# What fails the job: a known vulnerability. "Unmaintained", "unsound" and "yanked"
-# warnings are reported in the log but do not fail it. See .cargo/audit.toml for how
-# to ignore an advisory that does not apply.
+# What fails the job: a known vulnerability, or an "unsound" advisory (a memory-safety
+# flaw reported against a dependency). "Unmaintained" and "yanked" warnings describe
+# a crate's health, not a flaw, so they are reported in the log but do not fail it.
+# See .cargo/audit.toml for how to ignore an advisory that does not apply.
 
 on:
   push:
@@ -53,4 +54,4 @@ jobs:
           rustc --version
           cargo audit --version
       - name: Audit Cargo.lock
-        run: cargo audit --file Cargo.lock
+        run: cargo audit --file Cargo.lock --deny unsound
