@@ -17,6 +17,7 @@
 //! type with any other name is refused.
 
 use serde_json::{Value, json};
+use signerreach_core::account::MAX_ADDITIONAL_SIGNERS;
 use signerreach_core::{Network, SignerKey};
 
 use crate::error::MapError;
@@ -97,11 +98,38 @@ pub fn snapshot_from_account(account: &str, context: &Context<'_>) -> Result<Str
                 return Err(MapError::DuplicateMasterEntry);
             }
         } else {
+            // `check` refuses an ed25519 signer whose key is not a valid address
+            // or whose weight is 0 (a signer with no weight is not in the account
+            // state), so the mapping must too: a snapshot is only ever written if
+            // the checker will accept it. Other kinds keep their key as sent,
+            // because the checker reports them by kind (SR-SIGNER-01) without
+            // reading it.
+            if kind == "ed25519" {
+                if SignerKey::from_strkey(key).is_err() {
+                    return Err(MapError::BadField("signers.key"));
+                }
+                if weight == 0 {
+                    return Err(MapError::BadField("signers.weight"));
+                }
+            }
             others.push((key.to_string(), weight, kind));
         }
     }
     let master_weight = master_weight.ok_or(MapError::MissingMasterEntry)?;
     others.sort();
+
+    // The same two rules the checker applies to the account state: no signer
+    // listed twice, and at most `MAX_ADDITIONAL_SIGNERS` besides the account's own key.
+    let ed25519 = || others.iter().filter(|(_, _, kind)| *kind == "ed25519");
+    if ed25519().count() > MAX_ADDITIONAL_SIGNERS {
+        return Err(MapError::BadField("signers"));
+    }
+    if ed25519()
+        .zip(ed25519().skip(1))
+        .any(|(first, second)| first.0 == second.0)
+    {
+        return Err(MapError::BadField("signers.key"));
+    }
 
     let signers: Vec<Value> = others
         .iter()
@@ -468,6 +496,91 @@ mod tests {
                 "{id}"
             );
         }
+    }
+
+    /// Found by fuzzing (`fuzz/fuzz_targets/horizon_mapping.rs`): the second key
+    /// below is a valid-looking address whose checksum is wrong. The mapping used
+    /// to copy it into the snapshot, and `check` then refused the snapshot.
+    #[test]
+    fn an_ed25519_signer_with_a_bad_checksum_is_refused_not_copied() {
+        let id = "GDIIIH6U2TEPSP4ZQUVN25AERQQXBVJIQB52XD4TKR5IZBT4EIBXXGZO";
+        let bad_checksum = "GC3UO3RS66QQTMAOIQJP4KFQN7PE3CUXPROX6I7XJREHBBBPQPHRKS7R";
+        assert!(SignerKey::from_strkey(id).is_ok());
+        assert!(SignerKey::from_strkey(bad_checksum).is_err());
+
+        let signers = json!([
+            { "key": id, "weight": 1, "type": "ed25519_public_key" },
+            { "key": bad_checksum, "weight": 1, "type": "ed25519_public_key" },
+        ]);
+        let error = map(&record(id, signers)).expect_err("refused");
+        assert_eq!(error, MapError::BadField("signers.key"));
+        assert!(!error.to_string().contains(bad_checksum), "{error}");
+    }
+
+    /// Found by fuzzing: a signer with weight 0 was copied into the snapshot, and
+    /// `check` then refused it ("a signer with weight 0 is not part of an account
+    /// state"). The account's own key is different: master weight 0 is a real,
+    /// valid state, and is still mapped.
+    #[test]
+    fn an_ed25519_signer_with_weight_zero_is_refused_but_a_zero_master_is_not() {
+        let id = account_key(1);
+        let signers = json!([
+            { "key": id, "weight": 1, "type": "ed25519_public_key" },
+            { "key": account_key(2), "weight": 0, "type": "ed25519_public_key" },
+        ]);
+        assert_eq!(
+            map(&record(&id, signers)),
+            Err(MapError::BadField("signers.weight"))
+        );
+
+        let zero_master = json!([
+            { "key": id, "weight": 0, "type": "ed25519_public_key" },
+            { "key": account_key(2), "weight": 1, "type": "ed25519_public_key" },
+        ]);
+        let text = map(&record(&id, zero_master)).expect("a zero master weight maps");
+        assert!(parse_snapshot(&text).is_ok());
+    }
+
+    #[test]
+    fn a_signer_listed_twice_is_refused() {
+        let id = account_key(1);
+        let signers = json!([
+            { "key": id, "weight": 1, "type": "ed25519_public_key" },
+            { "key": account_key(2), "weight": 1, "type": "ed25519_public_key" },
+            { "key": account_key(2), "weight": 2, "type": "ed25519_public_key" },
+        ]);
+        assert_eq!(
+            map(&record(&id, signers)),
+            Err(MapError::BadField("signers.key"))
+        );
+    }
+
+    #[test]
+    fn twenty_additional_signers_map_and_twenty_one_are_refused() {
+        let id = account_key(1);
+        let with = |extra: u8| {
+            let mut signers = vec![json!({ "key": id, "weight": 1, "type": "ed25519_public_key" })];
+            for n in 0..extra {
+                signers.push(
+                    json!({ "key": account_key(n + 2), "weight": 1, "type": "ed25519_public_key" }),
+                );
+            }
+            record(&id, json!(signers))
+        };
+        let text = map(&with(20)).expect("20 additional signers map");
+        assert!(parse_snapshot(&text).is_ok());
+        assert_eq!(map(&with(21)), Err(MapError::BadField("signers")));
+    }
+
+    #[test]
+    fn a_signer_the_checker_does_not_read_keeps_its_key_as_sent() {
+        let id = account_key(1);
+        let signers = json!([
+            { "key": id, "weight": 1, "type": "ed25519_public_key" },
+            { "key": "not an address", "weight": 1, "type": "sha256_hash" },
+        ]);
+        let text = map(&record(&id, signers)).expect("maps");
+        assert_eq!(json_of(&text)["signers"][0]["key"], "not an address");
     }
 
     #[test]
