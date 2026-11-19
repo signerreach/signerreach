@@ -2,7 +2,7 @@
 name = "signerreach-fuzz"
 version = "0.0.0"
 edition = "2024"
-rust-version = "1.87"
+rust-version = "1.88"
 publish = false
 description = "Fuzz targets for the parts of SignerReach that read outside data."
 

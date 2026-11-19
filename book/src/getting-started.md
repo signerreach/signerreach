@@ -18,7 +18,7 @@ checksum before extracting or running the binary. The archive contains the
 
 ## Build from source
 
-Use Rust **1.87 or newer**.
+Use Rust **1.88 or newer**.
 
 ```sh
 git clone https://github.com/signerreach/signerreach.git

@@ -64,9 +64,9 @@ These come from the purpose of the tool and are not negotiable.
 
 ## Setting up
 
-You need Rust 1.87 or later. No Docker or Stellar account is required to build
+You need Rust 1.88 or later. No Docker or Stellar account is required to build
 and test; Cargo may need network access to download dependencies. CI also builds
-and tests on exactly 1.87,
+and tests on exactly 1.88,
 so do not use a feature that needs a newer compiler without raising
 `rust-version` in `Cargo.toml` and the version in `.github/workflows/ci.yml`
 together, and say why in the pull request. The tests that fetch use a

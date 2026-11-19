@@ -12,7 +12,7 @@ still be administered afterwards, under the assumptions you state.
 [![Release v0.1.1](https://img.shields.io/badge/release-v0.1.1-2ea44f)](https://github.com/signerreach/signerreach/releases/tag/v0.1.1)
 [![Documentation build](https://github.com/signerreach/signerreach/actions/workflows/docs.yml/badge.svg)](https://signerreach.github.io/signerreach/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-496c8e)](LICENSE)
-[![Rust 1.87+](https://img.shields.io/badge/Rust-1.87%2B-496c8e)](Cargo.toml)
+[![Rust 1.88+](https://img.shields.io/badge/Rust-1.88%2B-496c8e)](Cargo.toml)
 [![Verified protocols: 29, 30](https://img.shields.io/badge/verified%20protocols-29%2C%2030-267aa9)](docs/SPEC.md)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16921/badge)](https://www.bestpractices.dev/projects/16921)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/signerreach/signerreach/badge)](https://scorecard.dev/viewer/?uri=github.com/signerreach/signerreach)
@@ -129,7 +129,7 @@ for the complete notes and asset list.
 
 ## Build from source
 
-To build from source, use Rust 1.87 or later and nothing else.
+To build from source, use Rust 1.88 or later and nothing else.
 
 ```bash
 cargo build --release
