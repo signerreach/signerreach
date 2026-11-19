@@ -1,0 +1,50 @@
+name: Scorecard
+
+# Runs the OpenSSF Scorecard checks against this repository and publishes the result
+# to the public Scorecard API (https://scorecard.dev), so anyone can read the score
+# and the reason for each check. It reads the repository's settings and history; it
+# does not build or run any project code.
+#
+# Results are not uploaded to GitHub code scanning, so they do not create alerts in
+# the Security tab. The raw result is kept as a build artifact for a few days.
+#
+# publish_results requires this file to stay simple: no top-level env or defaults,
+# and only the steps below. See https://github.com/ossf/scorecard-action#workflow-restrictions
+
+on:
+  branch_protection_rule:
+  schedule:
+    - cron: '41 5 * * 3'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run Scorecard
+        uses: ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e # v2.5.0
+        with:
+          results_file: results.json
+          results_format: json
+          publish_results: true
+
+      - name: Keep the result
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: scorecard-result
+          path: results.json
+          retention-days: 5
