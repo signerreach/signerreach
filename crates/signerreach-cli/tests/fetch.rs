@@ -4,8 +4,8 @@
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener};
 use std::process::{Command, Output};
-use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::thread;
 
 use signerreach_core::{Network, parse_snapshot};
@@ -13,6 +13,20 @@ use signerreach_core::{Network, parse_snapshot};
 const ACCOUNT_JSON: &str =
     include_str!("../../signerreach-stellar/tests/data/horizon-testnet-three-signers.json");
 const TESTNET: &str = "Test SDF Network ; September 2015";
+
+/// Taken while a fake server picks its port, and for the whole of the test that
+/// needs a port nobody listens on.
+///
+/// That test frees a port and then expects it to stay free. Tests run in
+/// parallel, and a fake server started in the gap can be handed the same port, so
+/// the "missing" server would answer. On a CI runner that showed up as exit code
+/// 0 instead of 69, and as another test counting 6 requests instead of 3. Holding
+/// this lock keeps the two apart.
+static FREE_PORT: Mutex<()> = Mutex::new(());
+
+fn free_port_lock() -> MutexGuard<'static, ()> {
+    FREE_PORT.lock().unwrap_or_else(PoisonError::into_inner)
+}
 
 /// A fake Horizon server. It answers the root and the one account, and counts
 /// every request it receives.
@@ -23,7 +37,10 @@ struct Fake {
 
 impl Fake {
     fn start(passphrase: &'static str) -> Self {
-        let listener = TcpListener::bind("127.0.0.1:0").expect("bind a local port");
+        let listener = {
+            let _held = free_port_lock();
+            TcpListener::bind("127.0.0.1:0").expect("bind a local port")
+        };
         let address = listener.local_addr().expect("local address");
         let requests = Arc::new(AtomicUsize::new(0));
         let counter = requests.clone();
@@ -179,6 +196,7 @@ fn a_server_on_the_other_network_is_refused_without_printing_anything() {
 
 #[test]
 fn a_server_that_is_not_there_is_unavailable() {
+    let _held = free_port_lock();
     let address = {
         let listener = TcpListener::bind("127.0.0.1:0").expect("bind a local port");
         listener.local_addr().expect("local address")

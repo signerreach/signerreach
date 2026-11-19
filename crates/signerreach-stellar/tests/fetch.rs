@@ -7,7 +7,7 @@
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::thread::{self, JoinHandle};
 use std::time::Duration;
 
@@ -83,12 +83,27 @@ struct Server {
     accept: Option<JoinHandle<()>>,
 }
 
+/// Taken while a fake server picks its port, and for the whole of the test that
+/// needs a port nobody listens on.
+///
+/// That test frees a port and then expects it to stay free. Tests run in
+/// parallel, and a fake server started in the gap can be handed the same port, so
+/// the "missing" server would answer. Holding this lock keeps the two apart.
+static FREE_PORT: Mutex<()> = Mutex::new(());
+
+fn free_port_lock() -> MutexGuard<'static, ()> {
+    FREE_PORT.lock().unwrap_or_else(PoisonError::into_inner)
+}
+
 impl Server {
     fn start<F>(handler: F) -> Self
     where
         F: Fn(&Request) -> Reply + Send + Sync + 'static,
     {
-        let listener = TcpListener::bind("127.0.0.1:0").expect("bind a local port");
+        let listener = {
+            let _held = free_port_lock();
+            TcpListener::bind("127.0.0.1:0").expect("bind a local port")
+        };
         let address = listener.local_addr().expect("local address");
         let seen = Arc::new(Mutex::new(Vec::new()));
         let stop = Arc::new(AtomicBool::new(false));
@@ -576,6 +591,7 @@ fn an_answer_cut_short_is_not_accepted() {
 
 #[test]
 fn a_server_that_is_not_there_is_a_connection_error() {
+    let _held = free_port_lock();
     let address = {
         let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
         listener.local_addr().expect("address")
