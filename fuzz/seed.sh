@@ -3,7 +3,7 @@
 # fixtures and recorded Horizon responses, so the fuzzer starts from inputs the
 # tool really reads instead of from nothing.
 #
-#   fuzz/seed.sh            writes fuzz/corpus/<target>/...
+#   bash fuzz/seed.sh       writes fuzz/corpus/<target>/...
 #
 # The corpus directory is not committed; it is rebuilt from the files named here.
 set -eu

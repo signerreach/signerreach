@@ -56,7 +56,7 @@ jobs:
       - name: Install cargo-fuzz 0.13.2
         run: cargo install cargo-fuzz --version 0.13.2 --locked
       - name: Build the starting corpus from the fixtures
-        run: fuzz/seed.sh
+        run: bash fuzz/seed.sh
       - name: Fuzz ${{ matrix.target }}
         run: >
           cargo "+$NIGHTLY" fuzz run "${{ matrix.target }}"

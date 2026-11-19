@@ -21,7 +21,7 @@ That file reproduces the failure on its own.
 ```sh
 rustup toolchain install nightly --profile minimal
 cargo install cargo-fuzz --version 0.13.2 --locked
-fuzz/seed.sh                                   # build the starting corpus from fixtures/
+bash fuzz/seed.sh                              # build the starting corpus from fixtures/
 cargo +nightly fuzz run parse_documents fuzz/corpus/parse_documents -- -max_total_time=60
 ```
 
