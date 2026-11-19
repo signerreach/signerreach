@@ -14,6 +14,8 @@ still be administered afterwards, under the assumptions you state.
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-496c8e)](LICENSE)
 [![Rust 1.87+](https://img.shields.io/badge/Rust-1.87%2B-496c8e)](Cargo.toml)
 [![Verified protocols: 29, 30](https://img.shields.io/badge/verified%20protocols-29%2C%2030-267aa9)](docs/SPEC.md)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16921/badge)](https://www.bestpractices.dev/projects/16921)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/signerreach/signerreach/badge)](https://scorecard.dev/viewer/?uri=github.com/signerreach/signerreach)
 
 [Documentation book](https://signerreach.github.io/signerreach/) · [Book source](book/src/index.md) ·
 [Technical documentation](docs/README.md) · [Architecture](docs/architecture.md) ·
