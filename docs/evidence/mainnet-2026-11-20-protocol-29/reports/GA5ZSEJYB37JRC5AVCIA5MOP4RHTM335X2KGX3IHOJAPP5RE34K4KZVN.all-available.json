@@ -1,0 +1,161 @@
+{
+  "assumptions": {
+    "default": "available",
+    "intent": "recoverable",
+    "require_survive_loss_of": 0,
+    "scenarios": [],
+    "signers": []
+  },
+  "coverage": {
+    "modelled": [
+      "one classic account (a G address) per run",
+      "ed25519 signers, including the account's own key",
+      "SetOptions operations",
+      "the authorization rules of protocols 29 and 30, checked against the state before each transaction",
+      "the extra-signature rule, where it can be decided",
+      "LOW, MEDIUM and HIGH reachability under the declared availability",
+      "up to 20 additional signers, weights and thresholds from 0 to 255"
+    ],
+    "not_modelled": [
+      "whether anyone holds, or can use, any key",
+      "fee-bump transactions and transaction preconditions",
+      "source accounts other than the analysed account",
+      "sponsorship and reserve requirements",
+      "pre_auth_tx, hash(x) and signed-payload signers",
+      "operations other than SetOptions",
+      "the order of signatures, where it decides the outcome",
+      "protocol versions other than 29 and 30",
+      "changes to the account after the snapshot was taken"
+    ]
+  },
+  "diagnostics": [],
+  "limitations": [
+    "Availability is declared by the user. This tool does not and cannot verify that anyone holds any key.",
+    "The result applies to the account state at ledger 65577896 on pubnet. Authorization happens at apply time against the live state, which may have changed.",
+    "Only the features listed under \"Coverage\" are modelled. Recognized unsupported input gives INCONCLUSIVE; external conditions may remain unchecked."
+  ],
+  "provenance": {
+    "account": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+    "as_of_ledger": 65577896,
+    "captured_at": "2026-11-20T11:52:09Z",
+    "network": "pubnet",
+    "protocol_version": 29,
+    "source": "horizon"
+  },
+  "reason": "a path to administer the account remains under the declared assumptions, in every scenario checked",
+  "scenarios": [
+    {
+      "name": null,
+      "reachability": [
+        {
+          "available": 4,
+          "class": "LOW",
+          "reach": "reachable",
+          "threshold": 2,
+          "total": 4,
+          "unknown": 0
+        },
+        {
+          "available": 4,
+          "class": "MEDIUM",
+          "reach": "reachable",
+          "threshold": 2,
+          "total": 4,
+          "unknown": 0
+        },
+        {
+          "available": 4,
+          "class": "HIGH",
+          "reach": "reachable",
+          "threshold": 2,
+          "total": 4,
+          "unknown": 0
+        }
+      ],
+      "signers": [
+        {
+          "key": "GAUKFO2NIYEFO773KJZKLPSPYNQ6M7INPEAIQIJCIH7EEVP2KSVQWGH4",
+          "status": "available",
+          "weight": 1
+        },
+        {
+          "key": "GAXFRO4MH6FSBJMNECVZJ6R3ZXANI7CFCMVN47IDNRQDHII3J5HTOZGB",
+          "status": "available",
+          "weight": 1
+        },
+        {
+          "key": "GB73YPMX5R5673G35HHAXYUNRS4R4QZEUHCRT3OUAMSH2NUM6KT4N3KO",
+          "status": "available",
+          "weight": 1
+        },
+        {
+          "key": "GC6ANHZDMCPKU55BUQIJKI3VOYEMETF7Z46HXQRCNONQXPEXQHCVIAFP",
+          "status": "available",
+          "weight": 1
+        }
+      ],
+      "verdict": "SAFE WITHIN SCOPE"
+    }
+  ],
+  "schema": "signerreach.report/1",
+  "starting_state": {
+    "account": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+    "master_weight": 0,
+    "signers": [
+      {
+        "key": "GAUKFO2NIYEFO773KJZKLPSPYNQ6M7INPEAIQIJCIH7EEVP2KSVQWGH4",
+        "weight": 1
+      },
+      {
+        "key": "GAXFRO4MH6FSBJMNECVZJ6R3ZXANI7CFCMVN47IDNRQDHII3J5HTOZGB",
+        "weight": 1
+      },
+      {
+        "key": "GB73YPMX5R5673G35HHAXYUNRS4R4QZEUHCRT3OUAMSH2NUM6KT4N3KO",
+        "weight": 1
+      },
+      {
+        "key": "GC6ANHZDMCPKU55BUQIJKI3VOYEMETF7Z46HXQRCNONQXPEXQHCVIAFP",
+        "weight": 1
+      }
+    ],
+    "thresholds": {
+      "high": 2,
+      "low": 2,
+      "medium": 2
+    }
+  },
+  "state_after": {
+    "account": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+    "master_weight": 0,
+    "signers": [
+      {
+        "key": "GAUKFO2NIYEFO773KJZKLPSPYNQ6M7INPEAIQIJCIH7EEVP2KSVQWGH4",
+        "weight": 1
+      },
+      {
+        "key": "GAXFRO4MH6FSBJMNECVZJ6R3ZXANI7CFCMVN47IDNRQDHII3J5HTOZGB",
+        "weight": 1
+      },
+      {
+        "key": "GB73YPMX5R5673G35HHAXYUNRS4R4QZEUHCRT3OUAMSH2NUM6KT4N3KO",
+        "weight": 1
+      },
+      {
+        "key": "GC6ANHZDMCPKU55BUQIJKI3VOYEMETF7Z46HXQRCNONQXPEXQHCVIAFP",
+        "weight": 1
+      }
+    ],
+    "thresholds": {
+      "high": 2,
+      "low": 2,
+      "medium": 2
+    }
+  },
+  "tool": {
+    "name": "signerreach",
+    "version": "0.1.1"
+  },
+  "transactions": [],
+  "verdict": "SAFE WITHIN SCOPE"
+}

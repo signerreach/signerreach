@@ -1,0 +1,70 @@
+SIGNERREACH CHECK
+=================
+
+Availability is declared by the user. This tool does not and cannot verify that anyone holds any key.
+The result applies to the account state at ledger 65577897 on pubnet. Authorization happens at apply time against the live state, which may have changed.
+Only the features listed under "Coverage" are modelled. Recognized unsupported input gives INCONCLUSIVE; external conditions may remain unchecked.
+
+VERDICT: SAFE WITHIN SCOPE
+Reason: a path to administer the account remains under the declared assumptions, in every scenario checked
+
+Provenance
+----------
+  network       pubnet
+  account       GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX
+  as of ledger  65577897
+  captured at   2026-11-20T11:52:15Z
+  source        horizon
+  protocol      29
+
+Starting state
+--------------
+  master weight  1
+  thresholds     low 0, medium 0, high 0
+  other signers  none
+
+Assumptions
+-----------
+  default status           available
+  declared signers         none
+  scenarios                none
+  survive loss of          0 signer(s)
+  intent                   recoverable
+
+Plan
+----
+  No transactions: this is a check of the snapshot itself.
+
+Reachability
+------------
+
+  Baseline declaration: SAFE WITHIN SCOPE
+    signer GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX weight 1 available
+    LOW    threshold   0  total 1  available 1  unknown 0: reachable
+    MEDIUM threshold   0  total 1  available 1  unknown 0: reachable
+    HIGH   threshold   0  total 1  available 1  unknown 0: reachable
+
+Diagnostics
+-----------
+  none
+
+Coverage
+--------
+  Modelled:
+    - one classic account (a G address) per run
+    - ed25519 signers, including the account's own key
+    - SetOptions operations
+    - the authorization rules of protocols 29 and 30, checked against the state before each transaction
+    - the extra-signature rule, where it can be decided
+    - LOW, MEDIUM and HIGH reachability under the declared availability
+    - up to 20 additional signers, weights and thresholds from 0 to 255
+  Outside this model (recognized unsupported input gives INCONCLUSIVE):
+    - whether anyone holds, or can use, any key
+    - fee-bump transactions and transaction preconditions
+    - source accounts other than the analysed account
+    - sponsorship and reserve requirements
+    - pre_auth_tx, hash(x) and signed-payload signers
+    - operations other than SetOptions
+    - the order of signatures, where it decides the outcome
+    - protocol versions other than 29 and 30
+    - changes to the account after the snapshot was taken
