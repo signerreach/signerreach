@@ -1,0 +1,13 @@
+{
+  "id": "FX-15",
+  "summary": "The plan of FX-10a against a snapshot with no reserve object: the signer cannot be checked, so the result is not SAFE.",
+  "source": "synthetic",
+  "verdict": "INCONCLUSIVE",
+  "exit_code": 2,
+  "codes": [
+    "SR-STATE-01"
+  ],
+  "transactions": [
+    "accepted"
+  ]
+}

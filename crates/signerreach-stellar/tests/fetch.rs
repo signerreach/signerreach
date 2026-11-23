@@ -225,9 +225,43 @@ fn good_account() -> Reply {
         .header("Date", DATE)
 }
 
-/// Serves `roots` in turn for the root address (the last one repeats) and
-/// `account` for the account address.
+/// The ledger the good account answer is as of (its `Latest-Ledger` header).
+const LEDGER: u64 = 5_240_432;
+
+fn ledger_json(sequence: u64, protocol: u32, base_reserve: u64) -> String {
+    serde_json::json!({
+        "sequence": sequence,
+        "protocol_version": protocol,
+        "base_reserve_in_stroops": base_reserve,
+        "base_fee_in_stroops": 100,
+    })
+    .to_string()
+}
+
+/// The protocol a root reply announces. A reply that is not a root (some tests
+/// send junk on purpose) gives 29.
+fn protocol_of(root: &Reply) -> u32 {
+    serde_json::from_slice::<serde_json::Value>(&root.body)
+        .ok()
+        .and_then(|record| record["current_protocol_version"].as_u64())
+        .and_then(|version| u32::try_from(version).ok())
+        .unwrap_or(29)
+}
+
+/// Serves `roots` in turn for the root address (the last one repeats),
+/// `account` for the account address, and a ledger record for the ledger the
+/// account answer is as of, under the same protocol as the first root.
 fn routes(account: Reply, roots: Vec<Reply>) -> impl Fn(&Request) -> Reply + Send + Sync + 'static {
+    let ledger = Reply::ok(&ledger_json(LEDGER, protocol_of(&roots[0]), 5_000_000));
+    routes_with_ledger(account, roots, ledger)
+}
+
+/// Like [`routes`], with the answer for the ledger record given.
+fn routes_with_ledger(
+    account: Reply,
+    roots: Vec<Reply>,
+    ledger: Reply,
+) -> impl Fn(&Request) -> Reply + Send + Sync + 'static {
     let id = account_id();
     let root_reads = AtomicUsize::new(0);
     move |request| {
@@ -236,6 +270,8 @@ fn routes(account: Reply, roots: Vec<Reply>) -> impl Fn(&Request) -> Reply + Sen
             roots[index.min(roots.len() - 1)].clone()
         } else if request.path == format!("/accounts/{id}") {
             account.clone()
+        } else if request.path == format!("/ledgers/{LEDGER}") {
+            ledger.clone()
         } else {
             Reply::status(404, "")
         }
@@ -274,7 +310,7 @@ fn a_protocol_30_horizon_root_becomes_a_snapshot_the_checker_accepts() {
 
     let snapshot = parse_snapshot(&text).expect("protocol 30 is a verified protocol");
     assert_eq!(snapshot.provenance().protocol_version(), 30);
-    assert_eq!(server.requests().len(), 3);
+    assert_eq!(server.requests().len(), 4);
 }
 
 #[test]
@@ -288,7 +324,7 @@ fn a_horizon_root_on_an_unverified_protocol_cannot_produce_a_safe_snapshot() {
             .iter()
             .any(|issue| issue.code == signerreach_core::Code::Rules01)
     );
-    assert_eq!(server.requests().len(), 3);
+    assert_eq!(server.requests().len(), 4);
 }
 
 #[test]
@@ -334,7 +370,7 @@ fn an_account_modified_after_the_claimed_ledger_is_refused() {
 }
 
 #[test]
-fn it_reads_the_root_then_the_account_then_the_root_and_nothing_else() {
+fn it_reads_the_root_the_account_the_ledger_and_the_root_again_and_nothing_else() {
     let server = Server::start(routes(good_account(), vec![testnet_root(29)]));
     fetch(&server, &account_id(), &quick()).expect("fetches");
 
@@ -344,9 +380,15 @@ fn it_reads_the_root_then_the_account_then_the_root_and_nothing_else() {
         .map(|r| (r.method.as_str(), r.path.as_str()))
         .collect();
     let account_path = format!("/accounts/{}", account_id());
+    let ledger_path = format!("/ledgers/{LEDGER}");
     assert_eq!(
         sent,
-        [("GET", "/"), ("GET", account_path.as_str()), ("GET", "/")]
+        [
+            ("GET", "/"),
+            ("GET", account_path.as_str()),
+            ("GET", ledger_path.as_str()),
+            ("GET", "/")
+        ]
     );
 }
 
@@ -416,7 +458,7 @@ fn a_protocol_change_during_the_fetch_is_refused() {
         fetch(&server, &account_id(), &quick()),
         Err(FetchError::ChangedDuringFetch)
     );
-    assert_eq!(server.requests().len(), 3);
+    assert_eq!(server.requests().len(), 4);
 }
 
 #[test]
@@ -615,4 +657,161 @@ fn the_public_addresses_are_reachable_only_over_https() {
         HorizonUrl::parse("http://horizon-testnet.stellar.org"),
         Err(UrlError::NotSecure)
     );
+}
+
+// ---- the reserve data, from the account and from the ledger record ----
+
+#[test]
+fn the_snapshot_carries_the_balance_and_the_base_reserve_in_stroops() {
+    let server = Server::start(routes(good_account(), vec![testnet_root(29)]));
+    let text = fetch(&server, &account_id(), &quick()).expect("fetches");
+    let snapshot = parse_snapshot(&text).expect("the checker accepts it");
+
+    // The recorded account holds 9999.9999400 XLM, has 2 signers and no
+    // liabilities or sponsorship.
+    let reserve = snapshot.reserve().expect("reserve data");
+    assert_eq!(reserve.balance(), 99_999_999_400);
+    assert_eq!(reserve.selling_liabilities(), 0);
+    assert_eq!(reserve.subentry_count(), 2);
+    assert_eq!((reserve.num_sponsoring(), reserve.num_sponsored()), (0, 0));
+    assert_eq!(reserve.base_reserve(), 5_000_000);
+    assert_eq!(reserve.min_balance(), 20_000_000);
+}
+
+#[test]
+fn the_base_reserve_comes_from_the_ledger_record() {
+    let ledger = Reply::ok(&ledger_json(LEDGER, 29, 7_500_000));
+    let server = Server::start(routes_with_ledger(
+        good_account(),
+        vec![testnet_root(29)],
+        ledger,
+    ));
+    let text = fetch(&server, &account_id(), &quick()).expect("fetches");
+    let snapshot = parse_snapshot(&text).expect("accepted");
+    assert_eq!(snapshot.reserve().unwrap().base_reserve(), 7_500_000);
+}
+
+#[test]
+fn a_ledger_record_for_another_ledger_is_refused() {
+    let ledger = Reply::ok(&ledger_json(LEDGER + 1, 29, 5_000_000));
+    let server = Server::start(routes_with_ledger(
+        good_account(),
+        vec![testnet_root(29)],
+        ledger,
+    ));
+    assert_eq!(
+        fetch(&server, &account_id(), &quick()),
+        Err(FetchError::Map(MapError::BadLedger))
+    );
+}
+
+#[test]
+fn a_ledger_under_another_protocol_than_the_root_is_refused() {
+    let ledger = Reply::ok(&ledger_json(LEDGER, 30, 5_000_000));
+    let server = Server::start(routes_with_ledger(
+        good_account(),
+        vec![testnet_root(29)],
+        ledger,
+    ));
+    assert_eq!(
+        fetch(&server, &account_id(), &quick()),
+        Err(FetchError::ChangedDuringFetch)
+    );
+}
+
+#[test]
+fn a_ledger_record_without_a_usable_base_reserve_is_refused() {
+    for body in [
+        r#"{"sequence":5240432,"protocol_version":29}"#.to_string(),
+        r#"{"sequence":5240432,"protocol_version":29,"base_reserve_in_stroops":0}"#.to_string(),
+        r#"{"sequence":5240432,"protocol_version":29,"base_reserve_in_stroops":"5000000"}"#
+            .to_string(),
+        r#"{"sequence":5240432,"protocol_version":29,"base_reserve_in_stroops":0.5}"#.to_string(),
+        r#"{"sequence":5240432,"protocol_version":29,"base_reserve_in_stroops":1,"base_reserve_in_stroops":2}"#
+            .to_string(),
+        "not json".to_string(),
+    ] {
+        let server = Server::start(routes_with_ledger(
+            good_account(),
+            vec![testnet_root(29)],
+            Reply::ok(&body),
+        ));
+        let error = fetch(&server, &account_id(), &quick()).expect_err(&body);
+        assert!(matches!(error, FetchError::Map(_)), "{body}: {error}");
+    }
+}
+
+#[test]
+fn a_missing_ledger_is_an_error_status_and_no_snapshot_is_written() {
+    let server = Server::start(routes_with_ledger(
+        good_account(),
+        vec![testnet_root(29)],
+        Reply::status(404, "SECRETMARKER"),
+    ));
+    let error = fetch(&server, &account_id(), &quick()).expect_err("no ledger");
+    assert_eq!(error, FetchError::Status(404));
+    assert!(!error.to_string().contains("SECRETMARKER"));
+}
+
+#[test]
+fn a_redirect_from_the_ledger_address_is_not_followed() {
+    let server = Server::start(routes_with_ledger(
+        good_account(),
+        vec![testnet_root(29)],
+        Reply::status(302, "").header("Location", "http://127.0.0.1:1/elsewhere"),
+    ));
+    assert_eq!(
+        fetch(&server, &account_id(), &quick()),
+        Err(FetchError::Redirect)
+    );
+    // Nothing was requested from the place the redirect named.
+    assert_eq!(server.requests().len(), 3);
+}
+
+#[test]
+fn an_account_without_a_usable_balance_is_refused() {
+    type Change = fn(&mut serde_json::Value);
+    let mutate = |change: Change| {
+        let mut record: serde_json::Value = serde_json::from_str(ACCOUNT_JSON).unwrap();
+        change(&mut record);
+        let account = Reply::ok(&record.to_string())
+            .header("Latest-Ledger", "5240432")
+            .header("Date", DATE);
+        let server = Server::start(routes(account, vec![testnet_root(29)]));
+        fetch(&server, &account_id(), &quick())
+    };
+    let cases: [(&str, Change); 8] = [
+        ("no balances", |r| {
+            r.as_object_mut().unwrap().remove("balances");
+        }),
+        ("no native balance", |r| {
+            r["balances"][0]["asset_type"] = serde_json::json!("credit_alphanum4");
+        }),
+        ("two native balances", |r| {
+            let first = r["balances"][0].clone();
+            r["balances"].as_array_mut().unwrap().push(first);
+        }),
+        ("a balance with six decimals", |r| {
+            r["balances"][0]["balance"] = serde_json::json!("1.000000");
+        }),
+        ("a balance in exponent form", |r| {
+            r["balances"][0]["balance"] = serde_json::json!("1e3");
+        }),
+        ("a negative liability", |r| {
+            r["balances"][0]["selling_liabilities"] = serde_json::json!("-1.0000000");
+        }),
+        ("fewer sub-entries than signers", |r| {
+            r["subentry_count"] = serde_json::json!(1);
+        }),
+        ("no sponsorship counts", |r| {
+            r.as_object_mut().unwrap().remove("num_sponsored");
+        }),
+    ];
+    for (name, change) in cases {
+        let result = mutate(change);
+        assert!(
+            matches!(result, Err(FetchError::Map(_))),
+            "{name}: {result:?}"
+        );
+    }
 }

@@ -1,0 +1,11 @@
+{
+  "id": "FX-10a",
+  "summary": "Adding a signer when the balance is exactly the minimum, one base reserve and the fee: the network accepts it.",
+  "source": "synthetic",
+  "verdict": "SAFE WITHIN SCOPE",
+  "exit_code": 0,
+  "codes": [],
+  "transactions": [
+    "accepted"
+  ]
+}

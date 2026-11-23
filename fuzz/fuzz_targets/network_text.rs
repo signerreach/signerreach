@@ -1,5 +1,6 @@
 //! The small text parsers in the network layer: the server address, the `Date`
-//! header, the server root and the `Latest-Ledger` header.
+//! header, the server root (also read as a ledger record) and the
+//! `Latest-Ledger` header.
 //!
 //! The input is four values separated by NUL bytes, in that order. Besides not
 //! panicking, the properties checked are:
@@ -7,14 +8,16 @@
 //! - an address that is accepted gives back an address that is accepted again,
 //!   and the same one;
 //! - a date that is accepted is written as `YYYY-MM-DDTHH:MM:SSZ`;
-//! - a ledger that is accepted is at least 1.
+//! - a ledger that is accepted is at least 1;
+//! - a ledger record that is accepted has a sequence and a base reserve of at
+//!   least 1.
 
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
 use signerreach_core::Network;
 use signerreach_stellar::{
-    HorizonUrl, RootInfo, http_date_to_rfc3339, parse_latest_ledger, passphrase_of,
+    HorizonUrl, LedgerInfo, RootInfo, http_date_to_rfc3339, parse_latest_ledger, passphrase_of,
 };
 
 fuzz_target!(|data: &[u8]| {
@@ -50,6 +53,13 @@ fuzz_target!(|data: &[u8]| {
         let _ = info.check_network(Network::Testnet);
         let _ = info.check_network(Network::Pubnet);
         let _ = (passphrase_of(Network::Testnet), passphrase_of(Network::Pubnet));
+    }
+
+    // The same text is also read as a ledger record, which is how the base
+    // reserve gets into a snapshot.
+    if let Ok(ledger) = LedgerInfo::parse(root) {
+        assert!(ledger.sequence >= 1);
+        assert!(ledger.base_reserve >= 1);
     }
 
     if let Ok(number) = parse_latest_ledger(ledger) {

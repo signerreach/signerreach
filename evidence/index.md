@@ -46,6 +46,7 @@ gate that has not passed.
 | [README](../README.md#what-it-does) says `check` is an offline decision aid with three verdicts | [CLI implementation](../crates/signerreach-cli/src/check.rs), [CLI tests](../crates/signerreach-cli/tests/check.rs), [core evaluator](../crates/signerreach-core/src/evaluate.rs) | TESTED LOCALLY | 2026-10-31 |
 | [README](../README.md#making-a-snapshot) says `fetch` only reads and validates network data | [client](../crates/signerreach-stellar/src/client.rs), [URL validation](../crates/signerreach-stellar/src/url.rs), [fake-server tests](../crates/signerreach-stellar/tests/fetch.rs) | TESTED LOCALLY | 2026-10-31 |
 | [SPEC](../docs/SPEC.md#3-scope) limits support to protocols 29 and 30, classic G accounts and ed25519 signers | [snapshot parser](../crates/signerreach-core/src/input/snapshot.rs), [unsupported fixtures](../fixtures/README.md), historical Testnet records | TESTED LOCALLY for rejection; VERIFIED historically for protocol 29 and by the 2026-11-04 replay for protocol 30 | 2026-10-31 |
+| [SPEC](../docs/SPEC.md#4-verified-rules-this-specification-relies-on) rules R10 to R14 say a new signer needs one base reserve available, the fee must be payable, and a failed transaction keeps its fee | stellar-core `v30.0.0` source (named in the SPEC); [one Testnet failure at ledger 5831809](../docs/evidence/testnet-2026-11-20-reserve-gap/README.md); [reserve rules](../crates/signerreach-core/src/reserve.rs), [apply](../crates/signerreach-core/src/apply.rs) and fixtures `FX-10a` to `FX-17` | TESTED LOCALLY; one failure and one kept fee OBSERVED on Testnet; the boundary cases, operation order, liabilities, the 1000 limit and sponsorship are from the source only, not recorded on a network | 2026-11-23 |
 | [SPEC](../docs/SPEC.md#9-command-line) lists text and JSON as implemented, Markdown and schema as planned | [CLI arguments](../crates/signerreach-cli/src/main.rs), [open issues #1](https://github.com/signerreach/signerreach/issues/1) and [#2](https://github.com/signerreach/signerreach/issues/2) | VERIFIED source and issue state | 2026-10-31 |
 | [SECURITY.md](../SECURITY.md) and [CONTRIBUTING.md](../CONTRIBUTING.md) distinguish the shipped no-key CLI from the Testnet replay harness | [Rust CLI](../crates/signerreach-cli/src/main.rs), [replay script](../tools/replay/replay.mjs), source review and offline trace | LOGICALLY COVERED; no independent audit | 2026-10-31 |
 | [Architecture](../docs/architecture.md) describes pre-state authorization, scenario evaluation and deterministic output | [authorize](../crates/signerreach-core/src/authorize.rs), [apply](../crates/signerreach-core/src/apply.rs), [evaluate](../crates/signerreach-core/src/evaluate.rs), report tests | TESTED LOCALLY | 2026-10-31 |
@@ -61,7 +62,8 @@ The 2026-10-13 Testnet record includes follow-up lockout attempts. The
 repeat them. The 2026-11-01 replay repeated FX-01 Case 1b only. All three ran
 at protocol 29. The 2026-11-04 replay ran the seven chain fixtures and FX-01
 Case 1b at protocol 30; it did not repeat the other 2026-10-13 follow-ups. The
-corrected walkthrough plan has a local checker verdict and supporting mechanism
+2026-11-20 reserve record is one failed transaction on Testnet; it is not a
+replay of the new rules. The corrected walkthrough plan has a local checker verdict and supporting mechanism
 evidence, but no live run of that exact plan. No historical transaction hash
 demonstrates a current live account state. No dependency scanner result constitutes an
 independent security audit.

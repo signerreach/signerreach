@@ -763,6 +763,39 @@ export function replayExitCode(results, differing) {
   return unconfirmed ? 2 : differing.length === 0 ? 0 : 1;
 }
 
+// Horizon's amount text, such as "10791.0428944", as whole stroops. The shape is
+// strict, like the checker's own reader: digits, a point, exactly seven digits.
+export function stroopsOf(text) {
+  const match = /^(0|[1-9][0-9]{0,11})\.([0-9]{7})$/.exec(String(text));
+  if (!match) throw new Unusable("an amount from the network is not in the expected form");
+  return BigInt(match[1]) * 10_000_000n + BigInt(match[2]);
+}
+
+// A chain fixture's `reserve` object is a lower bound, not an observation: the
+// account was funded with 10,000 XLM and has paid setup fees, so it holds more
+// than the fixture states. This checks that claim against the real account. The
+// counts and the selling liabilities must be equal, because they decide the
+// minimum balance; the balance must be at least what the fixture says, because
+// a lower figure can only make the checker more cautious.
+export function checkReserveFigures(loaded, reserve) {
+  if (reserve === undefined) return;
+  const native = (loaded.balances ?? []).filter((entry) => entry.asset_type === "native");
+  if (native.length !== 1) throw new Unusable("the account on Testnet does not have exactly one native balance");
+  const balance = stroopsOf(native[0].balance);
+  const liabilities = stroopsOf(native[0].selling_liabilities);
+  const sameCounts =
+    loaded.subentry_count === reserve.subentry_count &&
+    loaded.num_sponsoring === reserve.num_sponsoring &&
+    loaded.num_sponsored === reserve.num_sponsored &&
+    liabilities === BigInt(reserve.selling_liabilities);
+  if (!sameCounts) {
+    throw new Unusable("the sub-entry or sponsorship counts, or the selling liabilities, differ from the fixture's reserve");
+  }
+  if (balance < BigInt(reserve.balance)) {
+    throw new Unusable("the account on Testnet holds less than the fixture's reserve says");
+  }
+}
+
 async function checkBuiltState(server, account, snapshot, keys) {
   const loaded = await server.loadAccount(account.publicKey());
   const wanted = snapshot.signers
@@ -780,6 +813,7 @@ async function checkBuiltState(server, account, snapshot, keys) {
     (master ? master.weight : 0) === snapshot.master_weight &&
     JSON.stringify(wanted) === JSON.stringify(found);
   if (!same) throw new Unusable("the account built on Testnet does not match the fixture's snapshot");
+  checkReserveFigures(loaded, snapshot.reserve);
 }
 
 // ------------------------------------------------------------------ replay

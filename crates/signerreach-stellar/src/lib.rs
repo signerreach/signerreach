@@ -9,10 +9,11 @@
 //!   `signerreach.snapshot/1` document.
 //! - [`http_date_to_rfc3339`] turns a server's `Date` header into the timestamp a
 //!   snapshot records.
-//! - [`HorizonUrl`] checks a server address and builds the only two addresses
+//! - [`HorizonUrl`] checks a server address and builds the only three addresses
 //!   the tool will ever request.
-//! - [`RootInfo`] and [`parse_latest_ledger`] read what a server says about its
-//!   network and the ledger a response is as of.
+//! - [`RootInfo`], [`LedgerInfo`] and [`parse_latest_ledger`] read what a server
+//!   says about its network, a ledger's base reserve, and the ledger a response is
+//!   as of.
 //! - [`fetch_snapshot`] reads an account from a server, under strict limits, and
 //!   returns a snapshot document.
 
@@ -28,5 +29,5 @@ pub use client::{FetchError, Limits, fetch_snapshot};
 pub use error::MapError;
 pub use horizon::{Context, snapshot_from_account};
 pub use http_date::http_date_to_rfc3339;
-pub use root::{RootInfo, parse_latest_ledger, passphrase_of};
+pub use root::{LedgerInfo, RootInfo, parse_latest_ledger, passphrase_of};
 pub use url::{HorizonUrl, UrlError};

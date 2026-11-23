@@ -1,7 +1,7 @@
 # SignerReach V1 Specification (draft 0.1)
 
 Date: 2026-10-14
-Current publication status (2026-11-04): SignerReach v0.1.1 was published from verified main commit [`f950a821044c479c29550e6e003612b2de7b9175`](https://github.com/signerreach/signerreach/releases/tag/v0.1.1). The first release, v0.1.0, was published on 2026-11-02 from [`e1a37cea9101bbf2cb68372f111c6e4a5ecd1ba4`](https://github.com/signerreach/signerreach/releases/tag/v0.1.0). This file retains the original Draft 0.1 specification and fixture IDs. The Rust core, read-only Horizon adapter, `check` and `fetch` commands, text and JSON reports, and development Testnet replay harness are implemented and tested. Markdown reports and `signerreach schema KIND` remain planned in issues [#2](https://github.com/signerreach/signerreach/issues/2) and [#1](https://github.com/signerreach/signerreach/issues/1). The project has not been independently audited. v0.1.0 accepts protocol 29 only. Since v0.1.1 the checker also accepts protocol 30, after the chain fixtures and the FX-01 follow-up matched on a Testnet running protocol 30 ([evidence](evidence/replay-2026-11-04-protocol-30/README.md)). Sections below describe intended V1 behavior where they differ from the current implementation; the status notes identify those differences.
+Current publication status (2026-11-04): SignerReach v0.1.1 was published from verified main commit [`f950a821044c479c29550e6e003612b2de7b9175`](https://github.com/signerreach/signerreach/releases/tag/v0.1.1). The first release, v0.1.0, was published on 2026-11-02 from [`e1a37cea9101bbf2cb68372f111c6e4a5ecd1ba4`](https://github.com/signerreach/signerreach/releases/tag/v0.1.0). This file retains the original Draft 0.1 specification and fixture IDs. The Rust core, read-only Horizon adapter, `check` and `fetch` commands, text and JSON reports, and development Testnet replay harness are implemented and tested. Markdown reports and `signerreach schema KIND` remain planned in issues [#2](https://github.com/signerreach/signerreach/issues/2) and [#1](https://github.com/signerreach/signerreach/issues/1). The project has not been independently audited. v0.1.0 accepts protocol 29 only. Since v0.1.1 the checker also accepts protocol 30, after the chain fixtures and the FX-01 follow-up matched on a Testnet running protocol 30 ([evidence](evidence/replay-2026-11-04-protocol-30/README.md)). Sections below describe intended V1 behavior where they differ from the current implementation; the status notes identify those differences. The balance, reserve and fee rules (R10 to R14, `reserve` in the snapshot, `fee` in the plan, `SR-RESERVE-01`) are in development on `main` and are not in a published release.
 
 ---
 
@@ -35,11 +35,12 @@ If any of these cannot be delivered correctly, V1 is reduced, not padded.
 - **Operations in a plan:** `SetOptions` only. A `SetOptions` is *administrative* when it sets master weight, a threshold, or a signer. A home-domain-only or empty `SetOptions` needs MEDIUM authorization. Flag changes cannot be decided from this snapshot format.
 - **Transaction source:** the analysed account itself.
 - **Availability:** each signer is `available`, `lost` or `unknown`. Default is `unknown`.
+- **Balance, reserve and fee, for adding a signer:** when the snapshot carries `reserve` data (5.1), the checker applies R10 to R14: it checks that each transaction's fee can be paid and that each new signer can be afforded, in the order the network applies them. A plan that adds a signer to a snapshot without `reserve` data cannot be `SAFE WITHIN SCOPE` (`SR-STATE-01`).
 - **Outputs:** text and JSON reports are implemented. Markdown reporting is planned in issue #2.
 
 ### 3.2 Out of scope
 
-Soroban or contract accounts (`C...`), muxed accounts, fee-bump transactions, transaction preconditions beyond what is listed, operation or transaction source accounts other than the analysed account, account flag changes, sponsorship and reserve effects, `pre_auth_tx`, `hash_x` and `ed25519_signed_payload` signers, any operation type other than `SetOptions` (including `AccountMerge`, which needs HIGH but ends the account and is not modelled as a plan step), any protocol other than 29. Recognized unsupported inputs give `INCONCLUSIVE`. The checker cannot detect every reserve or external state constraint from this snapshot format, so those conditions remain outside a safe verdict's scope.
+Soroban or contract accounts (`C...`), muxed accounts, fee-bump transactions, transaction preconditions beyond what is listed, operation or transaction source accounts other than the analysed account, account flag changes, sponsorship (operations inside a sponsorship sandwich, and sponsored signers), reserve effects of anything other than adding or removing a signer, the network's minimum fee as it may change by validator vote (100 stroops per operation is assumed, 5.2), `pre_auth_tx`, `hash_x` and `ed25519_signed_payload` signers, any operation type other than `SetOptions` (including `AccountMerge`, which needs HIGH but ends the account and is not modelled as a plan step), any protocol other than 29 and 30. Recognized unsupported inputs give `INCONCLUSIVE`. The checker cannot detect every external state constraint from this snapshot format, so those conditions remain outside a safe verdict's scope.
 
 ### 3.3 Non-goals
 
@@ -47,7 +48,7 @@ Key collection, signing, broadcasting, custody, fee optimization, payments, asse
 
 ## 4. Verified rules this specification relies on
 
-Each rule below was read in stellar-core source (commit `66defff`) and observed on Stellar Testnet at protocol 29. The evidence is in `docs/evidence/testnet-2026-10-13/`. The chain-backed cases were replayed at protocol 30 on 2026-11-04 (`docs/evidence/replay-2026-11-04-protocol-30/`); in stellar-core 29.0.0 and 30.0.0 the files `SignatureChecker`, `SignatureUtils` and `SetOptionsOpFrame` are identical. Rule identifiers are used in test fixtures.
+Rules R1 to R9 were read in stellar-core source (commit `66defff`) and observed on Stellar Testnet at protocol 29. Rules R10 to R14 have their own source note after the table. The evidence is in `docs/evidence/testnet-2026-10-13/`. The chain-backed cases were replayed at protocol 30 on 2026-11-04 (`docs/evidence/replay-2026-11-04-protocol-30/`); in stellar-core 29.0.0 and 30.0.0 the files `SignatureChecker`, `SignatureUtils` and `SetOptionsOpFrame` are identical. Rule identifiers are used in test fixtures.
 
 | ID | Rule |
 |---|---|
@@ -60,6 +61,13 @@ Each rule below was read in stellar-core source (commit `66defff`) and observed 
 | R7 | Every signature on a transaction must be used by at least one check, or the transaction is rejected `tx_bad_auth_extra`. Use is decided in signature order, so a signature that is not necessary may or may not be rejected depending on order. |
 | R8 | A transaction with insufficient authorization is rejected at submission and never enters a ledger. No fee or sequence number is consumed. |
 | R9 | A sequence of separate transactions is evaluated one after another, each against the state left by the previous one. |
+| R10 | A `SetOptions` that names a signer key that is **already** a signer changes only that signer's weight. It needs no reserve. Weight 0 removes the signer and lowers the account's sub-entry count by 1. Weight 0 for a key that is not a signer changes nothing. |
+| R11 | A `SetOptions` that adds a **new** signer (weight above 0, key not yet a signer) to an account that is not inside a sponsorship sandwich is checked in this order. (a) The account already has 20 additional signers: `op_too_many_signers`. (b) `numSubEntries` is already 1000 or more: `opTOO_MANY_SUBENTRIES`. (c) `available < baseReserve`: `op_low_reserve`. Here `available = balance - minBalance - sellingLiabilities` and `minBalance = (2 + numSubEntries + numSponsoring - numSponsored) * baseReserve`. Equal is allowed. A signer that is added raises `numSubEntries` by 1. |
+| R12 | A transaction that is rejected by R8 or R13 consumes nothing. A transaction that passes them and then fails in an operation (R11) is included in a ledger and keeps its fee (R13), and none of its operations take effect. |
+| R13 | Before the transaction is applied the network checks that `available >= fee` for the source account, and rejects it with `tx_insufficient_balance` if not (nothing is charged, as in R8). If it passes, the fee is charged first, and the operations then see the balance after the fee. |
+| R14 | Operations are applied in order against the state the earlier operations left. This is true only of application; authorization still uses the state before the transaction (R6). So `[remove signer A, add signer B]` can succeed where `[add signer B, remove signer A]` fails `op_low_reserve`. |
+
+**Where R10 to R14 come from.** They were read in stellar-core `v30.0.0`, commit `0e49751aa9ddf892302cca02cea7f3f5d97df9f1`, the version Mainnet and Testnet report: `SetOptionsOpFrame.cpp` (`addOrChangeSigner`, `deleteSigner`, and the order in `doApply`), `SponsorshipUtils.cpp` (`createSignerWithPossibleSponsorship`, `canCreateSignerWithoutSponsorship`, `tooManyNumSubEntries`), `TransactionUtils.cpp` (`getMinBalance`, `getAvailableBalance`) and `TransactionFrame.cpp` (`commonValid`, where `txINSUFFICIENT_BALANCE` is raised after the signature checks). Liabilities count from protocol 10 and sponsorship from protocol 14, so both apply at 29 and 30. One failure was also observed on Testnet at protocol 30: an account with 1.0010 XLM and minimum 1.0 XLM, adding one signer, `tx_failed` / `op_low_reserve`, ledger 5831809 ([evidence](evidence/testnet-2026-11-20-reserve-gap/README.md)). That transaction was included in the ledger and charged its fee (`fee_charged` 100), which is the one observation behind R12. **The boundary cases and R14 are from the source reading only until their own evidence record exists**, and the fixtures that rest on them are marked `synthetic` (section 10).
 
 ## 5. Inputs
 
@@ -83,13 +91,22 @@ All input is untrusted. Files are size-limited (default 1 MiB) and must be UTF-8
   "signers": [
     { "key": "G...", "type": "ed25519", "weight": 1 }
   ],
-  "sponsored_signers": false
+  "sponsored_signers": false,
+  "reserve": {
+    "balance": 20000100,
+    "selling_liabilities": 0,
+    "subentry_count": 1,
+    "num_sponsoring": 0,
+    "num_sponsored": 0,
+    "base_reserve": 5000000
+  }
 }
 ```
 
 - `provenance.as_of_ledger` and `network` are **required**. Without them the verdict is INCONCLUSIVE (`SR-FRESH-01`).
 - The master key is represented only by `master_weight`, not as a signer entry. A snapshot adapter that reads Horizon must remove the master key from the signer list it returns.
 - `sponsored_signers: true` makes the run INCONCLUSIVE (`SR-STATE-01`).
+- `reserve` is **optional**, and it is an addition to `signerreach.snapshot/1`: a document without it is still valid and gives the same result as before for every plan that adds no signer. When present, all six fields are required and are whole numbers. Amounts are in stroops (1 XLM = 10,000,000 stroops), so no decimal is ever read from text. `balance` is the native balance, `selling_liabilities` the native selling liabilities, `subentry_count`, `num_sponsoring` and `num_sponsored` the account's counts, and `base_reserve` the network's base reserve at `as_of_ledger`. It is refused (`SR-INPUT-01`) if `subentry_count` is above 1000 or below the number of additional signers, if `base_reserve` is 0, or if `2 + subentry_count + num_sponsoring - num_sponsored` is negative. A plan that adds a signer to a snapshot without `reserve` is not refused: it is evaluated as if the signer could be afforded, and the run cannot be `SAFE WITHIN SCOPE` (`SR-STATE-01`, R11).
 
 ### 5.2 Plan
 
@@ -99,6 +116,7 @@ All input is untrusted. Files are size-limited (default 1 MiB) and must be UTF-8
   "transactions": [
     {
       "id": "tx1",
+      "fee": 200,
       "signed_by": ["G...", "G..."],
       "operations": [
         { "op": "set_options", "signer": { "key": "G...", "weight": 1 } },
@@ -119,6 +137,7 @@ All input is untrusted. Files are size-limited (default 1 MiB) and must be UTF-8
 - A transaction holds 1 to 100 operations (a Stellar limit) and a plan at most 1000 transactions (a limit of this tool).
 - A transaction or an operation may carry `source`, a `G...` address. It is read and kept; a source other than the analysed account is reported as `SR-TX-04` when the plan is evaluated against a snapshot.
 - A transaction that carries `fee_bump` or `preconditions` is `SR-TX-04`; their content is not read.
+- `fee` is optional: the whole fee of the transaction in stroops, a whole number from 1 to 4294967295. It is used only when the snapshot carries `reserve` data (R13). When it is absent the checker assumes **100 stroops for each operation**, which is the base fee both networks reported on 2026-11-23, and says so in the report. A `fee` below 100 stroops for each operation is `SR-STATE-01`: the network's minimum fee is a setting that can change, so the checker does not claim to know that such a transaction is accepted. The checker takes `fee` to be the amount charged. A bid above the amount the network charges can only make the checker more cautious.
 - `home_domain` is at most 32 printable ASCII characters. `set_flags` and `clear_flags` use only the four account flag bits (0 to 15) and may not share a bit.
 
 ### 5.3 Availability
@@ -163,11 +182,14 @@ If any operation changes account flags, the transaction is undecidable (`SR-STAT
 2. **Envelope check.** Sum of matched weights (each capped at 255, each key counted once) must be at least `S.low`, and at least one key must match. Otherwise `SR-AUTH-01`.
 3. **Operation checks.** For each operation in *T* in order, determine its threshold class with R4 using **S, not intermediate state**. The matched sum must be at least that threshold. Otherwise `SR-AUTH-01` with the failing operation index.
 4. **Necessity of signatures (R7).** For each key in `signed_by`, test whether removing it leaves at least one check failing. If every key is necessary, all are used and the transaction is valid. If some key is not necessary, the outcome depends on signature order: the transaction is reported as `SR-TX-02` and the run cannot be SAFE (it becomes INCONCLUSIVE).
-5. If any step fails, the transaction is **rejected**. The state is unchanged (R8). Evaluation of later transactions continues against the unchanged state so the report can show every failure, but the verdict is already UNSAFE.
+5. **Fee (R13), only when the snapshot has `reserve` data.** The transaction's fee is its `fee`, or 100 stroops for each operation if none is given. If `available` is less than the fee, the transaction is rejected, nothing is charged, and the code is `SR-RESERVE-01`.
+6. If any step fails, the transaction is **rejected**. The state is unchanged (R8). Evaluation of later transactions continues against the unchanged state so the report can show every failure, but the verdict is already UNSAFE.
 
-If the transaction is valid, apply its operations **in order** to produce the next state. Applying an operation that removes a signer that does not exist is a no-op. Setting a signer weight to 0 removes it.
+If the transaction is valid, charge the fee (when `reserve` data is present) and apply its operations **in order** to produce the next state. Applying an operation that removes a signer that does not exist is a no-op. Setting a signer weight to 0 removes it.
 
-An operation that cannot be applied makes the whole transaction fail when applied: it names the account's own key as a signer (even to remove it), or it would take the account above 20 additional signers. This is `SR-APPLY-01`: the state is unchanged and the verdict is UNSAFE. Operations are applied one after another, so at the limit a removal before an addition fits where the reverse order does not.
+An operation that cannot be applied makes the whole transaction fail when applied. It names the account's own key as a signer (even to remove it), or it would take the account above 20 additional signers, or it would take the account to more than 1000 sub-entries (all `SR-APPLY-01`), or, with `reserve` data, it adds a signer that `available` cannot cover (R11, `SR-RESERVE-01`). In every case the verdict is UNSAFE and the account state is unchanged. The fee is not unchanged: a transaction that fails when applied is in a ledger, so it keeps its fee (R12), and a later transaction in the plan sees the balance without it. Operations are applied one after another (R14), so at a limit a removal before an addition fits where the reverse order does not.
+
+An operation that adds a signer to a snapshot without `reserve` data is applied as if it succeeded and is reported with `SR-STATE-01` against the transaction and operation. The state after it is what the network would produce if the signer can be afforded, so a loss of access found later in the plan is still reported UNSAFE, and nothing is ever reported SAFE.
 
 ### 6.3 Step 3: reachability of the final state
 
@@ -186,7 +208,7 @@ The verdict is driven by **HIGH**, the administrative threshold. If 6.1 raised a
 
 | Condition (evaluated in this order) | Verdict | Code |
 |---|---|---|
-| Any transaction rejected in 6.2 | UNSAFE | `SR-AUTH-01`, `SR-TX-01`, `SR-APPLY-01` |
+| Any transaction rejected in 6.2 | UNSAFE | `SR-AUTH-01`, `SR-TX-01`, `SR-APPLY-01`, `SR-RESERVE-01` |
 | HIGH structurally unreachable | UNSAFE | `SR-LOCK-01` |
 | HIGH not reachable and not dependent on unknowns (`W_all >= t` but `W_avail + W_unk < t`) | UNSAFE | `SR-LOSS-01` |
 | HIGH dependent on unknowns | INCONCLUSIVE | `SR-AVAIL-01` |
@@ -201,7 +223,7 @@ MEDIUM unreachable with HIGH reachable is not a failure (HIGH can reset it). It 
 
 ### 6.5 Why the rules are conservative
 
-A false SAFE can cost someone their account. Recognized unsupported constructs and unverified protocol versions produce INCONCLUSIVE. A result marked SAFE WITHIN SCOPE still depends on the supplied snapshot, real signatures, declared availability, and external conditions such as reserves that this snapshot cannot establish.
+A false SAFE can cost someone their account. Recognized unsupported constructs and unverified protocol versions produce INCONCLUSIVE. A result marked SAFE WITHIN SCOPE still depends on the supplied snapshot, real signatures, declared availability, and external conditions that this snapshot cannot establish. The balance is one of them: it is checked for adding a signer and for paying the fee only if the snapshot carries `reserve` data, and it is read as of `as_of_ledger`, so a payment, an offer or a change of the base reserve after that ledger is outside the result.
 
 ## 7. Diagnostic codes
 
@@ -214,7 +236,8 @@ The proposal book's code names were explicitly "proposals, not an established AP
 | `SR-TX-02` | A signature is not necessary; whether it is rejected as extra depends on signature order. | INCONCLUSIVE |
 | `SR-TX-03` | LOW threshold unreachable; administration requires another funded transaction source. | INCONCLUSIVE |
 | `SR-TX-04` | Fee-bump, preconditions, or a source account other than the analysed account. | INCONCLUSIVE |
-| `SR-APPLY-01` | The transaction is authorized but would fail when applied: it names the account's own key as a signer, or it would give the account more than 20 additional signers. | UNSAFE |
+| `SR-APPLY-01` | The transaction is authorized but would fail when applied: it names the account's own key as a signer, or it would give the account more than 20 additional signers, or more than 1000 sub-entries. | UNSAFE |
+| `SR-RESERVE-01` | The balance cannot cover the plan, so the network would reject or fail the transaction: the fee is more than the available balance (`tx_insufficient_balance`, R13), or a new signer leaves less than the base reserve available (`op_low_reserve`, R11). Names the transaction, the operation if there is one, and the shortfall in stroops. | UNSAFE |
 | `SR-LOCK-01` | Total weight of all signers is below the HIGH threshold. | UNSAFE |
 | `SR-LOSS-01` | HIGH is unreachable with the signers declared available in a scenario. | UNSAFE |
 | `SR-LOCK-02` | MEDIUM unreachable (payments blocked); informational. | none |
@@ -225,7 +248,7 @@ The proposal book's code names were explicitly "proposals, not an established AP
 | `SR-INPUT-02` | Unsupported account kind (contract, muxed). | INCONCLUSIVE |
 | `SR-FRESH-01` | Snapshot provenance missing (no ledger or network). | INCONCLUSIVE |
 | `SR-RULES-01` | Protocol or rule version not supported. | INCONCLUSIVE |
-| `SR-STATE-01` | An account flag change needs existing flags absent from the snapshot. Sponsorship and reserve conditions are not modelled. | INCONCLUSIVE |
+| `SR-STATE-01` | An account flag change needs existing flags absent from the snapshot. A sponsored signer, or an operation in a sponsorship sandwich, is not modelled. A signer is added and the snapshot has no `reserve` data. A `fee` is below 100 stroops for each operation. | INCONCLUSIVE |
 | `SR-INTENT-01` | Plan declared `irreversible`; presentation only. | none |
 
 ## 8. Output
@@ -243,7 +266,7 @@ Rejected-input reports use a shorter form with the `INCONCLUSIVE` verdict and in
 1. **Verdict** and the single most important reason in one sentence.
 2. **Provenance:** network, account, ledger, capture time, source, protocol version. The tool does not calculate snapshot age.
 3. **Assumptions:** the availability table and scenarios, as given.
-4. **Step trace:** for each transaction, the pre-state, which signatures matched with their weights, the threshold needed per operation, and accepted or rejected.
+4. **Step trace:** for each transaction, the pre-state, which signatures matched with their weights, the threshold needed per operation, and accepted or rejected. When the snapshot has `reserve` data, also the balance figures before the transaction (balance, minimum balance, available, in stroops) and the fee, with a note when the fee is the assumed 100 stroops for each operation. These lines and the matching JSON fields (`starting_reserve`, `reserve_after`, and `reserve_before` and `fee` on each transaction) are written only when `reserve` data is present. A document without it gets none of them. The coverage list (8.1) changed for every report.
 5. **Reachability:** LOW, MEDIUM and HIGH for each scenario, with `W_all`, `W_avail`, `W_unk`.
 6. **Diagnostics:** codes with locations.
 7. **Coverage:** what was modelled and what was not.
@@ -265,7 +288,7 @@ If `intent` is `irreversible`, the report states "Irreversible administrative st
 | `signerreach fetch --network N --account G` with optional `--horizon-url U` | Read-only. Prints a snapshot with provenance on standard output and writes no file. Reads from the public Horizon server for the network, or from `U` (https, or http for this machine only). Exit code 0 with a snapshot, 64 for bad arguments, 69 if the account could not be read. No write path exists anywhere in the binary. |
 | `signerreach schema KIND` where KIND is snapshot, plan, availability or report | Planned in issue #1; no command exists yet. |
 
-`check` makes no network calls. `fetch` is the only command that does, and it sends nothing but `GET` requests for the server root and one account. It follows no redirects, uses no proxy, and limits each request to 30 seconds and each answer to 1 MiB.
+`check` makes no network calls. `fetch` is the only command that does, and it sends nothing but `GET` requests for the server root, one account, and one ledger record. The ledger is the one the account answer is as of (`/ledgers/<as_of_ledger>`), and it is read only for `base_reserve_in_stroops`, so the snapshot's `reserve` block describes one ledger. The ledger record must be for that sequence and for the same protocol version as the server root, or the fetch fails. It follows no redirects, uses no proxy, and limits each request to 30 seconds and each answer to 1 MiB.
 
 ## 10. Test corpus
 
@@ -291,6 +314,24 @@ Each fixture has an ID, the three inputs, and the expected verdict, codes and pe
 | FX-08 | synthetic | A:1, B:1; 1/1/2 | empty plan, `require_survive_loss_of: 1`, all available | UNSAFE `SR-LOSS-01` (loss of A or B leaves weight 1) |
 | FX-09 | synthetic | A:1, B:1, C:1; 1/2/2 | empty plan. A, B, C available; scenarios `A-lost` and `A-and-B-lost` | UNSAFE `SR-LOSS-01`: safe in the baseline and in `A-lost`, unsafe in `A-and-B-lost`; the worst scenario decides |
 
+**Reserve and fee fixtures (R10 to R14).** All use account A (master 1) with signer B (weight 1), thresholds 1/2/2, `subentry_count` 1, no sponsorship, `base_reserve` 5,000,000, so `minBalance` is 15,000,000. Unless the row says otherwise, the plan is one transaction `[add D:1]` signed A and B, the fee is the assumed 100 stroops, and A, B and D are available. They are `synthetic`: the numbers follow from R10 to R14 as read in the source. The one failure observed on a network is the case FX-10c is built from.
+
+| ID | Source | Balance (stroops) and change from the base | Expected |
+|---|---|---|---|
+| FX-10a | synthetic | 20,000,100: exactly `minBalance + baseReserve + fee` | tx1 accepted. **SAFE WITHIN SCOPE** |
+| FX-10b | synthetic | 20,000,099: one stroop less | tx1 fails when applied. **UNSAFE `SR-RESERVE-01`**, short by 1 |
+| FX-10c | synthetic, built from the Testnet failure at ledger 5831809 | A alone (no signers), thresholds 0/0/0, `subentry_count` 0, balance 10,010,000, plan `[add B:1]` signed A | tx1 fails when applied. **UNSAFE `SR-RESERVE-01`**, short by 4,990,100 |
+| FX-11a | synthetic | Signers B and C, `subentry_count` 2, balance 20,000,200. Plan `[remove C, add D:1]`, fee 200 | accepted: the removal frees one reserve first (R14). **SAFE WITHIN SCOPE** |
+| FX-11b | synthetic | as FX-11a, plan `[add D:1, remove C]` | tx1 fails when applied at operation 0. **UNSAFE `SR-RESERVE-01`** |
+| FX-12 | synthetic | 15,000,100, plan `[set B to weight 2]` | accepted: re-weighting needs no reserve (R10). **SAFE WITHIN SCOPE** |
+| FX-13 | synthetic | 20,000,100 with `selling_liabilities` 1 | tx1 fails when applied. **UNSAFE `SR-RESERVE-01`**, short by 1 |
+| FX-14 | synthetic | 15,000,099, plan `[set B to weight 2]` | tx1 **rejected** (`tx_insufficient_balance`, R13): `available` 99 is below the fee. **UNSAFE `SR-RESERVE-01`** |
+| FX-15 | synthetic | FX-10a with no `reserve` object | tx1 accepted as if affordable. **INCONCLUSIVE `SR-STATE-01`** |
+| FX-16 | synthetic | `subentry_count` 1000, balance 100,000,000,000 | tx1 fails when applied. **UNSAFE `SR-APPLY-01`** |
+| FX-17 | synthetic | 15,000,150, two transactions: tx1 `[add D:1]`, tx2 `[set B to weight 2]` | tx1 fails when applied and keeps its fee (R12), so tx2 is **rejected**: `available` is 50, the fee 100. **UNSAFE `SR-RESERVE-01`** |
+
+FX-02 and the other fixtures that add a signer carry a `reserve` object, because without one they are `INCONCLUSIVE` (FX-15). For the chain fixtures the object is a lower bound, not an observation: the accounts were funded with 10,000 XLM and paid setup fees, so each real balance is higher than the fixture states. Setting it below the real balance can only make the checker more cautious.
+
 **Chain fixtures are replayed, not trusted.** Testnet resets periodically. The repository must carry a separate replay harness (not part of the default CLI) that rebuilds each chain fixture on a fresh test network and compares observed to expected. A fixture whose replay differs from its expectation blocks release.
 
 ## 11. Acceptance criteria for V1
@@ -305,6 +346,8 @@ V1 is accepted only if all of these hold:
 6. Every INCONCLUSIVE path has a test and a named code.
 7. The documentation states the fixed header text and the coverage list.
 8. No claim of audit, adoption, approval or funding appears in any file.
+9. A plan that adds a signer is never reported `SAFE WITHIN SCOPE` when the balance in the snapshot cannot pay for it (FX-10b, FX-10c, FX-11b, FX-13, FX-14, FX-17), and never when the snapshot has no `reserve` data (FX-15).
+10. Each of R10 to R14 is recorded on a network at its boundary, with ledger and transaction hash, or this specification says that it is not. The state of that record is stated in section 4.
 
 ## 12. Engineering principles
 

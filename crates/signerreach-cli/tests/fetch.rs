@@ -28,8 +28,8 @@ fn free_port_lock() -> MutexGuard<'static, ()> {
     FREE_PORT.lock().unwrap_or_else(PoisonError::into_inner)
 }
 
-/// A fake Horizon server. It answers the root and the one account, and counts
-/// every request it receives.
+/// A fake Horizon server. It answers the root, the one account and the ledger
+/// record the account answer is as of, and counts every request it receives.
 struct Fake {
     address: SocketAddr,
     requests: Arc<AtomicUsize>,
@@ -70,6 +70,13 @@ impl Fake {
                             "Latest-Ledger: 5240432\r\nDate: Sat, 17 Oct 2026 08:29:07 GMT\r\n",
                             ACCOUNT_JSON.to_string(),
                         )
+                    } else if path == "/ledgers/5240432" {
+                        let ledger = serde_json::json!({
+                            "sequence": 5_240_432,
+                            "protocol_version": 29,
+                            "base_reserve_in_stroops": 5_000_000,
+                        });
+                        (200, "", ledger.to_string())
                     } else {
                         (404, "", String::new())
                     };
@@ -133,7 +140,12 @@ fn it_prints_a_snapshot_the_checker_accepts() {
     let snapshot = parse_snapshot(&text).expect("the checker accepts it");
     assert_eq!(snapshot.network(), Network::Testnet);
     assert_eq!(snapshot.provenance().as_of_ledger(), 5_240_432);
-    assert_eq!(server.request_count(), 3);
+    // The snapshot carries the balance and the base reserve from the ledger.
+    let reserve = snapshot.reserve().expect("reserve data");
+    assert_eq!(reserve.balance(), 99_999_999_400);
+    assert_eq!(reserve.base_reserve(), 5_000_000);
+    // The root, the account, the ledger record, and the root again.
+    assert_eq!(server.request_count(), 4);
 }
 
 #[test]

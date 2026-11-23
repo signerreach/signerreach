@@ -21,7 +21,8 @@ are treated as security problems here.
 - **A crash or unbounded use of memory or time on crafted input.** All input is
   untrusted, and so is everything a server sends to `fetch`.
 - **A `fetch` request that goes somewhere it should not.** It must send only `GET`
-  requests for the server root and one account, follow no redirect, use no proxy,
+  requests for the server root, one account and one ledger record (read for the
+  network's base reserve), follow no redirect, use no proxy,
   and send no credential. Anything else is a bug.
 - **A weakness in the build or release process**, such as a workflow that could
   be made to run with more permissions than it needs.

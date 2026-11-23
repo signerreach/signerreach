@@ -25,5 +25,13 @@
       "type": "ed25519",
       "weight": 1
     }
-  ]
+  ],
+  "reserve": {
+    "balance": 99999900000,
+    "selling_liabilities": 0,
+    "subentry_count": 2,
+    "num_sponsoring": 0,
+    "num_sponsored": 0,
+    "base_reserve": 5000000
+  }
 }

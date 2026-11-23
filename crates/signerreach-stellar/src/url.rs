@@ -1,4 +1,4 @@
-//! The address of a Horizon server, and the two addresses built from it.
+//! The address of a Horizon server, and the three addresses built from it.
 //!
 //! The rules are deliberately narrow, because the address decides where the
 //! tool sends a request:
@@ -9,9 +9,10 @@
 //! - The address is a host name and an optional port. A path, a query, a
 //!   fragment, a user name or a password is refused.
 //!
-//! Only these two addresses are ever built: the server root, and one account
-//! under it. The account is checked to be a real `G...` address first, so
-//! nothing a caller types can reach the path in any other form.
+//! Only these three addresses are ever built: the server root, one account
+//! under it, and one ledger record under it. The account is checked to be a real
+//! `G...` address first, and a ledger is a whole number, so nothing a caller
+//! types can reach the path in any other form.
 
 use signerreach_core::{Network, SignerKey};
 
@@ -108,6 +109,11 @@ impl HorizonUrl {
     pub fn account_url(&self, account: &str) -> Result<String, UrlError> {
         SignerKey::from_strkey(account).map_err(|_| UrlError::NotAnAccount)?;
         Ok(format!("{}/accounts/{account}", self.base()))
+    }
+
+    /// One ledger's record. A ledger is a number, so it cannot change the path.
+    pub fn ledger_url(&self, sequence: u64) -> String {
+        format!("{}/ledgers/{sequence}", self.base())
     }
 }
 
@@ -354,5 +360,20 @@ mod tests {
             .account_url("SECRETMARKER")
             .expect_err("not an account");
         assert!(!error.to_string().contains("SECRETMARKER"));
+    }
+
+    #[test]
+    fn a_ledger_address_is_the_server_and_a_number_and_nothing_else() {
+        let server = HorizonUrl::for_network(Network::Testnet);
+        assert_eq!(
+            server.ledger_url(5_240_432),
+            "https://horizon-testnet.stellar.org/ledgers/5240432"
+        );
+        let local = HorizonUrl::parse("http://127.0.0.1:8000/").unwrap();
+        assert_eq!(local.ledger_url(1), "http://127.0.0.1:8000/ledgers/1");
+        assert_eq!(
+            local.ledger_url(u64::MAX),
+            "http://127.0.0.1:8000/ledgers/18446744073709551615"
+        );
     }
 }

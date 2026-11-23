@@ -1,0 +1,26 @@
+{
+  "schema": "signerreach.snapshot/1",
+  "network": "testnet",
+  "account": "GAAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQDZ7H",
+  "provenance": {
+    "as_of_ledger": 5180915,
+    "captured_at": "2026-11-23T00:00:00Z",
+    "source": "file",
+    "protocol_version": 30
+  },
+  "master_weight": 1,
+  "thresholds": {
+    "low": 0,
+    "medium": 0,
+    "high": 0
+  },
+  "signers": [],
+  "reserve": {
+    "balance": 10010000,
+    "selling_liabilities": 0,
+    "subentry_count": 0,
+    "num_sponsoring": 0,
+    "num_sponsored": 0,
+    "base_reserve": 5000000
+  }
+}

@@ -63,6 +63,48 @@ impl RootInfo {
     }
 }
 
+/// The facts taken from one ledger's record.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LedgerInfo {
+    /// The ledger's sequence number.
+    pub sequence: u64,
+    /// The protocol version the ledger was closed under.
+    pub protocol_version: u32,
+    /// The network's base reserve at that ledger, in stroops.
+    pub base_reserve: i64,
+}
+
+impl LedgerInfo {
+    /// Reads a Horizon ledger record.
+    pub fn parse(text: &str) -> Result<Self, MapError> {
+        let record: Value = strict_json::parse(text)?;
+        let sequence = record
+            .get("sequence")
+            .ok_or(MapError::MissingField("sequence"))?
+            .as_u64()
+            .filter(|sequence| *sequence >= 1)
+            .ok_or(MapError::BadField("sequence"))?;
+        let protocol_version = record
+            .get("protocol_version")
+            .ok_or(MapError::MissingField("protocol_version"))?
+            .as_u64()
+            .and_then(|version| u32::try_from(version).ok())
+            .ok_or(MapError::BadField("protocol_version"))?;
+        let base_reserve = record
+            .get("base_reserve_in_stroops")
+            .ok_or(MapError::MissingField("base_reserve_in_stroops"))?
+            .as_u64()
+            .and_then(|amount| i64::try_from(amount).ok())
+            .filter(|amount| *amount >= 1)
+            .ok_or(MapError::BadField("base_reserve_in_stroops"))?;
+        Ok(Self {
+            sequence,
+            protocol_version,
+            base_reserve,
+        })
+    }
+}
+
 /// Reads the `Latest-Ledger` header: plain digits, a whole number of at least 1.
 ///
 /// The value must already be trimmed. Anything else, including a sign, a space
@@ -227,5 +269,79 @@ mod tests {
         assert!(!error.to_string().contains("SECRETMARKER"));
         let error = parse_latest_ledger("SECRETMARKER").expect_err("bad");
         assert!(!error.to_string().contains("SECRETMARKER"));
+    }
+
+    // ---- a ledger record ----
+
+    #[test]
+    fn a_ledger_record_gives_its_sequence_protocol_and_base_reserve() {
+        let record = r#"{"sequence":65631383,"protocol_version":29,
+            "base_fee_in_stroops":100,"base_reserve_in_stroops":5000000,"other":[1]}"#;
+        assert_eq!(
+            LedgerInfo::parse(record),
+            Ok(LedgerInfo {
+                sequence: 65_631_383,
+                protocol_version: 29,
+                base_reserve: 5_000_000
+            })
+        );
+    }
+
+    #[test]
+    fn a_ledger_record_with_a_missing_or_odd_field_is_refused() {
+        let cases = [
+            (
+                r#"{"protocol_version":29,"base_reserve_in_stroops":5}"#,
+                MapError::MissingField("sequence"),
+            ),
+            (
+                r#"{"sequence":0,"protocol_version":29,"base_reserve_in_stroops":5}"#,
+                MapError::BadField("sequence"),
+            ),
+            (
+                r#"{"sequence":"1","protocol_version":29,"base_reserve_in_stroops":5}"#,
+                MapError::BadField("sequence"),
+            ),
+            (
+                r#"{"sequence":1,"base_reserve_in_stroops":5}"#,
+                MapError::MissingField("protocol_version"),
+            ),
+            (
+                r#"{"sequence":1,"protocol_version":4294967296,"base_reserve_in_stroops":5}"#,
+                MapError::BadField("protocol_version"),
+            ),
+            (
+                r#"{"sequence":1,"protocol_version":29}"#,
+                MapError::MissingField("base_reserve_in_stroops"),
+            ),
+            (
+                r#"{"sequence":1,"protocol_version":29,"base_reserve_in_stroops":0}"#,
+                MapError::BadField("base_reserve_in_stroops"),
+            ),
+            (
+                r#"{"sequence":1,"protocol_version":29,"base_reserve_in_stroops":-5}"#,
+                MapError::BadField("base_reserve_in_stroops"),
+            ),
+            (
+                r#"{"sequence":1,"protocol_version":29,"base_reserve_in_stroops":0.5}"#,
+                MapError::BadField("base_reserve_in_stroops"),
+            ),
+            (
+                r#"{"sequence":1,"protocol_version":29,"base_reserve_in_stroops":9223372036854775808}"#,
+                MapError::BadField("base_reserve_in_stroops"),
+            ),
+            ("[]", MapError::MissingField("sequence")),
+            ("", MapError::NotJson),
+        ];
+        for (text, expected) in cases {
+            assert_eq!(LedgerInfo::parse(text), Err(expected), "{text}");
+        }
+    }
+
+    #[test]
+    fn a_ledger_record_with_a_repeated_key_is_refused() {
+        let record = r#"{"sequence":1,"protocol_version":29,
+            "base_reserve_in_stroops":5,"base_reserve_in_stroops":6}"#;
+        assert_eq!(LedgerInfo::parse(record), Err(MapError::NotJson));
     }
 }

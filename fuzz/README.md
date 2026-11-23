@@ -10,8 +10,8 @@ nightly toolchain on Linux or macOS.
 |---|---|---|
 | `parse_documents` | snapshot, plan and availability text | never panics; a rejection always carries at least one issue |
 | `evaluate_report` | three documents, parsed, evaluated and rendered | never panics; the JSON report is valid JSON and states the evaluation's verdict; the same input gives byte-identical reports; a rejection report is valid JSON |
-| `horizon_mapping` | a Horizon account record | never panics; if the mapping writes a snapshot, `check` accepts it |
-| `network_text` | server address, `Date` header, server root, `Latest-Ledger` header | never panics; an accepted address round-trips to itself; an accepted date is `YYYY-MM-DDTHH:MM:SSZ`; an accepted ledger is at least 1 |
+| `horizon_mapping` | a Horizon account record, and whether the snapshot carries `reserve` data | never panics; if the mapping writes a snapshot, `check` can read it (it may still refuse it on purpose for a signer it does not model or a sponsored signer) |
+| `network_text` | server address, `Date` header, server root (also read as a ledger record), `Latest-Ledger` header | never panics; an accepted address round-trips to itself; an accepted date is `YYYY-MM-DDTHH:MM:SSZ`; an accepted ledger is at least 1; an accepted ledger record has a sequence and a base reserve of at least 1 |
 
 A target that finds a failing input saves it under `fuzz/artifacts/<target>/`.
 That file reproduces the failure on its own.

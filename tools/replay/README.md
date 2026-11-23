@@ -14,7 +14,10 @@ For each fixture whose `expected.json` has `"source": "chain"`:
 1. Generates a fresh keypair for every address in the fixture, and funds the
    fixture's account with Friendbot.
 2. Sets the account to the fixture's `snapshot.json` (master weight, thresholds,
-   signers) and reads it back to confirm it matches.
+   signers) and reads it back to confirm it matches. If the snapshot has a
+   `reserve` object, the real sub-entry and sponsorship counts and selling
+   liabilities must equal it and the real balance must be at least its balance
+   (the object is a lower bound; see the fixtures README).
 3. Submits each transaction of `plan.json`, signed by the keys it lists in
    `signed_by`.
 4. Compares what happened with `transactions` in `expected.json`, and records the

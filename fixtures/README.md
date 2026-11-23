@@ -75,6 +75,26 @@ default, and against protocol 30 only when `--network-protocol 30` is given; the
 fixtures stay recorded at protocol 29. It is not run in PR CI. Historical observation files are immutable; a new replay creates new
 results and never edits the October 13 or October 19 records.
 
+## Balance, reserve and fee
+
+A snapshot may carry an optional `reserve` object (balance, selling liabilities,
+sub-entry and sponsorship counts, and the base reserve, all whole numbers in
+stroops), and a plan transaction may carry a `fee`. They matter only to plans that
+add a signer or to a transaction whose fee cannot be paid. Without `reserve` a
+plan that adds a signer is `INCONCLUSIVE` (`SR-STATE-01`), so every fixture that
+adds a signer and expects `SAFE WITHIN SCOPE` carries one.
+
+- **`FX-10a` to `FX-17` are `synthetic`.** Their numbers follow from rules R10 to
+  R14 in `docs/SPEC.md`, read in the stellar-core source. Each sits on a boundary
+  (exactly enough, one stroop short) so that a wrong comparison fails a fixture.
+  `FX-10c` is built from the one failure seen on Testnet (ledger 5831809).
+- **On a `chain` fixture the `reserve` object is a lower bound, not an
+  observation.** The replayed account was funded with 10,000 XLM and has paid its
+  setup fees, so it holds more than the fixture says. The replay checks this
+  before it submits anything: the counts and the selling liabilities must be
+  equal, and the real balance must be at least the fixture's. A lower figure can
+  only make the checker more cautious.
+
 ## Adding a fixture
 
 1. Create a directory with the four files above.

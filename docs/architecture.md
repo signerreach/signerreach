@@ -90,8 +90,11 @@ validated inputs produce identical report bytes.
 
 Recognized unsupported constructs fail closed. Account flag changes are
 `INCONCLUSIVE` because existing flags are absent from the snapshot. Protocols
-other than 29 are `INCONCLUSIVE`. The model does not determine reserve
-sufficiency, account changes after the snapshot, actual key custody, or whether
+other than 29 and 30 are `INCONCLUSIVE`. When the snapshot carries `reserve`
+data, each transaction's fee and each new signer are checked against the balance
+in the order the network applies them (`SR-RESERVE-01`); without it a plan that
+adds a signer is `INCONCLUSIVE`. The model does not determine other reserve
+effects, account changes after the snapshot, actual key custody, or whether
 the user can obtain every declared signature. A `SAFE WITHIN SCOPE` verdict
 therefore cannot guarantee acceptance or future access. These boundaries are
 listed in the report and [security review](security-review.md).

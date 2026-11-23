@@ -1,0 +1,11 @@
+{
+  "id": "FX-12",
+  "summary": "Changing the weight of an existing signer needs only the fee, however little is left above the minimum balance.",
+  "source": "synthetic",
+  "verdict": "SAFE WITHIN SCOPE",
+  "exit_code": 0,
+  "codes": [],
+  "transactions": [
+    "accepted"
+  ]
+}

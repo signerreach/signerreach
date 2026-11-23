@@ -1,0 +1,32 @@
+{
+  "schema": "signerreach.snapshot/1",
+  "network": "testnet",
+  "account": "GAAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQDZ7H",
+  "provenance": {
+    "as_of_ledger": 5180915,
+    "captured_at": "2026-11-23T00:00:00Z",
+    "source": "file",
+    "protocol_version": 30
+  },
+  "master_weight": 1,
+  "thresholds": {
+    "low": 1,
+    "medium": 2,
+    "high": 2
+  },
+  "signers": [
+    {
+      "key": "GABAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEJXA",
+      "type": "ed25519",
+      "weight": 1
+    }
+  ],
+  "reserve": {
+    "balance": 20000099,
+    "selling_liabilities": 0,
+    "subentry_count": 1,
+    "num_sponsoring": 0,
+    "num_sponsored": 0,
+    "base_reserve": 5000000
+  }
+}
