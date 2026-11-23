@@ -1,0 +1,35 @@
+{
+  "schema": "signerreach.plan/1",
+  "transactions": [
+    {
+      "id": "add-d",
+      "signed_by": [
+        "GDUYWRZGYA3YQ5YN3REM5OU7COQZGC7IDAWZYMZHCDUW7UHN24NBXRMO"
+      ],
+      "operations": [
+        {
+          "op": "set_options",
+          "signer": {
+            "key": "GBZCBKOLTE4ISPBFFUDGUONU56XBDYAQRH77YA5B7DDH2K27XSOEDQYI",
+            "weight": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "reweight",
+      "signed_by": [
+        "GDUYWRZGYA3YQ5YN3REM5OU7COQZGC7IDAWZYMZHCDUW7UHN24NBXRMO"
+      ],
+      "operations": [
+        {
+          "op": "set_options",
+          "signer": {
+            "key": "GCXBD5SX7P3CJZNLH7SOW7DAN4K76DHYJYTVRRTW6LMOXGPJPHNMW6IG",
+            "weight": 2
+          }
+        }
+      ]
+    }
+  ]
+}

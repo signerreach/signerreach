@@ -1,0 +1,38 @@
+{
+  "account": "GDNQUXKHXNTOYFVXMMRV6GT6HAV73KA3XS3O5IKYGQD2Q7BCYJ6N2S5K",
+  "master_weight": 1,
+  "network": "testnet",
+  "provenance": {
+    "as_of_ledger": 5885154,
+    "captured_at": "2026-11-23T15:56:53Z",
+    "protocol_version": 30,
+    "source": "horizon"
+  },
+  "reserve": {
+    "balance": 20000200,
+    "base_reserve": 5000000,
+    "num_sponsored": 0,
+    "num_sponsoring": 0,
+    "selling_liabilities": 0,
+    "subentry_count": 2
+  },
+  "schema": "signerreach.snapshot/1",
+  "signers": [
+    {
+      "key": "GBMK3EWRHD44CNYRRBKRTNEQELT24AO6TAEQH3ZWKKSMZMABKSA7M5C4",
+      "type": "ed25519",
+      "weight": 1
+    },
+    {
+      "key": "GC6GK7DHIUE5XRJPIOI5235XZ4E7NJ6TJOG2WXV3UIV3A6TSDTTT2E3C",
+      "type": "ed25519",
+      "weight": 1
+    }
+  ],
+  "sponsored_signers": false,
+  "thresholds": {
+    "high": 0,
+    "low": 0,
+    "medium": 0
+  }
+}
