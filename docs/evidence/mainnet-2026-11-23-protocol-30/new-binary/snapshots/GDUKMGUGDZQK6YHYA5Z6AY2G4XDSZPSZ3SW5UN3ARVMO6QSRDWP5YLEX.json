@@ -1,0 +1,27 @@
+{
+  "account": "GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX",
+  "master_weight": 1,
+  "network": "pubnet",
+  "provenance": {
+    "as_of_ledger": 65636945,
+    "captured_at": "2026-11-23T21:52:58Z",
+    "protocol_version": 30,
+    "source": "horizon"
+  },
+  "reserve": {
+    "balance": 40429224663,
+    "base_reserve": 5000000,
+    "num_sponsored": 0,
+    "num_sponsoring": 0,
+    "selling_liabilities": 0,
+    "subentry_count": 0
+  },
+  "schema": "signerreach.snapshot/1",
+  "signers": [],
+  "sponsored_signers": false,
+  "thresholds": {
+    "high": 0,
+    "low": 0,
+    "medium": 0
+  }
+}

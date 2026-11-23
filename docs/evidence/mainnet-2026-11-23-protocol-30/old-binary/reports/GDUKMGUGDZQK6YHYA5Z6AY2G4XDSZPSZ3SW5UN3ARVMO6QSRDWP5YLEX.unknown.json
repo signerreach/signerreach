@@ -1,0 +1,119 @@
+{
+  "assumptions": {
+    "default": "unknown",
+    "intent": "recoverable",
+    "require_survive_loss_of": 0,
+    "scenarios": [],
+    "signers": []
+  },
+  "coverage": {
+    "modelled": [
+      "one classic account (a G address) per run",
+      "ed25519 signers, including the account's own key",
+      "SetOptions operations",
+      "the authorization rules of protocols 29 and 30, checked against the state before each transaction",
+      "the extra-signature rule, where it can be decided",
+      "LOW, MEDIUM and HIGH reachability under the declared availability",
+      "up to 20 additional signers, weights and thresholds from 0 to 255"
+    ],
+    "not_modelled": [
+      "whether anyone holds, or can use, any key",
+      "fee-bump transactions and transaction preconditions",
+      "source accounts other than the analysed account",
+      "sponsorship and reserve requirements",
+      "pre_auth_tx, hash(x) and signed-payload signers",
+      "operations other than SetOptions",
+      "the order of signatures, where it decides the outcome",
+      "protocol versions other than 29 and 30",
+      "changes to the account after the snapshot was taken"
+    ]
+  },
+  "diagnostics": [
+    {
+      "code": "SR-AVAIL-01",
+      "effect": "inconclusive",
+      "message": "reaching the HIGH threshold 0 needs signers whose availability is unknown",
+      "scope": "baseline"
+    }
+  ],
+  "limitations": [
+    "Availability is declared by the user. This tool does not and cannot verify that anyone holds any key.",
+    "The result applies to the account state at ledger 65636943 on pubnet. Authorization happens at apply time against the live state, which may have changed.",
+    "Only the features listed under \"Coverage\" are modelled. Recognized unsupported input gives INCONCLUSIVE; external conditions may remain unchecked."
+  ],
+  "provenance": {
+    "account": "GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX",
+    "as_of_ledger": 65636943,
+    "captured_at": "2026-11-23T21:52:46Z",
+    "network": "pubnet",
+    "protocol_version": 30,
+    "source": "horizon"
+  },
+  "reason": "reaching the HIGH threshold 0 needs signers whose availability is unknown",
+  "scenarios": [
+    {
+      "name": null,
+      "reachability": [
+        {
+          "available": 0,
+          "class": "LOW",
+          "reach": "depends_on_unknown",
+          "threshold": 0,
+          "total": 1,
+          "unknown": 1
+        },
+        {
+          "available": 0,
+          "class": "MEDIUM",
+          "reach": "depends_on_unknown",
+          "threshold": 0,
+          "total": 1,
+          "unknown": 1
+        },
+        {
+          "available": 0,
+          "class": "HIGH",
+          "reach": "depends_on_unknown",
+          "threshold": 0,
+          "total": 1,
+          "unknown": 1
+        }
+      ],
+      "signers": [
+        {
+          "key": "GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX",
+          "status": "unknown",
+          "weight": 1
+        }
+      ],
+      "verdict": "INCONCLUSIVE"
+    }
+  ],
+  "schema": "signerreach.report/1",
+  "starting_state": {
+    "account": "GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX",
+    "master_weight": 1,
+    "signers": [],
+    "thresholds": {
+      "high": 0,
+      "low": 0,
+      "medium": 0
+    }
+  },
+  "state_after": {
+    "account": "GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX",
+    "master_weight": 1,
+    "signers": [],
+    "thresholds": {
+      "high": 0,
+      "low": 0,
+      "medium": 0
+    }
+  },
+  "tool": {
+    "name": "signerreach",
+    "version": "0.1.1"
+  },
+  "transactions": [],
+  "verdict": "INCONCLUSIVE"
+}

@@ -1,0 +1,84 @@
+SIGNERREACH CHECK
+=================
+
+Availability is declared by the user. This tool does not and cannot verify that anyone holds any key.
+The result applies to the account state at ledger 65636944 on pubnet. Authorization happens at apply time against the live state, which may have changed.
+Only the features listed under "Coverage" are modelled. Recognized unsupported input gives INCONCLUSIVE; external conditions may remain unchecked.
+
+VERDICT: SAFE WITHIN SCOPE
+Reason: a path to administer the account remains under the declared assumptions, in every scenario checked
+
+Provenance
+----------
+  network       pubnet
+  account       GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+  as of ledger  65636944
+  captured at   2026-11-23T21:52:53Z
+  source        horizon
+  protocol      30
+
+Starting state
+--------------
+  master weight  0
+  thresholds     low 2, medium 2, high 2
+  signer         GAUKFO2NIYEFO773KJZKLPSPYNQ6M7INPEAIQIJCIH7EEVP2KSVQWGH4 weight 1
+  signer         GAXFRO4MH6FSBJMNECVZJ6R3ZXANI7CFCMVN47IDNRQDHII3J5HTOZGB weight 1
+  signer         GB73YPMX5R5673G35HHAXYUNRS4R4QZEUHCRT3OUAMSH2NUM6KT4N3KO weight 1
+  signer         GC6ANHZDMCPKU55BUQIJKI3VOYEMETF7Z46HXQRCNONQXPEXQHCVIAFP weight 1
+  balance        321182208225 stroops
+  selling liabilities 0 stroops
+  sub-entries     6 (sponsoring 0, sponsored 0)
+  base reserve    5000000 stroops
+  minimum balance 40000000 stroops
+  available       321142208225 stroops
+
+Assumptions
+-----------
+  default status           available
+  declared signers         none
+  scenarios                none
+  survive loss of          0 signer(s)
+  intent                   recoverable
+
+Plan
+----
+  No transactions: this is a check of the snapshot itself.
+
+Reachability
+------------
+
+  Baseline declaration: SAFE WITHIN SCOPE
+    signer GAUKFO2NIYEFO773KJZKLPSPYNQ6M7INPEAIQIJCIH7EEVP2KSVQWGH4 weight 1 available
+    signer GAXFRO4MH6FSBJMNECVZJ6R3ZXANI7CFCMVN47IDNRQDHII3J5HTOZGB weight 1 available
+    signer GB73YPMX5R5673G35HHAXYUNRS4R4QZEUHCRT3OUAMSH2NUM6KT4N3KO weight 1 available
+    signer GC6ANHZDMCPKU55BUQIJKI3VOYEMETF7Z46HXQRCNONQXPEXQHCVIAFP weight 1 available
+    LOW    threshold   2  total 4  available 4  unknown 0: reachable
+    MEDIUM threshold   2  total 4  available 4  unknown 0: reachable
+    HIGH   threshold   2  total 4  available 4  unknown 0: reachable
+
+Diagnostics
+-----------
+  none
+
+Coverage
+--------
+  Modelled:
+    - one classic account (a G address) per run
+    - ed25519 signers, including the account's own key
+    - SetOptions operations
+    - the authorization rules of protocols 29 and 30, checked against the state before each transaction
+    - the extra-signature rule, where it can be decided
+    - LOW, MEDIUM and HIGH reachability under the declared availability
+    - up to 20 additional signers, weights and thresholds from 0 to 255
+    - the fee and the reserve for adding a signer, when the snapshot has reserve data
+  Outside this model (recognized unsupported input gives INCONCLUSIVE):
+    - whether anyone holds, or can use, any key
+    - fee-bump transactions and transaction preconditions
+    - source accounts other than the analysed account
+    - sponsorship, and reserve effects other than adding or removing a signer
+    - the network's minimum fee (100 stroops for each operation is assumed)
+    - pre_auth_tx, hash(x) and signed-payload signers
+    - operations other than SetOptions
+    - the order of signatures, where it decides the outcome
+    - protocol versions other than 29 and 30
+    - changes to the account after the snapshot was taken
