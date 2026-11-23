@@ -1,0 +1,20 @@
+{
+  "schema": "signerreach.plan/1",
+  "transactions": [
+    {
+      "id": "reweight",
+      "signed_by": [
+        "GDAE7I45HGF75XWUARC6EMN753SIQL24LZAJ5XFCLRYOCQSTIQTX4D65"
+      ],
+      "operations": [
+        {
+          "op": "set_options",
+          "signer": {
+            "key": "GC7RNTXLYFZEKVUTWVFPZDLSYHMYWV2LDDXJVG7EYRL57WXYL36M2FKP",
+            "weight": 2
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,249 @@
+{
+  "assumptions": {
+    "default": "available",
+    "intent": "recoverable",
+    "require_survive_loss_of": 0,
+    "scenarios": [],
+    "signers": []
+  },
+  "coverage": {
+    "modelled": [
+      "one classic account (a G address) per run",
+      "ed25519 signers, including the account's own key",
+      "SetOptions operations",
+      "the authorization rules of protocols 29 and 30, checked against the state before each transaction",
+      "the extra-signature rule, where it can be decided",
+      "LOW, MEDIUM and HIGH reachability under the declared availability",
+      "up to 20 additional signers, weights and thresholds from 0 to 255",
+      "the fee and the reserve for adding a signer, when the snapshot has reserve data"
+    ],
+    "not_modelled": [
+      "whether anyone holds, or can use, any key",
+      "fee-bump transactions and transaction preconditions",
+      "source accounts other than the analysed account",
+      "sponsorship, and reserve effects other than adding or removing a signer",
+      "the network's minimum fee (100 stroops for each operation is assumed)",
+      "pre_auth_tx, hash(x) and signed-payload signers",
+      "operations other than SetOptions",
+      "the order of signatures, where it decides the outcome",
+      "protocol versions other than 29 and 30",
+      "changes to the account after the snapshot was taken"
+    ]
+  },
+  "diagnostics": [],
+  "limitations": [
+    "Availability is declared by the user. This tool does not and cannot verify that anyone holds any key.",
+    "The result applies to the account state at ledger 5885154 on testnet. Authorization happens at apply time against the live state, which may have changed.",
+    "Only the features listed under \"Coverage\" are modelled. Recognized unsupported input gives INCONCLUSIVE; external conditions may remain unchecked."
+  ],
+  "provenance": {
+    "account": "GDNQUXKHXNTOYFVXMMRV6GT6HAV73KA3XS3O5IKYGQD2Q7BCYJ6N2S5K",
+    "as_of_ledger": 5885154,
+    "captured_at": "2026-11-23T15:56:53Z",
+    "network": "testnet",
+    "protocol_version": 30,
+    "source": "horizon"
+  },
+  "reason": "a path to administer the account remains under the declared assumptions, in every scenario checked",
+  "reserve_after": {
+    "available": 0,
+    "balance": 20000000,
+    "base_reserve": 5000000,
+    "minimum_balance": 20000000,
+    "num_sponsored": 0,
+    "num_sponsoring": 0,
+    "selling_liabilities": 0,
+    "subentry_count": 2
+  },
+  "scenarios": [
+    {
+      "name": null,
+      "reachability": [
+        {
+          "available": 3,
+          "class": "LOW",
+          "reach": "reachable",
+          "threshold": 0,
+          "total": 3,
+          "unknown": 0
+        },
+        {
+          "available": 3,
+          "class": "MEDIUM",
+          "reach": "reachable",
+          "threshold": 0,
+          "total": 3,
+          "unknown": 0
+        },
+        {
+          "available": 3,
+          "class": "HIGH",
+          "reach": "reachable",
+          "threshold": 0,
+          "total": 3,
+          "unknown": 0
+        }
+      ],
+      "signers": [
+        {
+          "key": "GDNQUXKHXNTOYFVXMMRV6GT6HAV73KA3XS3O5IKYGQD2Q7BCYJ6N2S5K",
+          "status": "available",
+          "weight": 1
+        },
+        {
+          "key": "GCSWIKZJYQPVWBI2NEDFFMDBZWEAQ23UOFKI3R37VWTKIZOFZGXE3OAM",
+          "status": "available",
+          "weight": 1
+        },
+        {
+          "key": "GC6GK7DHIUE5XRJPIOI5235XZ4E7NJ6TJOG2WXV3UIV3A6TSDTTT2E3C",
+          "status": "available",
+          "weight": 1
+        }
+      ],
+      "verdict": "SAFE WITHIN SCOPE"
+    }
+  ],
+  "schema": "signerreach.report/1",
+  "starting_reserve": {
+    "available": 200,
+    "balance": 20000200,
+    "base_reserve": 5000000,
+    "minimum_balance": 20000000,
+    "num_sponsored": 0,
+    "num_sponsoring": 0,
+    "selling_liabilities": 0,
+    "subentry_count": 2
+  },
+  "starting_state": {
+    "account": "GDNQUXKHXNTOYFVXMMRV6GT6HAV73KA3XS3O5IKYGQD2Q7BCYJ6N2S5K",
+    "master_weight": 1,
+    "signers": [
+      {
+        "key": "GBMK3EWRHD44CNYRRBKRTNEQELT24AO6TAEQH3ZWKKSMZMABKSA7M5C4",
+        "weight": 1
+      },
+      {
+        "key": "GC6GK7DHIUE5XRJPIOI5235XZ4E7NJ6TJOG2WXV3UIV3A6TSDTTT2E3C",
+        "weight": 1
+      }
+    ],
+    "thresholds": {
+      "high": 0,
+      "low": 0,
+      "medium": 0
+    }
+  },
+  "state_after": {
+    "account": "GDNQUXKHXNTOYFVXMMRV6GT6HAV73KA3XS3O5IKYGQD2Q7BCYJ6N2S5K",
+    "master_weight": 1,
+    "signers": [
+      {
+        "key": "GCSWIKZJYQPVWBI2NEDFFMDBZWEAQ23UOFKI3R37VWTKIZOFZGXE3OAM",
+        "weight": 1
+      },
+      {
+        "key": "GC6GK7DHIUE5XRJPIOI5235XZ4E7NJ6TJOG2WXV3UIV3A6TSDTTT2E3C",
+        "weight": 1
+      }
+    ],
+    "thresholds": {
+      "high": 0,
+      "low": 0,
+      "medium": 0
+    }
+  },
+  "tool": {
+    "name": "signerreach",
+    "version": "0.1.1"
+  },
+  "transactions": [
+    {
+      "checks": [
+        {
+          "class": "LOW",
+          "have": 1,
+          "need": 0,
+          "operation": null,
+          "passed": true
+        },
+        {
+          "class": "HIGH",
+          "have": 1,
+          "need": 0,
+          "operation": 0,
+          "passed": true
+        },
+        {
+          "class": "HIGH",
+          "have": 1,
+          "need": 0,
+          "operation": 1,
+          "passed": true
+        }
+      ],
+      "codes": [],
+      "fee": {
+        "assumed": false,
+        "stroops": 200
+      },
+      "id": "swap",
+      "operations": [
+        {
+          "index": 0,
+          "required_class": "HIGH",
+          "signer": {
+            "key": "GBMK3EWRHD44CNYRRBKRTNEQELT24AO6TAEQH3ZWKKSMZMABKSA7M5C4",
+            "weight": 0
+          }
+        },
+        {
+          "index": 1,
+          "required_class": "HIGH",
+          "signer": {
+            "key": "GCSWIKZJYQPVWBI2NEDFFMDBZWEAQ23UOFKI3R37VWTKIZOFZGXE3OAM",
+            "weight": 1
+          }
+        }
+      ],
+      "reserve_before": {
+        "available": 200,
+        "balance": 20000200,
+        "base_reserve": 5000000,
+        "minimum_balance": 20000000,
+        "num_sponsored": 0,
+        "num_sponsoring": 0,
+        "selling_liabilities": 0,
+        "subentry_count": 2
+      },
+      "result": "accepted",
+      "signed_by": [
+        {
+          "key": "GDNQUXKHXNTOYFVXMMRV6GT6HAV73KA3XS3O5IKYGQD2Q7BCYJ6N2S5K",
+          "matched": true,
+          "weight": 1
+        }
+      ],
+      "state_before": {
+        "account": "GDNQUXKHXNTOYFVXMMRV6GT6HAV73KA3XS3O5IKYGQD2Q7BCYJ6N2S5K",
+        "master_weight": 1,
+        "signers": [
+          {
+            "key": "GBMK3EWRHD44CNYRRBKRTNEQELT24AO6TAEQH3ZWKKSMZMABKSA7M5C4",
+            "weight": 1
+          },
+          {
+            "key": "GC6GK7DHIUE5XRJPIOI5235XZ4E7NJ6TJOG2WXV3UIV3A6TSDTTT2E3C",
+            "weight": 1
+          }
+        ],
+        "thresholds": {
+          "high": 0,
+          "low": 0,
+          "medium": 0
+        }
+      }
+    }
+  ],
+  "verdict": "SAFE WITHIN SCOPE"
+}

@@ -81,6 +81,21 @@ node replay.mjs --out results.json
 Progress goes to standard error. The results are JSON, on standard output or in
 the `--out` file.
 
+## Reserve and fee boundaries
+
+`reserve-boundaries.mjs` is a separate script for the balance, reserve and fee
+rules. For each case it builds an account at an exact balance, asks the checker
+(`fetch`, then `check`), submits the plan to Testnet, and records both answers.
+It is not part of `replay.mjs` and not run in CI.
+
+```bash
+node reserve-boundaries.mjs <path-to-signerreach-binary> <output-directory>
+```
+
+The binary should be built from a clean commit, and its SHA-256 is recorded in the
+output. The run is Testnet only and keeps no key. The record of the first run is
+[`docs/evidence/testnet-2026-11-23-reserve-boundaries`](../../docs/evidence/testnet-2026-11-23-reserve-boundaries/README.md).
+
 ## What it does not do
 
 - **It never touches mainnet.** The server address is fixed, and the run stops if

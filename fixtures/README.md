@@ -87,7 +87,12 @@ adds a signer and expects `SAFE WITHIN SCOPE` carries one.
 - **`FX-10a` to `FX-17` are `synthetic`.** Their numbers follow from rules R10 to
   R14 in `docs/SPEC.md`, read in the stellar-core source. Each sits on a boundary
   (exactly enough, one stroop short) so that a wrong comparison fails a fixture.
-  `FX-10c` is built from the one failure seen on Testnet (ledger 5831809).
+  `FX-10c` is built from the failure seen on Testnet (ledger 5831809), and
+  `FX-10a`, `FX-10b`, `FX-11a`, `FX-11b`, `FX-12`, `FX-14` and `FX-17` were also run
+  on Testnet with these exact balances on 2026-11-23
+  ([record](../docs/evidence/testnet-2026-11-23-reserve-boundaries/README.md)).
+  They stay `synthetic` here because a `chain` fixture is one backed by a case in
+  the 2026-10-13 table. `FX-13`, `FX-15` and `FX-16` were not run on a network.
 - **On a `chain` fixture the `reserve` object is a lower bound, not an
   observation.** The replayed account was funded with 10,000 XLM and has paid its
   setup fees, so it holds more than the fixture says. The replay checks this

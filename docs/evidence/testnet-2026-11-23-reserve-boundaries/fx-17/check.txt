@@ -1,0 +1,129 @@
+SIGNERREACH CHECK
+=================
+
+Availability is declared by the user. This tool does not and cannot verify that anyone holds any key.
+The result applies to the account state at ledger 5885167 on testnet. Authorization happens at apply time against the live state, which may have changed.
+Only the features listed under "Coverage" are modelled. Recognized unsupported input gives INCONCLUSIVE; external conditions may remain unchecked.
+
+VERDICT: UNSAFE
+Reason: transaction add-d, operation 0: adding signer GBZCBKOLTE4ISPBFFUDGUONU56XBDYAQRH77YA5B7DDH2K27XSOEDQYI needs 5000000 stroops available and 50 are, a shortfall of 4999950
+
+Provenance
+----------
+  network       testnet
+  account       GDUYWRZGYA3YQ5YN3REM5OU7COQZGC7IDAWZYMZHCDUW7UHN24NBXRMO
+  as of ledger  5885167
+  captured at   2026-11-23T15:57:59Z
+  source        horizon
+  protocol      30
+
+Starting state
+--------------
+  master weight  1
+  thresholds     low 0, medium 0, high 0
+  signer         GCXBD5SX7P3CJZNLH7SOW7DAN4K76DHYJYTVRRTW6LMOXGPJPHNMW6IG weight 1
+  balance        15000150 stroops
+  selling liabilities 0 stroops
+  sub-entries     1 (sponsoring 0, sponsored 0)
+  base reserve    5000000 stroops
+  minimum balance 15000000 stroops
+  available       150 stroops
+
+Assumptions
+-----------
+  default status           available
+  declared signers         none
+  scenarios                none
+  survive loss of          0 signer(s)
+  intent                   recoverable
+  fee                      100 stroops for each operation, for a transaction that gives none
+
+Plan
+----
+
+  Transaction add-d
+    operation 0: set signer GBZCBKOLTE4ISPBFFUDGUONU56XBDYAQRH77YA5B7DDH2K27XSOEDQYI to weight 1
+    state before:
+      master weight  1
+      thresholds     low 0, medium 0, high 0
+      signer         GCXBD5SX7P3CJZNLH7SOW7DAN4K76DHYJYTVRRTW6LMOXGPJPHNMW6IG weight 1
+    balance before:
+      balance        15000150 stroops
+      selling liabilities 0 stroops
+      sub-entries     1 (sponsoring 0, sponsored 0)
+      base reserve    5000000 stroops
+      minimum balance 15000000 stroops
+      available       150 stroops
+    fee: 100 stroops (assumed: the plan gives none, so 100 for each operation)
+    signed by: GDUYWRZGYA3YQ5YN3REM5OU7COQZGC7IDAWZYMZHCDUW7UHN24NBXRMO (weight 1)
+    check envelope [LOW]: needs 0, signatures give 1: met
+    check operation 0 [HIGH]: needs 0, signatures give 1: met
+    result: authorized but fails when applied; the account is unchanged but the fee is paid (SR-RESERVE-01)
+
+  Transaction reweight
+    operation 0: set signer GCXBD5SX7P3CJZNLH7SOW7DAN4K76DHYJYTVRRTW6LMOXGPJPHNMW6IG to weight 2
+    state before:
+      master weight  1
+      thresholds     low 0, medium 0, high 0
+      signer         GCXBD5SX7P3CJZNLH7SOW7DAN4K76DHYJYTVRRTW6LMOXGPJPHNMW6IG weight 1
+    balance before:
+      balance        15000050 stroops
+      selling liabilities 0 stroops
+      sub-entries     1 (sponsoring 0, sponsored 0)
+      base reserve    5000000 stroops
+      minimum balance 15000000 stroops
+      available       50 stroops
+    fee: 100 stroops (assumed: the plan gives none, so 100 for each operation)
+    signed by: GDUYWRZGYA3YQ5YN3REM5OU7COQZGC7IDAWZYMZHCDUW7UHN24NBXRMO (weight 1)
+    check envelope [LOW]: needs 0, signatures give 1: met
+    check operation 0 [HIGH]: needs 0, signatures give 1: met
+    result: REJECTED by the network, nothing changes (SR-RESERVE-01)
+
+  State after the plan
+    master weight  1
+    thresholds     low 0, medium 0, high 0
+    signer         GCXBD5SX7P3CJZNLH7SOW7DAN4K76DHYJYTVRRTW6LMOXGPJPHNMW6IG weight 1
+    balance        15000050 stroops
+    selling liabilities 0 stroops
+    sub-entries     1 (sponsoring 0, sponsored 0)
+    base reserve    5000000 stroops
+    minimum balance 15000000 stroops
+    available       50 stroops
+
+Reachability
+------------
+
+  Baseline declaration: UNSAFE
+    signer GDUYWRZGYA3YQ5YN3REM5OU7COQZGC7IDAWZYMZHCDUW7UHN24NBXRMO weight 1 available
+    signer GCXBD5SX7P3CJZNLH7SOW7DAN4K76DHYJYTVRRTW6LMOXGPJPHNMW6IG weight 1 available
+    LOW    threshold   0  total 2  available 2  unknown 0: reachable
+    MEDIUM threshold   0  total 2  available 2  unknown 0: reachable
+    HIGH   threshold   0  total 2  available 2  unknown 0: reachable
+
+Diagnostics
+-----------
+  SR-RESERVE-01 [UNSAFE] (plan) transaction add-d, operation 0: adding signer GBZCBKOLTE4ISPBFFUDGUONU56XBDYAQRH77YA5B7DDH2K27XSOEDQYI needs 5000000 stroops available and 50 are, a shortfall of 4999950
+  SR-RESERVE-01 [UNSAFE] (plan) transaction reweight: the fee is 100 stroops and 50 are available (the balance less the minimum balance and selling liabilities), so the network rejects it before applying it
+
+Coverage
+--------
+  Modelled:
+    - one classic account (a G address) per run
+    - ed25519 signers, including the account's own key
+    - SetOptions operations
+    - the authorization rules of protocols 29 and 30, checked against the state before each transaction
+    - the extra-signature rule, where it can be decided
+    - LOW, MEDIUM and HIGH reachability under the declared availability
+    - up to 20 additional signers, weights and thresholds from 0 to 255
+    - the fee and the reserve for adding a signer, when the snapshot has reserve data
+  Outside this model (recognized unsupported input gives INCONCLUSIVE):
+    - whether anyone holds, or can use, any key
+    - fee-bump transactions and transaction preconditions
+    - source accounts other than the analysed account
+    - sponsorship, and reserve effects other than adding or removing a signer
+    - the network's minimum fee (100 stroops for each operation is assumed)
+    - pre_auth_tx, hash(x) and signed-payload signers
+    - operations other than SetOptions
+    - the order of signatures, where it decides the outcome
+    - protocol versions other than 29 and 30
+    - changes to the account after the snapshot was taken

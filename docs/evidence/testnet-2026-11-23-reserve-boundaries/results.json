@@ -1,0 +1,650 @@
+{
+  "info": {
+    "started_utc": "2026-11-23T15:56:02.308Z",
+    "horizon": "https://horizon-testnet.stellar.org",
+    "horizon_version": "30.0.1-6f7cff3903be1df4fb980a12910a1313c5d7d8dd",
+    "core_version": "stellar-core 30.0.0 (0e49751aa9ddf892302cca02cea7f3f5d97df9f1)",
+    "protocol_version": 30,
+    "ledger_at_start": 5885143,
+    "base_reserve_in_stroops": "5000000",
+    "base_fee_in_stroops": "100",
+    "checker_binary_sha256": "e5f44450ce034738b0f820d9e86f72972252fe83219838ab3d3b2ac458df3e54",
+    "checker_version": "signerreach 0.1.1",
+    "node": "v24.16.0",
+    "friendbot_status": 200,
+    "finished_utc": "2026-11-23T15:58:13.130Z",
+    "protocol_version_at_end": 30,
+    "ledger_at_end": 5885170,
+    "funder": "GCEXFRWHNGY7EVIV3PELXHK5WLOYRHFJ4EMTYUIPAYEUW2ROCHCYYMIW"
+  },
+  "matched": 7,
+  "differed": [],
+  "unusable": [],
+  "results": [
+    {
+      "id": "FX-10a",
+      "what": "adds a signer at exactly minimum balance + base reserve + fee",
+      "target_balance_stroops": "20000100",
+      "expected": {
+        "verdict": "SAFE WITHIN SCOPE",
+        "network": [
+          "accepted"
+        ],
+        "codes": []
+      },
+      "create": {
+        "hash": "69cf51e88769510ab94667f978ae390e576aacae466fe1b327672fb9c0fefd2c",
+        "outcome": "accepted",
+        "ledger": 5885146,
+        "result_codes": null
+      },
+      "setup": {
+        "hash": "2ef73790d39154db86fa64795740c4502c590ab30b7a01b50fa3de82d05e1283",
+        "outcome": "accepted",
+        "ledger": 5885147,
+        "result_codes": null
+      },
+      "balance_at_plan_time_stroops": "20000100",
+      "subentry_count_at_plan_time": 1,
+      "fetch_exit": 0,
+      "snapshot_reserve": {
+        "balance": 20000100,
+        "base_reserve": 5000000,
+        "num_sponsored": 0,
+        "num_sponsoring": 0,
+        "selling_liabilities": 0,
+        "subentry_count": 1
+      },
+      "snapshot_matches_account": true,
+      "checker": {
+        "exit": 0,
+        "verdict": "SAFE WITHIN SCOPE",
+        "codes": [],
+        "transactions": [
+          "accepted"
+        ]
+      },
+      "network": [
+        {
+          "id": "add-d",
+          "hash": "b5da0a6a48b6eedb30615c5969bc7f539d247fabb7e3ec81d5a32bd3b9107eb4",
+          "outcome": "accepted",
+          "ledger": 5885149,
+          "result_codes": null
+        }
+      ],
+      "account_after": {
+        "balance_stroops": "20000000",
+        "subentry_count": 2,
+        "signer_count": 2
+      },
+      "accounts": {
+        "under_test": "GBVJ4XZGGVOHBN7LF6Y4U56EEZCIJLMBQPTO7UKDP7SIPEHWSUDODXVU",
+        "signers": {
+          "B": "GC3BRXZTKR7Z5SZP6XYDWQHJHHZ6H25VILKI4XQEYUW6JQ732O5ZAAHN",
+          "C": "GCGXTRZUWUDCVUHVYC6H7WDRJFUUQAIAFS2T7ZFFBL72SAY2QDUUEVTL",
+          "D": "GBB2UK32N4INKRFYE2OHUWEMQDWAYHAYGIXV4AVWGWBG6FC7QMDEQK5B"
+        }
+      },
+      "checks": {
+        "checker_verdict_as_expected": true,
+        "checker_codes_as_expected": true,
+        "network_outcomes_as_expected": true,
+        "operation_codes_as_expected": true,
+        "transaction_code_as_expected": true,
+        "fee_charged_when_included": true,
+        "snapshot_matches_account": true,
+        "checker_agrees_with_network": true
+      },
+      "match": true
+    },
+    {
+      "id": "FX-10b",
+      "what": "the same, one stroop less",
+      "target_balance_stroops": "20000099",
+      "expected": {
+        "verdict": "UNSAFE",
+        "network": [
+          "failed_in_ledger"
+        ],
+        "codes": [
+          "SR-RESERVE-01"
+        ],
+        "op_codes": [
+          "op_low_reserve"
+        ]
+      },
+      "create": {
+        "hash": "0a1be0d8e893dcdf98b46f9795b41b84d902075486820b0b25c4c9f3c1f0e3e1",
+        "outcome": "accepted",
+        "ledger": 5885150,
+        "result_codes": null
+      },
+      "setup": {
+        "hash": "e5e18160e8627c052e3f9969252ee1b69beb54b8c6ade2dbef60d46db51202d5",
+        "outcome": "accepted",
+        "ledger": 5885151,
+        "result_codes": null
+      },
+      "balance_at_plan_time_stroops": "20000099",
+      "subentry_count_at_plan_time": 1,
+      "fetch_exit": 0,
+      "snapshot_reserve": {
+        "balance": 20000099,
+        "base_reserve": 5000000,
+        "num_sponsored": 0,
+        "num_sponsoring": 0,
+        "selling_liabilities": 0,
+        "subentry_count": 1
+      },
+      "snapshot_matches_account": true,
+      "checker": {
+        "exit": 1,
+        "verdict": "UNSAFE",
+        "codes": [
+          "SR-RESERVE-01"
+        ],
+        "transactions": [
+          "failed_to_apply"
+        ]
+      },
+      "network": [
+        {
+          "id": "add-d",
+          "hash": "27083aa6308477e3b7c7681cc68434899023e454e3453b0ff503cdf13d3df4b1",
+          "outcome": "failed_in_ledger",
+          "http_status": 400,
+          "result_codes": {
+            "transaction": "tx_failed",
+            "operations": [
+              "op_low_reserve"
+            ]
+          },
+          "record": {
+            "ledger": 5885152,
+            "created_at": "2026-11-23T15:56:42Z",
+            "successful": false,
+            "fee_charged": "100",
+            "max_fee": "100",
+            "operation_count": 1,
+            "result_xdr": "AAAAAAAAAGT/////AAAAAQAAAAAAAAAF/////wAAAAA="
+          },
+          "absence_checks": 0
+        }
+      ],
+      "account_after": {
+        "balance_stroops": "19999999",
+        "subentry_count": 1,
+        "signer_count": 1
+      },
+      "accounts": {
+        "under_test": "GDYOQX2NP4MABIZPE7YX22ITHHDZ4C7UYH5DNIGKN4PIKF6B7423Y6ZV",
+        "signers": {
+          "B": "GD6LUQMH3NBZUMDDDNSTEQ46FQ2SBAMY6TPQHHDERCOB2AXCDYMZULP5",
+          "C": "GBKFX4LJDU3C5L467EQF625QRXBZRWSIEWNJ4OZ7G3IDD5UDTV7OHFPM",
+          "D": "GBURU7AEISFMDYTQM7QTS4SYZYBVVZJ6HWTQE5YNK3ITVNPH3LPD5SMV"
+        }
+      },
+      "checks": {
+        "checker_verdict_as_expected": true,
+        "checker_codes_as_expected": true,
+        "network_outcomes_as_expected": true,
+        "operation_codes_as_expected": true,
+        "transaction_code_as_expected": true,
+        "fee_charged_when_included": true,
+        "snapshot_matches_account": true,
+        "checker_agrees_with_network": true
+      },
+      "match": true
+    },
+    {
+      "id": "FX-11a",
+      "what": "[remove C, add D] at the boundary, fee 200",
+      "target_balance_stroops": "20000200",
+      "expected": {
+        "verdict": "SAFE WITHIN SCOPE",
+        "network": [
+          "accepted"
+        ],
+        "codes": []
+      },
+      "create": {
+        "hash": "b62bf604f50eeb6ab17b1ab58be5b3ad0f5cc8e7671cab453f364c82ca52a200",
+        "outcome": "accepted",
+        "ledger": 5885153,
+        "result_codes": null
+      },
+      "setup": {
+        "hash": "f2671f9e1def3d71c3eacba3ace82e50d9da6c5ede7ebf2e8321ebfb81e8d82f",
+        "outcome": "accepted",
+        "ledger": 5885154,
+        "result_codes": null
+      },
+      "balance_at_plan_time_stroops": "20000200",
+      "subentry_count_at_plan_time": 2,
+      "fetch_exit": 0,
+      "snapshot_reserve": {
+        "balance": 20000200,
+        "base_reserve": 5000000,
+        "num_sponsored": 0,
+        "num_sponsoring": 0,
+        "selling_liabilities": 0,
+        "subentry_count": 2
+      },
+      "snapshot_matches_account": true,
+      "checker": {
+        "exit": 0,
+        "verdict": "SAFE WITHIN SCOPE",
+        "codes": [],
+        "transactions": [
+          "accepted"
+        ]
+      },
+      "network": [
+        {
+          "id": "swap",
+          "hash": "5e06e00efe50b4842bc438f84b3b1bebca485621dc48974a09f0ea2822e6dbf2",
+          "outcome": "accepted",
+          "ledger": 5885155,
+          "result_codes": null
+        }
+      ],
+      "account_after": {
+        "balance_stroops": "20000000",
+        "subentry_count": 2,
+        "signer_count": 2
+      },
+      "accounts": {
+        "under_test": "GDNQUXKHXNTOYFVXMMRV6GT6HAV73KA3XS3O5IKYGQD2Q7BCYJ6N2S5K",
+        "signers": {
+          "B": "GC6GK7DHIUE5XRJPIOI5235XZ4E7NJ6TJOG2WXV3UIV3A6TSDTTT2E3C",
+          "C": "GBMK3EWRHD44CNYRRBKRTNEQELT24AO6TAEQH3ZWKKSMZMABKSA7M5C4",
+          "D": "GCSWIKZJYQPVWBI2NEDFFMDBZWEAQ23UOFKI3R37VWTKIZOFZGXE3OAM"
+        }
+      },
+      "checks": {
+        "checker_verdict_as_expected": true,
+        "checker_codes_as_expected": true,
+        "network_outcomes_as_expected": true,
+        "operation_codes_as_expected": true,
+        "transaction_code_as_expected": true,
+        "fee_charged_when_included": true,
+        "snapshot_matches_account": true,
+        "checker_agrees_with_network": true
+      },
+      "match": true
+    },
+    {
+      "id": "FX-11b",
+      "what": "[add D, remove C] at the same balance, fee 200",
+      "target_balance_stroops": "20000200",
+      "expected": {
+        "verdict": "UNSAFE",
+        "network": [
+          "failed_in_ledger"
+        ],
+        "codes": [
+          "SR-RESERVE-01"
+        ],
+        "op_codes": [
+          "op_low_reserve"
+        ]
+      },
+      "create": {
+        "hash": "abdea69c4d02e28e7e940e18d2e7e0b97ccf01a1ff1b7c1be22593190fc3679d",
+        "outcome": "accepted",
+        "ledger": 5885156,
+        "result_codes": null
+      },
+      "setup": {
+        "hash": "511645fab49a7b5cbe7cd78c95f9e9802d24b7708d82f2b7e3fbaf62e5be674a",
+        "outcome": "accepted",
+        "ledger": 5885157,
+        "result_codes": null
+      },
+      "balance_at_plan_time_stroops": "20000200",
+      "subentry_count_at_plan_time": 2,
+      "fetch_exit": 0,
+      "snapshot_reserve": {
+        "balance": 20000200,
+        "base_reserve": 5000000,
+        "num_sponsored": 0,
+        "num_sponsoring": 0,
+        "selling_liabilities": 0,
+        "subentry_count": 2
+      },
+      "snapshot_matches_account": true,
+      "checker": {
+        "exit": 1,
+        "verdict": "UNSAFE",
+        "codes": [
+          "SR-RESERVE-01"
+        ],
+        "transactions": [
+          "failed_to_apply"
+        ]
+      },
+      "network": [
+        {
+          "id": "swap",
+          "hash": "cea8b8d30ac5d93056ebc6bdaef21bde9fac64c20e05efe31b4e9e9c42babaa2",
+          "outcome": "failed_in_ledger",
+          "http_status": 400,
+          "result_codes": {
+            "transaction": "tx_failed",
+            "operations": [
+              "op_low_reserve",
+              "op_success"
+            ]
+          },
+          "record": {
+            "ledger": 5885158,
+            "created_at": "2026-11-23T15:57:12Z",
+            "successful": false,
+            "fee_charged": "200",
+            "max_fee": "200",
+            "operation_count": 2,
+            "result_xdr": "AAAAAAAAAMj/////AAAAAgAAAAAAAAAF/////wAAAAAAAAAFAAAAAAAAAAA="
+          },
+          "absence_checks": 0
+        }
+      ],
+      "account_after": {
+        "balance_stroops": "20000000",
+        "subentry_count": 2,
+        "signer_count": 2
+      },
+      "accounts": {
+        "under_test": "GDDSJG7YMC254ZNT3IBWHQHFIRQ3X6MQLWI5IOHPGAZYZIBBOBMUQN7R",
+        "signers": {
+          "B": "GDGMA44WPZE4DY6O6V7D2REVZ2W45PDPJKEDCO56GKWBWQTABOGVCZNU",
+          "C": "GBZXTXTZNSDMI2YKJ6QTV6TDB22PFCOJLGIRH3OQAI2K27EULIWX6I6L",
+          "D": "GAQNZTHHWMBYFJQK6EWLP3XYCNEQE2ETILXLU443UGOPPUSZN4M4CTRK"
+        }
+      },
+      "checks": {
+        "checker_verdict_as_expected": true,
+        "checker_codes_as_expected": true,
+        "network_outcomes_as_expected": true,
+        "operation_codes_as_expected": true,
+        "transaction_code_as_expected": true,
+        "fee_charged_when_included": true,
+        "snapshot_matches_account": true,
+        "checker_agrees_with_network": true
+      },
+      "match": true
+    },
+    {
+      "id": "FX-12",
+      "what": "re-weights an existing signer with no spare reserve, only the fee",
+      "target_balance_stroops": "15000100",
+      "expected": {
+        "verdict": "SAFE WITHIN SCOPE",
+        "network": [
+          "accepted"
+        ],
+        "codes": []
+      },
+      "create": {
+        "hash": "9e8cf553a3070117a8f2756cda913111cabd9ee2a3aa9d991cbf50e494788ace",
+        "outcome": "accepted",
+        "ledger": 5885159,
+        "result_codes": null
+      },
+      "setup": {
+        "hash": "3a425ee921765b5704ba8669c1b183420a33b0628fe58207b37f5755683350e0",
+        "outcome": "accepted",
+        "ledger": 5885160,
+        "result_codes": null
+      },
+      "balance_at_plan_time_stroops": "15000100",
+      "subentry_count_at_plan_time": 1,
+      "fetch_exit": 0,
+      "snapshot_reserve": {
+        "balance": 15000100,
+        "base_reserve": 5000000,
+        "num_sponsored": 0,
+        "num_sponsoring": 0,
+        "selling_liabilities": 0,
+        "subentry_count": 1
+      },
+      "snapshot_matches_account": true,
+      "checker": {
+        "exit": 0,
+        "verdict": "SAFE WITHIN SCOPE",
+        "codes": [],
+        "transactions": [
+          "accepted"
+        ]
+      },
+      "network": [
+        {
+          "id": "reweight",
+          "hash": "f932924e6b77cd6c33b4a01f3479fd50b9fa6ab4866131b17229e5167e6c0b5d",
+          "outcome": "accepted",
+          "ledger": 5885161,
+          "result_codes": null
+        }
+      ],
+      "account_after": {
+        "balance_stroops": "15000000",
+        "subentry_count": 1,
+        "signer_count": 1
+      },
+      "accounts": {
+        "under_test": "GDAE7I45HGF75XWUARC6EMN753SIQL24LZAJ5XFCLRYOCQSTIQTX4D65",
+        "signers": {
+          "B": "GC7RNTXLYFZEKVUTWVFPZDLSYHMYWV2LDDXJVG7EYRL57WXYL36M2FKP",
+          "C": "GBPQDZUWFTT6M3HEWGPQRFES7X2IKGGLGA6263CAELUZHABGM6HMQFIO",
+          "D": "GA2ZZTDM64ZSH2ZGXSMSG4NYWM2JCRKQVQSJXOTFTHGYYJNRB6LCAPGB"
+        }
+      },
+      "checks": {
+        "checker_verdict_as_expected": true,
+        "checker_codes_as_expected": true,
+        "network_outcomes_as_expected": true,
+        "operation_codes_as_expected": true,
+        "transaction_code_as_expected": true,
+        "fee_charged_when_included": true,
+        "snapshot_matches_account": true,
+        "checker_agrees_with_network": true
+      },
+      "match": true
+    },
+    {
+      "id": "FX-14",
+      "what": "available is 99 stroops and the fee is 100",
+      "target_balance_stroops": "15000099",
+      "expected": {
+        "verdict": "UNSAFE",
+        "network": [
+          "rejected_at_submission"
+        ],
+        "codes": [
+          "SR-RESERVE-01"
+        ],
+        "tx_code": "tx_insufficient_balance"
+      },
+      "create": {
+        "hash": "61b930357fc75df30f08b7c5ea1abf86d02bd3ac596ba6e5c360fef5b86267a8",
+        "outcome": "accepted",
+        "ledger": 5885162,
+        "result_codes": null
+      },
+      "setup": {
+        "hash": "202c2be90bdd0d77984986d95e8a5a29f7ce4ad9c3aa16431cc6a23ad8cd493e",
+        "outcome": "accepted",
+        "ledger": 5885163,
+        "result_codes": null
+      },
+      "balance_at_plan_time_stroops": "15000099",
+      "subentry_count_at_plan_time": 1,
+      "fetch_exit": 0,
+      "snapshot_reserve": {
+        "balance": 15000099,
+        "base_reserve": 5000000,
+        "num_sponsored": 0,
+        "num_sponsoring": 0,
+        "selling_liabilities": 0,
+        "subentry_count": 1
+      },
+      "snapshot_matches_account": true,
+      "checker": {
+        "exit": 1,
+        "verdict": "UNSAFE",
+        "codes": [
+          "SR-RESERVE-01"
+        ],
+        "transactions": [
+          "rejected"
+        ]
+      },
+      "network": [
+        {
+          "id": "reweight",
+          "hash": "a1a9abe86c3ff4d9b7abcec421ee752ec684cf62e690981b65a03354451a89b5",
+          "outcome": "rejected_at_submission",
+          "http_status": 400,
+          "result_codes": {
+            "transaction": "tx_insufficient_balance"
+          },
+          "record": null,
+          "absence_checks": 4
+        }
+      ],
+      "account_after": {
+        "balance_stroops": "15000099",
+        "subentry_count": 1,
+        "signer_count": 1
+      },
+      "accounts": {
+        "under_test": "GBYWHY4DZMQIOLZD2XC2TKMTJ73Y6YYYHHN2Y3YAOYQYDVTPLP42HIHU",
+        "signers": {
+          "B": "GAHOBBBDU73KQ6OKEPYVE2RQW7R5LTECTFYYKCL543Z3XWJ6W6GRG3KK",
+          "C": "GCKDFOW3F5KQXTP53ULOO4E7X5LVU2XPVC2OWVEHCKV6GPEMH4HUZ5AW",
+          "D": "GB4Z5C5JWQFES3G2DXDYHY4T2ANUTG3DZGIATVJFPFPYQENKBFXV4QD4"
+        }
+      },
+      "checks": {
+        "checker_verdict_as_expected": true,
+        "checker_codes_as_expected": true,
+        "network_outcomes_as_expected": true,
+        "operation_codes_as_expected": true,
+        "transaction_code_as_expected": true,
+        "fee_charged_when_included": true,
+        "snapshot_matches_account": true,
+        "checker_agrees_with_network": true
+      },
+      "match": true
+    },
+    {
+      "id": "FX-17",
+      "what": "a failed transaction keeps its fee, so the next one cannot pay its own",
+      "target_balance_stroops": "15000150",
+      "expected": {
+        "verdict": "UNSAFE",
+        "network": [
+          "failed_in_ledger",
+          "rejected_at_submission"
+        ],
+        "codes": [
+          "SR-RESERVE-01"
+        ]
+      },
+      "create": {
+        "hash": "21bd3139662246f4fc658ffbda7cc0f6c1955e67d4c556119b58dac7fa1d5c07",
+        "outcome": "accepted",
+        "ledger": 5885166,
+        "result_codes": null
+      },
+      "setup": {
+        "hash": "f0255dc8483dd4af2ebd83ce7b5799fb416607ced2ed6566048db3b3f8f88275",
+        "outcome": "accepted",
+        "ledger": 5885167,
+        "result_codes": null
+      },
+      "balance_at_plan_time_stroops": "15000150",
+      "subentry_count_at_plan_time": 1,
+      "fetch_exit": 0,
+      "snapshot_reserve": {
+        "balance": 15000150,
+        "base_reserve": 5000000,
+        "num_sponsored": 0,
+        "num_sponsoring": 0,
+        "selling_liabilities": 0,
+        "subentry_count": 1
+      },
+      "snapshot_matches_account": true,
+      "checker": {
+        "exit": 1,
+        "verdict": "UNSAFE",
+        "codes": [
+          "SR-RESERVE-01"
+        ],
+        "transactions": [
+          "failed_to_apply",
+          "rejected"
+        ]
+      },
+      "network": [
+        {
+          "id": "add-d",
+          "hash": "a502926f77c0fe62154d6df57cc908db37e94080e55d9bb7483574a19fa8a0fa",
+          "outcome": "failed_in_ledger",
+          "http_status": 400,
+          "result_codes": {
+            "transaction": "tx_failed",
+            "operations": [
+              "op_low_reserve"
+            ]
+          },
+          "record": {
+            "ledger": 5885168,
+            "created_at": "2026-11-23T15:58:02Z",
+            "successful": false,
+            "fee_charged": "100",
+            "max_fee": "100",
+            "operation_count": 1,
+            "result_xdr": "AAAAAAAAAGT/////AAAAAQAAAAAAAAAF/////wAAAAA="
+          },
+          "absence_checks": 0
+        },
+        {
+          "id": "reweight",
+          "hash": "728cf8cfd3c13a8e4d63a1254d126738ca60ba3ccf54f1dda1007025b334f0e5",
+          "outcome": "rejected_at_submission",
+          "http_status": 400,
+          "result_codes": {
+            "transaction": "tx_insufficient_balance"
+          },
+          "record": null,
+          "absence_checks": 4
+        }
+      ],
+      "account_after": {
+        "balance_stroops": "15000050",
+        "subentry_count": 1,
+        "signer_count": 1
+      },
+      "accounts": {
+        "under_test": "GDUYWRZGYA3YQ5YN3REM5OU7COQZGC7IDAWZYMZHCDUW7UHN24NBXRMO",
+        "signers": {
+          "B": "GCXBD5SX7P3CJZNLH7SOW7DAN4K76DHYJYTVRRTW6LMOXGPJPHNMW6IG",
+          "C": "GAYJ6HTHU64HASBV5JDYQYJINXCTLJ2RBK6B73BQTKNK6RUGDVYNGT66",
+          "D": "GBZCBKOLTE4ISPBFFUDGUONU56XBDYAQRH77YA5B7DDH2K27XSOEDQYI"
+        }
+      },
+      "checks": {
+        "checker_verdict_as_expected": true,
+        "checker_codes_as_expected": true,
+        "network_outcomes_as_expected": true,
+        "operation_codes_as_expected": true,
+        "transaction_code_as_expected": true,
+        "fee_charged_when_included": true,
+        "snapshot_matches_account": true,
+        "checker_agrees_with_network": true
+      },
+      "match": true
+    }
+  ]
+}
