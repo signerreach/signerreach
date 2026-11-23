@@ -1,0 +1,59 @@
+{
+  "started_utc": "2026-11-20T13:50:56.971Z",
+  "horizon": "https://horizon-testnet.stellar.org",
+  "steps": [
+    {
+      "name": "friendbot",
+      "at": "2026-11-20T13:51:07.029Z",
+      "status": 200
+    },
+    {
+      "name": "create-account",
+      "at": "2026-11-20T13:51:11.414Z",
+      "hash": "48d3220b5574aa60d716c2c2e9de9e6f60f7f29ceae69a3c108f22e4371e9dd0",
+      "ledger": 5831806,
+      "account": "GBOIJGGGAXP62P6RNMF7AT7LYXJDMPSZEGWZNBG62IFIRR4KVZQ32XHA",
+      "starting_balance": "1.0010000"
+    },
+    {
+      "name": "account-state",
+      "at": "2026-11-20T13:51:11.662Z",
+      "balance": "1.0010000",
+      "selling_liabilities": "0.0000000",
+      "subentry_count": 0,
+      "num_sponsoring": 0,
+      "num_sponsored": 0
+    },
+    {
+      "name": "signerreach-fetch",
+      "at": "2026-11-20T13:51:22.355Z",
+      "exit": 0
+    },
+    {
+      "name": "signerreach-check",
+      "at": "2026-11-20T13:51:23.008Z",
+      "exit": 0,
+      "verdict": "SAFE WITHIN SCOPE"
+    },
+    {
+      "name": "network-submit",
+      "at": "2026-11-20T13:51:26.819Z",
+      "outcome": "failed",
+      "computed_hash": "200,82,172,122,83,80,21,138,237,184,201,76,204,10,28,63,148,157,225,175,45,53,70,85,90,69,158,154,119,118,71,6",
+      "http_status": 400,
+      "result_codes": {
+        "transaction": "tx_failed",
+        "operations": [
+          "op_low_reserve"
+        ]
+      },
+      "message": "Transaction Failed"
+    }
+  ],
+  "finished_utc": "2026-11-20T13:51:26.819Z",
+  "accounts": {
+    "under_test": "GBOIJGGGAXP62P6RNMF7AT7LYXJDMPSZEGWZNBG62IFIRR4KVZQ32XHA",
+    "funder": "GDH57OC3MTIQO6Y7HT32IAP2FHMBRUX5GXBKZDFKC2CPZXZL4624M2P6",
+    "signer_added_by_plan": "GDJ2VSK7KG4V5CXAWJVHUB4ACWEG6IBFSH7VXJRKJB4ZPYVN3BRTCFQK"
+  }
+}

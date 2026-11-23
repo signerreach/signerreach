@@ -1,0 +1,20 @@
+{
+  "schema": "signerreach.plan/1",
+  "transactions": [
+    {
+      "id": "add-signer",
+      "signed_by": [
+        "GBOIJGGGAXP62P6RNMF7AT7LYXJDMPSZEGWZNBG62IFIRR4KVZQ32XHA"
+      ],
+      "operations": [
+        {
+          "op": "set_options",
+          "signer": {
+            "key": "GDJ2VSK7KG4V5CXAWJVHUB4ACWEG6IBFSH7VXJRKJB4ZPYVN3BRTCFQK",
+            "weight": 1
+          }
+        }
+      ]
+    }
+  ]
+}

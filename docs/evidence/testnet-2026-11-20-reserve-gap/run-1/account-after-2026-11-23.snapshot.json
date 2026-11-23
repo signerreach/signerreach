@@ -1,0 +1,27 @@
+{
+  "account": "GBOIJGGGAXP62P6RNMF7AT7LYXJDMPSZEGWZNBG62IFIRR4KVZQ32XHA",
+  "master_weight": 1,
+  "network": "testnet",
+  "provenance": {
+    "as_of_ledger": 5884851,
+    "captured_at": "2026-11-23T15:31:39Z",
+    "protocol_version": 30,
+    "source": "horizon"
+  },
+  "reserve": {
+    "balance": 10009900,
+    "base_reserve": 5000000,
+    "num_sponsored": 0,
+    "num_sponsoring": 0,
+    "selling_liabilities": 0,
+    "subentry_count": 0
+  },
+  "schema": "signerreach.snapshot/1",
+  "signers": [],
+  "sponsored_signers": false,
+  "thresholds": {
+    "high": 0,
+    "low": 0,
+    "medium": 0
+  }
+}
