@@ -15,6 +15,7 @@ use super::{
 };
 use crate::account::{SignerKey, Threshold, Weight};
 use crate::diagnostic::Code;
+use crate::reserve::ASSUMED_FEE_PER_OPERATION;
 
 /// The schema identifier a plan must carry.
 pub const PLAN_SCHEMA: &str = "signerreach.plan/1";
@@ -122,6 +123,7 @@ impl SetOptions {
 pub struct PlannedTransaction {
     id: String,
     source: Option<SignerKey>,
+    fee: Option<u32>,
     signed_by: Vec<SignerKey>,
     operations: Vec<SetOptions>,
 }
@@ -135,6 +137,24 @@ impl PlannedTransaction {
     /// The transaction's source account, if one is declared.
     pub const fn source(&self) -> Option<SignerKey> {
         self.source
+    }
+
+    /// The whole fee of the transaction in stroops, if the plan gives one.
+    pub const fn fee(&self) -> Option<u32> {
+        self.fee
+    }
+
+    /// The fee the evaluation uses: the plan's own, or 100 stroops for each
+    /// operation when it gives none. `assumed` is true in the second case.
+    pub fn fee_or_assumed(&self) -> (u32, bool) {
+        match self.fee {
+            Some(fee) => (fee, false),
+            None => (
+                ASSUMED_FEE_PER_OPERATION
+                    .saturating_mul(u32::try_from(self.operations.len()).unwrap_or(u32::MAX)),
+                true,
+            ),
+        }
     }
 
     /// The keys that will sign the transaction.
@@ -221,6 +241,7 @@ fn read_transaction(
     let source = read_optional_key(&mut obj, "source", issues);
     let signed_by = read_signed_by(&mut obj, issues);
     let operations = read_operations(&mut obj, issues);
+    let fee = read_fee(&mut obj, operations.as_ref().map(Vec::len), issues);
 
     for unsupported in ["fee_bump", "preconditions"] {
         if obj.field(unsupported, issues).is_some() {
@@ -236,9 +257,33 @@ fn read_transaction(
     Some(PlannedTransaction {
         id: id?,
         source,
+        fee,
         signed_by: signed_by?,
         operations: operations?,
     })
+}
+
+/// The optional `fee`. A fee below 100 stroops for each operation is not
+/// refused as wrong but reported as not known to be accepted (`SR-STATE-01`),
+/// because the network's minimum fee is a setting that can change.
+fn read_fee(obj: &mut Obj<'_>, operations: Option<usize>, issues: &mut Issues) -> Option<u32> {
+    let path = obj.path_of("fee");
+    let value = obj.field("fee", issues)?;
+    let fee = as_u32(value, &path, issues)?;
+    let minimum = u32::try_from(operations?)
+        .ok()?
+        .saturating_mul(ASSUMED_FEE_PER_OPERATION);
+    if fee < minimum {
+        issues.push(
+            Code::State01,
+            &path,
+            format!(
+                "the fee is below {ASSUMED_FEE_PER_OPERATION} stroops for each operation, so the                  network is not known to accept the transaction"
+            ),
+        );
+        return None;
+    }
+    Some(fee)
 }
 
 fn read_id(obj: &mut Obj<'_>, ids: &mut BTreeSet<String>, issues: &mut Issues) -> Option<String> {
@@ -837,5 +882,62 @@ mod tests {
         assert!(parse_plan("{").is_err());
         assert!(parse_plan("[]").is_err());
         assert!(parse_plan("").is_err());
+    }
+
+    #[test]
+    fn a_fee_is_optional_and_kept_when_given() {
+        let mut doc = valid();
+        let plan = parse(&doc).expect("valid");
+        assert_eq!(plan.transactions()[0].fee(), None);
+        // Two operations and no fee: 100 stroops each, and it says so.
+        assert_eq!(plan.transactions()[0].fee_or_assumed(), (200, true));
+        assert_eq!(plan.transactions()[1].fee_or_assumed(), (100, true));
+
+        doc["transactions"][0]["fee"] = json!(250);
+        let plan = parse(&doc).expect("valid");
+        assert_eq!(plan.transactions()[0].fee(), Some(250));
+        assert_eq!(plan.transactions()[0].fee_or_assumed(), (250, false));
+    }
+
+    #[test]
+    fn a_fee_at_the_minimum_is_accepted_and_below_it_is_not_known_to_be_accepted() {
+        let mut doc = valid();
+        doc["transactions"][0]["fee"] = json!(200);
+        assert!(parse(&doc).is_ok());
+
+        for low in [0, 1, 199] {
+            doc["transactions"][0]["fee"] = json!(low);
+            assert!(
+                has(&issues(&doc), Code::State01, "/transactions/0/fee"),
+                "{low}"
+            );
+        }
+    }
+
+    #[test]
+    fn the_largest_fee_is_accepted_and_a_bigger_one_is_not() {
+        let mut doc = valid();
+        doc["transactions"][1]["fee"] = json!(4_294_967_295u64);
+        assert!(parse(&doc).is_ok());
+        doc["transactions"][1]["fee"] = json!(4_294_967_296u64);
+        assert!(has(&issues(&doc), Code::Input01, "/transactions/1/fee"));
+    }
+
+    #[test]
+    fn a_fee_that_is_not_a_whole_number_is_refused() {
+        for bad in [
+            json!(-1),
+            json!(100.5),
+            json!("100"),
+            json!(null),
+            json!(true),
+        ] {
+            let mut doc = valid();
+            doc["transactions"][1]["fee"] = bad.clone();
+            assert!(
+                has(&issues(&doc), Code::Input01, "/transactions/1/fee"),
+                "{bad}"
+            );
+        }
     }
 }

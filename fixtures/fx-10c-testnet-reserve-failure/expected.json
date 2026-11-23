@@ -1,0 +1,13 @@
+{
+  "id": "FX-10c",
+  "summary": "An account with 1.0010 XLM and no signers adds one: built from the Testnet failure at ledger 5831809 (op_low_reserve).",
+  "source": "synthetic",
+  "verdict": "UNSAFE",
+  "exit_code": 1,
+  "codes": [
+    "SR-RESERVE-01"
+  ],
+  "transactions": [
+    "failed_to_apply"
+  ]
+}

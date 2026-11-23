@@ -18,7 +18,7 @@
 
 use serde_json::{Value, json};
 use signerreach_core::account::MAX_ADDITIONAL_SIGNERS;
-use signerreach_core::{Network, SignerKey};
+use signerreach_core::{Network, Reserve, SignerKey};
 
 use crate::error::MapError;
 use crate::strict_json;
@@ -36,6 +36,11 @@ pub struct Context<'a> {
     pub protocol_version: u32,
     /// The account address requested from Horizon, if this came from a fetch.
     pub requested_account: Option<&'a str>,
+    /// The network's base reserve at `as_of_ledger`, in stroops. When it is
+    /// given, the snapshot carries a `reserve` object built from the account's
+    /// balance, selling liabilities and entry counts; when it is not, the
+    /// snapshot has none.
+    pub base_reserve: Option<i64>,
 }
 
 /// Builds the text of a snapshot document from a Horizon account response.
@@ -136,7 +141,12 @@ pub fn snapshot_from_account(account: &str, context: &Context<'_>) -> Result<Str
         .map(|(key, weight, kind)| json!({ "key": key, "type": kind, "weight": weight }))
         .collect();
 
-    let snapshot = json!({
+    let reserve = match context.base_reserve {
+        Some(base_reserve) => Some(reserve_from(&record, base_reserve, others.len())?),
+        None => None,
+    };
+
+    let mut snapshot = json!({
         "schema": "signerreach.snapshot/1",
         "network": context.network.as_str(),
         "account": id,
@@ -151,7 +161,96 @@ pub fn snapshot_from_account(account: &str, context: &Context<'_>) -> Result<Str
         "signers": signers,
         "sponsored_signers": sponsored,
     });
+    if let Some(reserve) = reserve {
+        snapshot["reserve"] = reserve;
+    }
     Ok(format!("{snapshot:#}\n"))
+}
+
+/// The `reserve` object: the native balance and selling liabilities (decimal
+/// strings in XLM, turned into whole stroops without any floating point), the
+/// entry counts, and the base reserve the caller read from the ledger.
+///
+/// The figures are checked by the same constructor the checker uses, so a
+/// snapshot is only ever written if the checker will accept its `reserve`.
+fn reserve_from(record: &Value, base_reserve: i64, signers: usize) -> Result<Value, MapError> {
+    let balances = record
+        .get("balances")
+        .ok_or(MapError::MissingField("balances"))?
+        .as_array()
+        .ok_or(MapError::BadField("balances"))?;
+    let mut native = balances
+        .iter()
+        .filter(|entry| entry.get("asset_type").and_then(Value::as_str) == Some("native"));
+    let entry = native.next().ok_or(MapError::MissingField("balances"))?;
+    if native.next().is_some() {
+        return Err(MapError::BadField("balances"));
+    }
+    let balance = stroops(text(entry, "balance")?, "balances.balance")?;
+    let selling_liabilities = stroops(
+        text(entry, "selling_liabilities")?,
+        "balances.selling_liabilities",
+    )?;
+    let subentry_count = count(record, "subentry_count")?;
+    let num_sponsoring = count(record, "num_sponsoring")?;
+    let num_sponsored = count(record, "num_sponsored")?;
+
+    let reserve = Reserve::new(
+        balance,
+        selling_liabilities,
+        subentry_count,
+        num_sponsoring,
+        num_sponsored,
+        base_reserve,
+    )
+    .map_err(|_| MapError::BadField("reserve"))?;
+    // Every signer, of any kind, is a sub-entry.
+    reserve
+        .check_signer_count(signers)
+        .map_err(|_| MapError::BadField("subentry_count"))?;
+
+    Ok(json!({
+        "balance": balance,
+        "selling_liabilities": selling_liabilities,
+        "subentry_count": subentry_count,
+        "num_sponsoring": num_sponsoring,
+        "num_sponsored": num_sponsored,
+        "base_reserve": base_reserve,
+    }))
+}
+
+/// A whole number that fits in 32 bits, or an error naming the field.
+fn count(value: &Value, field: &'static str) -> Result<u32, MapError> {
+    value
+        .get(field)
+        .ok_or(MapError::MissingField(field))?
+        .as_u64()
+        .and_then(|number| u32::try_from(number).ok())
+        .ok_or(MapError::BadField(field))
+}
+
+/// Horizon's amount text, such as `10791.0428944`, as whole stroops.
+///
+/// The shape is strict: digits, a point, exactly seven digits, no sign, no
+/// exponent, no leading zero in the whole part. Anything else is refused
+/// instead of being rounded.
+fn stroops(amount: &str, field: &'static str) -> Result<i64, MapError> {
+    let (whole, fraction) = amount.split_once('.').ok_or(MapError::BadField(field))?;
+    let digits = |part: &str| !part.is_empty() && part.bytes().all(|b| b.is_ascii_digit());
+    if !digits(whole)
+        || !digits(fraction)
+        || fraction.len() != 7
+        || whole.len() > 12
+        || (whole.len() > 1 && whole.starts_with('0'))
+    {
+        return Err(MapError::BadField(field));
+    }
+    let whole: i64 = whole.parse().map_err(|_| MapError::BadField(field))?;
+    let fraction: i64 = fraction.parse().map_err(|_| MapError::BadField(field))?;
+    whole
+        .checked_mul(10_000_000)
+        .and_then(|stroops| stroops.checked_add(fraction))
+        .ok_or(MapError::BadField(field))
 }
 
 /// A string field, or an error naming the field.
@@ -204,6 +303,7 @@ mod tests {
             captured_at: "2026-10-17T08:29:07Z",
             protocol_version: 29,
             requested_account: None,
+            base_reserve: None,
         }
     }
 
@@ -294,6 +394,7 @@ mod tests {
             captured_at: "2026-10-17T08:29:55Z",
             protocol_version: 29,
             requested_account: None,
+            base_reserve: None,
         };
         let text = snapshot_from_account(ZERO_MASTER, &context).expect("maps");
         let snapshot = parse_snapshot(&text).expect("accepted");
@@ -605,5 +706,197 @@ mod tests {
         ));
         value["a_new_field"] = json!([1, 2, 3]);
         assert!(map(&value.to_string()).is_ok());
+    }
+
+    // ---- the `reserve` object ----
+
+    fn funded(network: Network) -> Context<'static> {
+        Context {
+            base_reserve: Some(5_000_000),
+            ..context(network)
+        }
+    }
+
+    fn map_funded(account: &str) -> Result<String, MapError> {
+        snapshot_from_account(account, &funded(Network::Testnet))
+    }
+
+    #[test]
+    fn without_a_base_reserve_the_snapshot_has_no_reserve_object() {
+        let text = map(THREE_SIGNERS).expect("maps");
+        assert!(json_of(&text).get("reserve").is_none());
+        assert!(parse_snapshot(&text).unwrap().reserve().is_none());
+    }
+
+    #[test]
+    fn with_a_base_reserve_the_balance_is_written_in_whole_stroops() {
+        let text = map_funded(THREE_SIGNERS).expect("maps");
+        assert_eq!(
+            json_of(&text)["reserve"],
+            json!({
+                "balance": 99_999_999_400u64,
+                "selling_liabilities": 0,
+                "subentry_count": 2,
+                "num_sponsoring": 0,
+                "num_sponsored": 0,
+                "base_reserve": 5_000_000
+            })
+        );
+        let reserve = parse_snapshot(&text).expect("accepted").reserve().unwrap();
+        assert_eq!(reserve.available(), 99_999_999_400 - 20_000_000);
+    }
+
+    #[test]
+    fn every_recorded_account_maps_to_a_snapshot_with_reserve_the_checker_accepts() {
+        // A ledger later than every record was last modified.
+        let context = Context {
+            as_of_ledger: 100_000_000,
+            ..funded(Network::Testnet)
+        };
+        for record in [THREE_SIGNERS, SINGLE_KEY, ZERO_MASTER] {
+            let text = snapshot_from_account(record, &context).expect("maps");
+            assert!(parse_snapshot(&text).expect("accepted").reserve().is_some());
+        }
+    }
+
+    #[test]
+    fn selling_liabilities_and_sponsorship_counts_are_carried() {
+        let mut record = json_of(THREE_SIGNERS);
+        record["balances"][0]["selling_liabilities"] = json!("12.5000001");
+        record["num_sponsoring"] = json!(3);
+        record["num_sponsored"] = json!(1);
+        let text = map_funded(&record.to_string()).expect("maps");
+        let reserve = parse_snapshot(&text).unwrap().reserve().unwrap();
+        assert_eq!(reserve.selling_liabilities(), 125_000_001);
+        assert_eq!((reserve.num_sponsoring(), reserve.num_sponsored()), (3, 1));
+    }
+
+    #[test]
+    fn amounts_are_read_exactly() {
+        for (text, expected) in [
+            ("0.0000000", 0),
+            ("0.0000001", 1),
+            ("1.0000000", 10_000_000),
+            ("10791.0428944", 107_910_428_944),
+            ("922337203685.4775807", i64::MAX),
+        ] {
+            assert_eq!(stroops(text, "x"), Ok(expected), "{text}");
+        }
+    }
+
+    #[test]
+    fn amounts_in_any_other_shape_are_refused() {
+        for bad in [
+            "",
+            ".5000000",
+            "1.",
+            "1",
+            "1.000000",
+            "1.00000000",
+            "01.0000000",
+            "-1.0000000",
+            "+1.0000000",
+            "1e3.0000000",
+            "1,0000000",
+            " 1.0000000",
+            "1.0000000 ",
+            "1.00000a0",
+            "922337203685.4775808",
+            "9999999999999.0000000",
+            "٣.0000000",
+        ] {
+            assert_eq!(stroops(bad, "x"), Err(MapError::BadField("x")), "{bad:?}");
+        }
+    }
+
+    #[test]
+    fn an_account_the_reserve_cannot_describe_is_refused_not_guessed() {
+        let mutate = |change: &dyn Fn(&mut Value)| {
+            let mut record = json_of(THREE_SIGNERS);
+            change(&mut record);
+            map_funded(&record.to_string())
+        };
+        assert_eq!(
+            mutate(&|r| {
+                r.as_object_mut().unwrap().remove("balances");
+            }),
+            Err(MapError::MissingField("balances"))
+        );
+        assert_eq!(
+            mutate(&|r| r["balances"][0]["asset_type"] = json!("credit_alphanum4")),
+            Err(MapError::MissingField("balances"))
+        );
+        assert_eq!(
+            mutate(&|r| {
+                let first = r["balances"][0].clone();
+                r["balances"].as_array_mut().unwrap().push(first);
+            }),
+            Err(MapError::BadField("balances"))
+        );
+        assert_eq!(
+            mutate(&|r| r["balances"][0]["balance"] = json!(10)),
+            Err(MapError::BadField("balance"))
+        );
+        assert_eq!(
+            mutate(&|r| r["balances"][0]["balance"] = json!("1")),
+            Err(MapError::BadField("balances.balance"))
+        );
+        assert_eq!(
+            mutate(&|r| {
+                r["balances"][0]["selling_liabilities"] = json!("999999.0000000");
+            }),
+            Err(MapError::BadField("reserve"))
+        );
+        assert_eq!(
+            mutate(&|r| r["subentry_count"] = json!(1)),
+            Err(MapError::BadField("subentry_count"))
+        );
+        assert_eq!(
+            mutate(&|r| r["subentry_count"] = json!(1001)),
+            Err(MapError::BadField("reserve"))
+        );
+        assert_eq!(
+            mutate(&|r| r["num_sponsored"] = json!(99)),
+            Err(MapError::BadField("reserve"))
+        );
+        assert_eq!(
+            mutate(&|r| {
+                r.as_object_mut().unwrap().remove("num_sponsoring");
+            }),
+            Err(MapError::MissingField("num_sponsoring"))
+        );
+    }
+
+    #[test]
+    fn a_base_reserve_the_checker_would_refuse_is_refused_here_first() {
+        for base_reserve in [0, -1] {
+            let context = Context {
+                base_reserve: Some(base_reserve),
+                ..context(Network::Testnet)
+            };
+            assert_eq!(
+                snapshot_from_account(THREE_SIGNERS, &context),
+                Err(MapError::BadField("reserve"))
+            );
+        }
+    }
+
+    #[test]
+    fn the_figures_are_checked_for_signers_of_every_kind() {
+        // A pre-auth signer is a sub-entry too, so one sub-entry cannot cover
+        // the account's own two signers plus it.
+        let mut record = json_of(THREE_SIGNERS);
+        record["signers"].as_array_mut().unwrap().push(json!({
+            "weight": 1,
+            "key": "TBU2RRGLXH3E5CQHTD3ODLDF2BWDCYUSSBLLZ5GNW7JXHDIYKXZWHXL7",
+            "type": "preauth_tx"
+        }));
+        record["subentry_count"] = json!(2);
+        assert_eq!(
+            map_funded(&record.to_string()),
+            Err(MapError::BadField("subentry_count"))
+        );
+        record["subentry_count"] = json!(3);
+        assert!(map_funded(&record.to_string()).is_ok());
     }
 }

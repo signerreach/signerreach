@@ -1,0 +1,13 @@
+{
+  "id": "FX-16",
+  "summary": "An account that already holds 1000 sub-entries cannot add a signer, however much it owns.",
+  "source": "synthetic",
+  "verdict": "UNSAFE",
+  "exit_code": 1,
+  "codes": [
+    "SR-APPLY-01"
+  ],
+  "transactions": [
+    "failed_to_apply"
+  ]
+}

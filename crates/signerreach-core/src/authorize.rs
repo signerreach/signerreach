@@ -52,6 +52,15 @@ pub enum Failure {
         /// The threshold that was needed.
         need: u32,
     },
+    /// The balance available cannot pay the fee, so the network rejects the
+    /// transaction before it is applied (`SR-RESERVE-01`, R13). Raised by the
+    /// evaluation, not by [`authorize`], which knows nothing of balances.
+    FeeUnaffordable {
+        /// The fee, in stroops.
+        fee: u32,
+        /// What was available, in stroops. May be negative.
+        available: i128,
+    },
 }
 
 impl Failure {
@@ -62,6 +71,7 @@ impl Failure {
             Failure::EnvelopeNotAuthorized { .. } | Failure::OperationNotAuthorized { .. } => {
                 Code::Auth01
             }
+            Failure::FeeUnaffordable { .. } => Code::Reserve01,
         }
     }
 }

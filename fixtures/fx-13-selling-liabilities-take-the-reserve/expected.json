@@ -1,0 +1,13 @@
+{
+  "id": "FX-13",
+  "summary": "One stroop of selling liabilities is enough to leave a new signer short by one stroop.",
+  "source": "synthetic",
+  "verdict": "UNSAFE",
+  "exit_code": 1,
+  "codes": [
+    "SR-RESERVE-01"
+  ],
+  "transactions": [
+    "failed_to_apply"
+  ]
+}

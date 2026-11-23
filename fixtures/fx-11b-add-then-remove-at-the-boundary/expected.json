@@ -1,0 +1,13 @@
+{
+  "id": "FX-11b",
+  "summary": "[add D, remove C] at the same balance: the addition comes first and cannot be afforded.",
+  "source": "synthetic",
+  "verdict": "UNSAFE",
+  "exit_code": 1,
+  "codes": [
+    "SR-RESERVE-01"
+  ],
+  "transactions": [
+    "failed_to_apply"
+  ]
+}

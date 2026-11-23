@@ -26,7 +26,7 @@ The inputs are a validated account snapshot, a sequence of planned transactions 
 signerreach fetch --network testnet --account G... > snapshot.json
 ```
 
-`fetch` performs constrained, read-only requests to Horizon. It can use an explicitly supplied `--horizon-url`. It returns `0` for a snapshot, `64` for incorrect arguments and `69` if the account cannot be read. Never assume a snapshot is fresh just because a request succeeded.
+`fetch` performs constrained, read-only requests to Horizon: the server root, one account, and the record of the ledger that account answer is as of, which is read for the network's base reserve. It can use an explicitly supplied `--horizon-url`. It returns `0` for a snapshot, `64` for incorrect arguments and `69` if the account cannot be read. Never assume a snapshot is fresh just because a request succeeded.
 
 ## Schema and diagnostics
 

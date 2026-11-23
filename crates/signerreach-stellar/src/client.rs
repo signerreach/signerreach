@@ -3,8 +3,9 @@
 //! This is the only code in the project that opens a network connection. It is
 //! written to be hard to misuse and hard to mislead:
 //!
-//! - **Only `GET`.** Nothing is ever sent to the server except a request for two
-//!   addresses (see [`HorizonUrl`]): the server root, and one account.
+//! - **Only `GET`.** Nothing is ever sent to the server except a request for
+//!   three addresses (see [`HorizonUrl`]): the server root, one account, and one
+//!   ledger record, which is read for the network's base reserve.
 //! - **Encrypted, unless it is this machine.** The address rules are in
 //!   [`HorizonUrl`]; the client also refuses plain http itself.
 //! - **Redirects are never followed.** A redirect answer is an error, so the
@@ -17,7 +18,8 @@
 //! - **Consistent.** The server root is read before and after the account. If
 //!   the network name or protocol version differs between the two reads, the
 //!   result is refused, because the snapshot would claim a protocol it was not
-//!   read under.
+//!   read under. The ledger record must be for the ledger the account answer is
+//!   as of, and for the same protocol version as the root.
 //! - **Nothing the server sends is repeated in an error message.**
 
 use std::time::Duration;
@@ -28,7 +30,7 @@ use ureq::Agent;
 use crate::error::MapError;
 use crate::horizon::{Context, snapshot_from_account};
 use crate::http_date::http_date_to_rfc3339;
-use crate::root::{RootInfo, parse_latest_ledger};
+use crate::root::{LedgerInfo, RootInfo, parse_latest_ledger};
 use crate::url::{HorizonUrl, UrlError};
 
 /// How long to wait, and how much to accept.
@@ -144,8 +146,19 @@ pub fn fetch_snapshot(
             .ok_or(FetchError::MissingHeader("Date"))?,
     )?;
 
+    // The base reserve is a property of the ledger, not of the account, so it
+    // is read from the ledger the account answer is as of.
+    let ledger_reply = get(&agent, &server.ledger_url(as_of_ledger), limits)?;
+    let ledger = LedgerInfo::parse(&ledger_reply.body)?;
+    if ledger.sequence != as_of_ledger {
+        return Err(FetchError::Map(MapError::BadLedger));
+    }
+
     let after = read_root(&agent, &root_url, limits)?;
     if after != before {
+        return Err(FetchError::ChangedDuringFetch);
+    }
+    if ledger.protocol_version != before.protocol_version {
         return Err(FetchError::ChangedDuringFetch);
     }
 
@@ -155,6 +168,7 @@ pub fn fetch_snapshot(
         captured_at: &captured_at,
         protocol_version: before.protocol_version,
         requested_account: Some(account),
+        base_reserve: Some(ledger.base_reserve),
     };
     Ok(snapshot_from_account(&reply.body, &context)?)
 }

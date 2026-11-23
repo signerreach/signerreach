@@ -1,0 +1,14 @@
+{
+  "id": "FX-17",
+  "summary": "tx1 fails when applied and still pays its fee, so tx2 can no longer pay its own and is rejected.",
+  "source": "synthetic",
+  "verdict": "UNSAFE",
+  "exit_code": 1,
+  "codes": [
+    "SR-RESERVE-01"
+  ],
+  "transactions": [
+    "failed_to_apply",
+    "rejected"
+  ]
+}

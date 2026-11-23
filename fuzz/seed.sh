@@ -30,18 +30,31 @@ for dir in "$root"/fixtures/fx-*/; do
   } > "$corpus/evaluate_report/$name"
 done
 
-# Ten bytes choose the network, the protocol and the ledger, then the record.
+# Ten bytes choose the network, the protocol, the ledger and the reserve data,
+# then the record.
 # 00 00 = testnet, protocol 29;  01 01 = pubnet, protocol 30;  ledger bytes are
-# large enough to be at or after every recorded response.
+# large enough to be at or after every recorded response. Byte 6 = 01 asks for
+# `reserve` data, and the next three bytes (40 4b 4c) are a base reserve of
+# 5,000,000 stroops.
 for record in "$root"/crates/signerreach-stellar/tests/data/horizon-*.json; do
   name=$(basename "$record" .json)
   { printf '\000\000\377\377\377\177\000\000\000\000'; cat "$record"; } \
     > "$corpus/horizon_mapping/$name-testnet29"
   { printf '\001\001\377\377\377\177\000\000\000\000'; cat "$record"; } \
     > "$corpus/horizon_mapping/$name-pubnet30"
+  { printf '\000\000\377\377\377\177\001\100\113\114'; cat "$record"; } \
+    > "$corpus/horizon_mapping/$name-testnet29-reserve"
+  { printf '\001\001\377\377\377\177\001\100\113\114'; cat "$record"; } \
+    > "$corpus/horizon_mapping/$name-pubnet30-reserve"
 done
 
-# address NUL Date header NUL server root NUL Latest-Ledger header
+# address NUL Date header NUL server root (also read as a ledger record) NUL
+# Latest-Ledger header
+printf '%s\0%s\0%s\0%s' \
+  'https://horizon-testnet.stellar.org' \
+  'Sat, 17 Oct 2026 08:17:27 GMT' \
+  '{"sequence":5240432,"protocol_version":30,"base_fee_in_stroops":100,"base_reserve_in_stroops":5000000}' \
+  '5240432' > "$corpus/network_text/ledger"
 printf '%s\0%s\0%s\0%s' \
   'https://horizon-testnet.stellar.org' \
   'Sat, 17 Oct 2026 08:17:27 GMT' \

@@ -1,0 +1,13 @@
+{
+  "id": "FX-10b",
+  "summary": "The same plan with one stroop less: the signer leaves less than a base reserve available, and the network fails the transaction.",
+  "source": "synthetic",
+  "verdict": "UNSAFE",
+  "exit_code": 1,
+  "codes": [
+    "SR-RESERVE-01"
+  ],
+  "transactions": [
+    "failed_to_apply"
+  ]
+}

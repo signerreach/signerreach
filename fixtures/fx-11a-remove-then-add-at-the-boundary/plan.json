@@ -1,0 +1,29 @@
+{
+  "schema": "signerreach.plan/1",
+  "transactions": [
+    {
+      "id": "swap",
+      "fee": 200,
+      "signed_by": [
+        "GAAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQDZ7H",
+        "GABAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEJXA"
+      ],
+      "operations": [
+        {
+          "op": "set_options",
+          "signer": {
+            "key": "GABQGAYDAMBQGAYDAMBQGAYDAMBQGAYDAMBQGAYDAMBQGAYDAMBQHGPC",
+            "weight": 0
+          }
+        },
+        {
+          "op": "set_options",
+          "signer": {
+            "key": "GACAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAJJHP",
+            "weight": 1
+          }
+        }
+      ]
+    }
+  ]
+}

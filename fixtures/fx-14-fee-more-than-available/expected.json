@@ -1,0 +1,13 @@
+{
+  "id": "FX-14",
+  "summary": "Available is 99 stroops and the fee is 100: the network rejects the transaction before applying it.",
+  "source": "synthetic",
+  "verdict": "UNSAFE",
+  "exit_code": 1,
+  "codes": [
+    "SR-RESERVE-01"
+  ],
+  "transactions": [
+    "rejected"
+  ]
+}

@@ -149,7 +149,13 @@ signerreach fetch --network testnet --account G... > snapshot.json
 Use `--horizon-url` to read from a server of your own (https, or http on your own
 machine). It exits 0 with a snapshot, 64 for bad arguments, and 69 if the account
 could not be read. The snapshot records the ledger and protocol version the server
-reported, and `check` reports `INCONCLUSIVE` for any protocol other than 29.
+reported, and `check` reports `INCONCLUSIVE` for any protocol other than 29 or 30.
+
+It sends three kinds of request: the server root, the account, and the record of
+the ledger the account answer is as of. The ledger record is read only for the
+network's base reserve. The snapshot carries it, with the account's balance and
+entry counts, in a `reserve` object, so that `check` can tell whether a plan that
+adds a signer can be afforded.
 
 Or write the file yourself, from an account record such as Horizon's:
 
@@ -160,7 +166,9 @@ Or write the file yourself, from an account record such as Horizon's:
 | `signers` | every other signer entry, with `"type": "ed25519"` |
 | `thresholds` | `low_threshold`, `med_threshold`, `high_threshold` |
 | `provenance.as_of_ledger` | the ledger you read it at, taken from the same fetch |
+| `reserve` (optional) | the native balance and selling liabilities in stroops, `subentry_count`, `num_sponsoring`, `num_sponsored`, and the base reserve of the same ledger |
 
+Without `reserve`, a plan that adds a signer cannot be `SAFE WITHIN SCOPE`.
 Signers of any other type (pre-authorized transactions, hash(x), signed payloads)
 are not supported, and the tool reports `INCONCLUSIVE` if it sees one. The exact
 format is in section 5 of [`docs/SPEC.md`](docs/SPEC.md).
@@ -225,9 +233,15 @@ scripts**, with a reproducible trace.
   every possible input. The earlier v0.1.0 accepts protocol 29 only.
 - Recognized unsupported inputs, including fee-bump transactions,
   preconditions, other source accounts, sponsored signers and Soroban contract
-  accounts, are reported `INCONCLUSIVE`. Reserve sufficiency and other external
-  conditions cannot always be established from the snapshot, even when the
-  verdict is `SAFE WITHIN SCOPE`.
+  accounts, are reported `INCONCLUSIVE`.
+- A plan that adds a signer is checked against the account's balance and the
+  fee, in the order the network applies them, when the snapshot carries reserve
+  data (`fetch` writes it). Without that data such a plan can never be
+  `SAFE WITHIN SCOPE`. The figures are read as of the snapshot's ledger, the
+  rules rest on the stellar-core source and one failure seen on Testnet, and
+  [SPEC.md](docs/SPEC.md) says which boundary cases are not yet recorded on a
+  network. Other external conditions cannot always be established from the
+  snapshot, even when the verdict is `SAFE WITHIN SCOPE`.
 - Historical Testnet observations do not establish current network
   compatibility or the current state of an account.
 

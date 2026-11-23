@@ -8,7 +8,8 @@
 //! ([`diagnostic`]), the three input documents ([`input`]), the threshold
 //! rules ([`rules`]), the authorization check ([`authorize`]), applying a
 //! transaction ([`apply`]), the evaluation that produces the verdict
-//! ([`evaluate`]) and the text and JSON reports ([`report`]). The implemented
+//! ([`evaluate`]), the balance and reserve figures ([`reserve`]) and the text
+//! and JSON reports ([`report`]). The implemented
 //! `check` and `fetch` commands live in `signerreach-cli`.
 
 pub mod account;
@@ -19,6 +20,7 @@ pub mod error;
 pub mod evaluate;
 pub mod input;
 pub mod report;
+pub mod reserve;
 pub mod rules;
 
 #[cfg(test)]
@@ -36,3 +38,4 @@ pub use input::plan::{Plan, PlannedTransaction, SetOptions, SignerChange, parse_
 pub use input::snapshot::{Network, Provenance, Snapshot, SnapshotSource, parse_snapshot};
 pub use input::{InputIssue, MAX_INPUT_BYTES};
 pub use report::{RejectedDocument, json_report, rejected_json, rejected_text, text_report};
+pub use reserve::{ASSUMED_FEE_PER_OPERATION, Refusal, Reserve, SUB_ENTRY_LIMIT};

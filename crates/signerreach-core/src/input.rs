@@ -274,6 +274,21 @@ pub(crate) fn as_u32(value: &Json, path: &str, issues: &mut Issues) -> Option<u3
     number
 }
 
+/// A whole number of stroops from 0 to the largest `i64`, or an issue.
+pub(crate) fn as_amount(value: &Json, path: &str, issues: &mut Issues) -> Option<i64> {
+    let number = match value {
+        Json::Number(number) => number.as_u64().and_then(|whole| i64::try_from(whole).ok()),
+        _ => None,
+    };
+    if number.is_none() {
+        issues.input(
+            path,
+            "expected a whole number of stroops from 0 to 9223372036854775807",
+        );
+    }
+    number
+}
+
 /// A boolean value, or an issue.
 pub(crate) fn as_bool(value: &Json, path: &str, issues: &mut Issues) -> Option<bool> {
     match value {

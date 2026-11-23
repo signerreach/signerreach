@@ -20,7 +20,7 @@ After applying the ordered plan, SignerReach assesses whether the signer keys de
 | **UNSAFE** | The proposed plan is rejected or a declared scenario loses administrative access. |
 | **INCONCLUSIVE** | The model lacks information or encounters an input or protocol feature it does not safely support. |
 
-`SAFE WITHIN SCOPE` is not a promise that a transaction will execute successfully. Fees, reserves, state changes, key custody and other external conditions can matter. An account snapshot becomes stale as the ledger advances.
+`SAFE WITHIN SCOPE` is not a promise that a transaction will execute successfully. The balance is checked only for the fee and for adding a signer, and only when the snapshot carries reserve data. State changes, key custody and other external conditions can matter. An account snapshot becomes stale as the ledger advances.
 
 ## Trace and coverage
 

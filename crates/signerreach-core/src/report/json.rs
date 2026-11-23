@@ -19,6 +19,7 @@ use crate::evaluate::{Evaluation, Reach, ScenarioResult, Step, StepResult};
 use crate::input::availability::{Availability, Status};
 use crate::input::plan::{Plan, SetOptions};
 use crate::input::snapshot::Snapshot;
+use crate::reserve::Reserve;
 use crate::rules::required_class;
 
 /// The schema identifier of the JSON report.
@@ -64,7 +65,37 @@ pub fn json_report(
         "coverage": { "modelled": MODELLED, "not_modelled": NOT_MODELLED },
     });
 
+    let mut value = value;
+    if let Value::Object(fields) = &mut value {
+        // Written only when the snapshot has reserve data, so a document
+        // without it gives the report it always gave.
+        if let Some(reserve) = snapshot.reserve() {
+            fields.insert("starting_reserve".to_string(), reserve_json(&reserve));
+        }
+        if let Some(reserve) = &evaluation.final_reserve {
+            fields.insert("reserve_after".to_string(), reserve_json(reserve));
+        }
+    }
+
     format!("{value:#}\n")
+}
+
+/// Amounts are whole stroops. The two derived figures are clamped to the
+/// range of a JSON integer, which no real account reaches.
+fn reserve_json(reserve: &Reserve) -> Value {
+    let clamp = |amount: i128| {
+        i64::try_from(amount).unwrap_or(if amount < 0 { i64::MIN } else { i64::MAX })
+    };
+    json!({
+        "balance": reserve.balance(),
+        "selling_liabilities": reserve.selling_liabilities(),
+        "subentry_count": reserve.subentry_count(),
+        "num_sponsoring": reserve.num_sponsoring(),
+        "num_sponsored": reserve.num_sponsored(),
+        "base_reserve": reserve.base_reserve(),
+        "minimum_balance": clamp(reserve.min_balance()),
+        "available": clamp(reserve.available()),
+    })
 }
 
 fn state_json(state: &AccountState) -> Value {
@@ -195,7 +226,7 @@ fn transaction_json(signed_by: &[SignerKey], operations: &[SetOptions], step: &S
             })
             .collect()
     });
-    json!({
+    let mut value = json!({
         "id": step.id,
         "operations": operations
             .iter()
@@ -207,7 +238,19 @@ fn transaction_json(signed_by: &[SignerKey], operations: &[SetOptions], step: &S
         "checks": checks,
         "result": result,
         "codes": codes,
-    })
+    });
+    if let Value::Object(fields) = &mut value {
+        if let Some(reserve) = &step.reserve_before {
+            fields.insert("reserve_before".to_string(), reserve_json(reserve));
+        }
+        if let Some(fee) = &step.fee {
+            fields.insert(
+                "fee".to_string(),
+                json!({ "stroops": fee.amount, "assumed": fee.assumed }),
+            );
+        }
+    }
+    value
 }
 
 fn reach_json(reach: Reach) -> &'static str {
@@ -274,7 +317,7 @@ mod tests {
     use crate::evaluate::evaluate;
     use crate::input::{Json, MAX_INPUT_BYTES};
     use crate::report::text_report;
-    use crate::testing::{availability, availability_with, k, plan, snapshot, tx};
+    use crate::testing::{availability, availability_with, k, plan, snapshot, snapshot_funded, tx};
 
     fn render(snapshot: &Snapshot, plan: &Plan, availability: &Availability) -> String {
         let evaluation = evaluate(snapshot, plan, availability);
@@ -534,5 +577,101 @@ mod tests {
         assert!(text.is_ascii());
         assert!(text.ends_with("}\n"));
         assert_eq!(text, unsafe_text());
+    }
+
+    // ---- balance, reserve and fee ----
+
+    fn funded_json(balance: i64, fee: Option<u32>) -> Value {
+        let mut transaction = tx("tx1", &[1, 2], vec![crate::testing::signer_op(4, 1)]);
+        if let Some(fee) = fee {
+            transaction["fee"] = json!(fee);
+        }
+        parsed(&render(
+            &snapshot_funded(1, &[(2, 1)], (1, 2, 2), (balance, 0, 1)),
+            &plan(vec![transaction]),
+            &availability(&[(1, "available"), (2, "available"), (4, "available")]),
+        ))
+    }
+
+    #[test]
+    fn a_report_without_reserve_data_has_none_of_the_balance_fields() {
+        let report = parsed(&unsafe_text());
+        for absent in ["starting_reserve", "reserve_after"] {
+            assert!(report.get(absent).is_none(), "{absent}");
+        }
+        let transaction = &report["transactions"][0];
+        assert!(transaction.get("reserve_before").is_none());
+        assert!(transaction.get("fee").is_none());
+    }
+
+    #[test]
+    fn a_report_with_reserve_data_carries_the_figures_in_stroops() {
+        let report = funded_json(20_000_100, None);
+        assert_eq!(report["verdict"], "SAFE WITHIN SCOPE");
+        assert_eq!(
+            report["starting_reserve"],
+            json!({
+                "balance": 20_000_100,
+                "selling_liabilities": 0,
+                "subentry_count": 1,
+                "num_sponsoring": 0,
+                "num_sponsored": 0,
+                "base_reserve": 5_000_000,
+                "minimum_balance": 15_000_000,
+                "available": 5_000_100
+            })
+        );
+        assert_eq!(report["reserve_after"]["balance"], 20_000_000);
+        assert_eq!(report["reserve_after"]["subentry_count"], 2);
+        let transaction = &report["transactions"][0];
+        assert_eq!(transaction["reserve_before"]["available"], 5_000_100);
+        assert_eq!(
+            transaction["fee"],
+            json!({ "stroops": 100, "assumed": true })
+        );
+    }
+
+    #[test]
+    fn a_fee_from_the_plan_is_not_marked_assumed() {
+        let report = funded_json(20_000_100, Some(150));
+        assert_eq!(
+            report["transactions"][0]["fee"],
+            json!({ "stroops": 150, "assumed": false })
+        );
+    }
+
+    #[test]
+    fn a_failed_addition_is_reported_with_its_code_and_the_fee_paid() {
+        let report = funded_json(20_000_099, None);
+        assert_eq!(report["verdict"], "UNSAFE");
+        assert_eq!(report["transactions"][0]["result"], "failed_to_apply");
+        assert_eq!(report["transactions"][0]["codes"], json!(["SR-RESERVE-01"]));
+        assert_eq!(report["reserve_after"]["balance"], 19_999_999);
+        assert_eq!(report["reserve_after"]["subentry_count"], 1);
+    }
+
+    #[test]
+    fn the_report_with_reserve_data_keeps_its_keys_sorted_and_is_repeatable() {
+        let text = render(
+            &snapshot_funded(1, &[(2, 1)], (1, 2, 2), (20_000_100, 0, 1)),
+            &plan(vec![tx(
+                "tx1",
+                &[1, 2],
+                vec![crate::testing::signer_op(4, 1)],
+            )]),
+            &availability(&[(1, "available"), (2, "available"), (4, "available")]),
+        );
+        let tree: Json = serde_json::from_str(&text).expect("JSON");
+        assert_keys_sorted(&tree);
+        let again = render(
+            &snapshot_funded(1, &[(2, 1)], (1, 2, 2), (20_000_100, 0, 1)),
+            &plan(vec![tx(
+                "tx1",
+                &[1, 2],
+                vec![crate::testing::signer_op(4, 1)],
+            )]),
+            &availability(&[(1, "available"), (2, "available"), (4, "available")]),
+        );
+        assert_eq!(text, again);
     }
 }

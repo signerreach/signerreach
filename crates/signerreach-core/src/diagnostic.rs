@@ -34,6 +34,8 @@ pub enum Code {
     Tx04,
     /// `SR-APPLY-01`: an authorized transaction would fail when applied.
     Apply01,
+    /// `SR-RESERVE-01`: the balance cannot cover the fee or a new signer.
+    Reserve01,
     /// `SR-LOCK-01`: total weight of all signers is below the HIGH threshold.
     Lock01,
     /// `SR-LOSS-01`: HIGH is unreachable with the signers declared available.
@@ -54,7 +56,8 @@ pub enum Code {
     Fresh01,
     /// `SR-RULES-01`: protocol or rule version not supported.
     Rules01,
-    /// `SR-STATE-01`: sponsorship or reserve conditions are not modelled.
+    /// `SR-STATE-01`: a condition that is not modelled or not known (flags,
+    /// sponsorship, missing reserve data, a fee below the assumed minimum).
     State01,
     /// `SR-INTENT-01`: plan declared irreversible; presentation only.
     Intent01,
@@ -62,13 +65,14 @@ pub enum Code {
 
 impl Code {
     /// Every code, in the order of the specification.
-    pub const ALL: [Code; 18] = [
+    pub const ALL: [Code; 19] = [
         Code::Auth01,
         Code::Tx01,
         Code::Tx02,
         Code::Tx03,
         Code::Tx04,
         Code::Apply01,
+        Code::Reserve01,
         Code::Lock01,
         Code::Loss01,
         Code::Lock02,
@@ -86,9 +90,12 @@ impl Code {
     /// What the code does to the verdict.
     pub const fn effect(self) -> Effect {
         match self {
-            Code::Auth01 | Code::Tx01 | Code::Apply01 | Code::Lock01 | Code::Loss01 => {
-                Effect::Unsafe
-            }
+            Code::Auth01
+            | Code::Tx01
+            | Code::Apply01
+            | Code::Reserve01
+            | Code::Lock01
+            | Code::Loss01 => Effect::Unsafe,
             Code::Tx02
             | Code::Tx03
             | Code::Tx04
@@ -113,6 +120,7 @@ impl Code {
             Code::Tx03 => "SR-TX-03",
             Code::Tx04 => "SR-TX-04",
             Code::Apply01 => "SR-APPLY-01",
+            Code::Reserve01 => "SR-RESERVE-01",
             Code::Lock01 => "SR-LOCK-01",
             Code::Loss01 => "SR-LOSS-01",
             Code::Lock02 => "SR-LOCK-02",
@@ -158,6 +166,7 @@ mod tests {
             Code::Auth01,
             Code::Tx01,
             Code::Apply01,
+            Code::Reserve01,
             Code::Lock01,
             Code::Loss01,
         ];

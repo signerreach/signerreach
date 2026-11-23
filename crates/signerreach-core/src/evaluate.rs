@@ -16,6 +16,7 @@ use crate::diagnostic::{Code, Effect};
 use crate::input::availability::{Availability, Intent, Status};
 use crate::input::plan::Plan;
 use crate::input::snapshot::Snapshot;
+use crate::reserve::Reserve;
 
 /// The answer.
 ///
@@ -65,6 +66,16 @@ pub enum StepResult {
     NotEvaluated,
 }
 
+/// The fee a transaction was charged in the model.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FeeUsed {
+    /// The fee, in stroops.
+    pub amount: u32,
+    /// True when the plan gave no fee and 100 stroops for each operation was
+    /// assumed.
+    pub assumed: bool,
+}
+
 /// One transaction of the plan and its result.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Step {
@@ -73,6 +84,12 @@ pub struct Step {
     /// The state the transaction was checked against; `None` if it was not
     /// evaluated.
     pub before: Option<AccountState>,
+    /// The balance figures the transaction was checked against; `None` if it
+    /// was not evaluated or the snapshot has none.
+    pub reserve_before: Option<Reserve>,
+    /// The fee used for the balance checks. `None` unless the snapshot has
+    /// balance figures and the transaction got as far as the fee check.
+    pub fee: Option<FeeUsed>,
     /// Who signed and how each check came out; `None` if it was not evaluated.
     pub trace: Option<Trace>,
     /// What happened.
@@ -143,6 +160,9 @@ pub struct Evaluation {
     pub steps: Vec<Step>,
     /// The state after the last transaction that was applied.
     pub final_state: AccountState,
+    /// The balance figures after the last transaction, when the snapshot has
+    /// any. A transaction that failed when applied has still paid its fee.
+    pub final_reserve: Option<Reserve>,
     /// Findings about the plan as a whole.
     pub plan_findings: Vec<Finding>,
     /// The baseline and each named scenario. Empty if evaluation stopped
@@ -155,6 +175,7 @@ pub struct Evaluation {
 /// Evaluates a plan.
 pub fn evaluate(snapshot: &Snapshot, plan: &Plan, availability: &Availability) -> Evaluation {
     let mut state = snapshot.state().clone();
+    let mut reserve = snapshot.reserve();
     let mut steps = Vec::new();
     let mut plan_findings = Vec::new();
     let mut stopped = false;
@@ -165,24 +186,70 @@ pub fn evaluate(snapshot: &Snapshot, plan: &Plan, availability: &Availability) -
             steps.push(Step {
                 id,
                 before: None,
+                reserve_before: None,
+                fee: None,
                 trace: None,
                 result: StepResult::NotEvaluated,
             });
             continue;
         }
         let before = state.clone();
+        let reserve_before = reserve;
+        let mut fee_used = None;
         let step_trace = trace(&state, transaction);
         let result = match authorize(&state, transaction) {
-            Authorization::Accepted => match apply(&state, transaction) {
-                Ok(next) => {
-                    state = next;
-                    StepResult::Accepted
+            Authorization::Accepted => {
+                // The fee is charged before the first operation (R13), and kept
+                // if an operation then fails (R12).
+                let (amount, assumed) = transaction.fee_or_assumed();
+                let after_fee = reserve.map(|figures| figures.after_fee(amount));
+                let unaffordable = reserve
+                    .map(|figures| figures.available())
+                    .filter(|&available| available < i128::from(amount));
+                if reserve.is_some() {
+                    fee_used = Some(FeeUsed { amount, assumed });
                 }
-                Err(failure) => {
-                    plan_findings.push(finding(failure.code(), None, apply_message(&id, &failure)));
-                    StepResult::FailedToApply(failure)
+                if let Some(available) = unaffordable {
+                    let failure = Failure::FeeUnaffordable {
+                        fee: amount,
+                        available,
+                    };
+                    plan_findings.push(finding(
+                        failure.code(),
+                        None,
+                        failure_message(&id, &failure),
+                    ));
+                    StepResult::Rejected(vec![failure])
+                } else {
+                    match apply(&state, after_fee, transaction) {
+                        Ok(applied) => {
+                            for operation in &applied.unchecked_additions {
+                                plan_findings.push(finding(
+                                    Code::State01,
+                                    None,
+                                    format!(
+                                        "transaction {id}, operation {operation}: adds a signer, \
+                                         and the snapshot has no reserve data, so it is not known \
+                                         whether the balance can cover it"
+                                    ),
+                                ));
+                            }
+                            state = applied.state;
+                            reserve = applied.reserve;
+                            StepResult::Accepted
+                        }
+                        Err(failure) => {
+                            reserve = after_fee;
+                            plan_findings.push(finding(
+                                failure.code(),
+                                None,
+                                apply_message(&id, &failure),
+                            ));
+                            StepResult::FailedToApply(failure)
+                        }
+                    }
                 }
-            },
+            }
             Authorization::Rejected(failures) => {
                 for failure in &failures {
                     plan_findings.push(finding(
@@ -204,6 +271,8 @@ pub fn evaluate(snapshot: &Snapshot, plan: &Plan, availability: &Availability) -
         steps.push(Step {
             id,
             before: Some(before),
+            reserve_before,
+            fee: fee_used,
             trace: Some(step_trace),
             result,
         });
@@ -247,6 +316,7 @@ pub fn evaluate(snapshot: &Snapshot, plan: &Plan, availability: &Availability) -
     Evaluation {
         steps,
         final_state: state,
+        final_reserve: reserve,
         plan_findings,
         scenarios,
         verdict,
@@ -468,6 +538,11 @@ fn failure_message(id: &str, failure: &Failure) -> String {
             "transaction {id}, operation {operation}: needs {class} {need} and the signatures give \
              {have}"
         ),
+        Failure::FeeUnaffordable { fee, available } => format!(
+            "transaction {id}: the fee is {fee} stroops and {available} are available (the balance \
+             less the minimum balance and selling liabilities), so the network rejects it before \
+             applying it"
+        ),
     }
 }
 
@@ -503,6 +578,20 @@ fn apply_message(id: &str, failure: &ApplyFailure) -> String {
             "transaction {id}, operation {operation}: would take the account above {max} \
              additional signers"
         ),
+        ApplyFailure::TooManySubEntries { operation, max, .. } => format!(
+            "transaction {id}, operation {operation}: would take the account above {max} \
+             sub-entries"
+        ),
+        ApplyFailure::LowReserve {
+            operation,
+            key,
+            available,
+            needed,
+        } => format!(
+            "transaction {id}, operation {operation}: adding signer {key} needs {needed} stroops \
+             available and {available} are, a shortfall of {}",
+            needed - available
+        ),
         ApplyFailure::Model(error) => format!("transaction {id}: {error}"),
     }
 }
@@ -512,7 +601,10 @@ mod tests {
     use serde_json::json;
 
     use super::*;
-    use crate::testing::{availability, availability_with, k, plan, signer_op, snapshot, tx};
+    use crate::testing::{
+        availability, availability_with, k, plan, signer_op, snapshot, snapshot_funded, tx,
+        tx_with_fee,
+    };
 
     fn codes(findings: &[Finding]) -> Vec<Code> {
         findings.iter().map(|f| f.code).collect()
@@ -558,7 +650,7 @@ mod tests {
     #[test]
     fn a_rotation_with_enough_available_signers_is_safe() {
         let result = evaluate(
-            &snapshot(1, &[(2, 1), (3, 1)], (1, 2, 2)),
+            &snapshot_funded(1, &[(2, 1), (3, 1)], (1, 2, 2), (100_000_000_000, 0, 2)),
             &plan(vec![tx(
                 "rotate",
                 &[1, 2],
@@ -889,5 +981,266 @@ mod tests {
             )
         };
         assert_eq!(run(), run());
+    }
+
+    // ---- balance, reserve and fee (R10 to R14, FX-10 to FX-17) ----
+
+    /// Account 1 with signer 2 (weight 1), thresholds 1/2/2, one sub-entry,
+    /// and the given balance and selling liabilities.
+    fn funded(balance: i64, liabilities: i64) -> Snapshot {
+        snapshot_funded(1, &[(2, 1)], (1, 2, 2), (balance, liabilities, 1))
+    }
+
+    fn everyone() -> Availability {
+        availability(&[
+            (1, "available"),
+            (2, "available"),
+            (3, "available"),
+            (4, "available"),
+        ])
+    }
+
+    fn add_d() -> Plan {
+        plan(vec![tx("tx1", &[1, 2], vec![signer_op(4, 1)])])
+    }
+
+    fn shortfall_of(result: &Evaluation) -> String {
+        result
+            .plan_findings
+            .iter()
+            .find(|f| f.code == Code::Reserve01)
+            .map(|f| f.message.clone())
+            .expect("a reserve finding")
+    }
+
+    // FX-10a.
+    #[test]
+    fn a_signer_is_safe_at_exactly_the_minimum_balance_plus_reserve_plus_fee() {
+        let result = evaluate(&funded(20_000_100, 0), &add_d(), &everyone());
+        assert_eq!(result.verdict, Verdict::SafeWithinScope);
+        assert_eq!(result.steps[0].result, StepResult::Accepted);
+        assert_eq!(
+            result.steps[0].fee,
+            Some(FeeUsed {
+                amount: 100,
+                assumed: true
+            })
+        );
+        let after = result.final_reserve.expect("figures after");
+        assert_eq!((after.balance(), after.subentry_count()), (20_000_000, 2));
+        assert_eq!(after.available(), 0);
+    }
+
+    // FX-10b.
+    #[test]
+    fn one_stroop_less_is_unsafe_with_the_shortfall_named() {
+        let result = evaluate(&funded(20_000_099, 0), &add_d(), &everyone());
+        assert_eq!(result.verdict, Verdict::Unsafe);
+        assert!(matches!(
+            result.steps[0].result,
+            StepResult::FailedToApply(ApplyFailure::LowReserve { .. })
+        ));
+        assert_eq!(all_codes(&result), [Code::Reserve01]);
+        assert!(shortfall_of(&result).ends_with("a shortfall of 1"));
+        // The signer was not added, but the fee was paid.
+        assert_eq!(result.final_state.additional_signer_count(), 1);
+        assert_eq!(result.final_reserve.unwrap().balance(), 19_999_999);
+        assert_eq!(result.final_reserve.unwrap().subentry_count(), 1);
+    }
+
+    // FX-10c, the Testnet failure at ledger 5831809.
+    #[test]
+    fn the_testnet_failure_is_reported_unsafe() {
+        let result = evaluate(
+            &snapshot_funded(1, &[], (0, 0, 0), (10_010_000, 0, 0)),
+            &plan(vec![tx("tx1", &[1], vec![signer_op(2, 1)])]),
+            &availability(&[(1, "available"), (2, "available")]),
+        );
+        assert_eq!(result.verdict, Verdict::Unsafe);
+        assert_eq!(all_codes(&result), [Code::Reserve01]);
+        assert!(shortfall_of(&result).ends_with("a shortfall of 4990100"));
+    }
+
+    // FX-11a and FX-11b (R14).
+    #[test]
+    fn at_the_boundary_remove_then_add_is_safe_and_add_then_remove_is_not() {
+        let snapshot = snapshot_funded(1, &[(2, 1), (3, 1)], (1, 2, 2), (20_000_200, 0, 2));
+        let remove_first = plan(vec![tx_with_fee(
+            "tx1",
+            &[1, 2],
+            200,
+            vec![signer_op(3, 0), signer_op(4, 1)],
+        )]);
+        let safe = evaluate(&snapshot, &remove_first, &everyone());
+        assert_eq!(safe.verdict, Verdict::SafeWithinScope);
+        assert_eq!(safe.steps[0].fee.map(|fee| fee.assumed), Some(false));
+
+        let add_first = plan(vec![tx_with_fee(
+            "tx1",
+            &[1, 2],
+            200,
+            vec![signer_op(4, 1), signer_op(3, 0)],
+        )]);
+        let refused = evaluate(&snapshot, &add_first, &everyone());
+        assert_eq!(refused.verdict, Verdict::Unsafe);
+        assert!(matches!(
+            refused.steps[0].result,
+            StepResult::FailedToApply(ApplyFailure::LowReserve { operation: 0, .. })
+        ));
+    }
+
+    // FX-12 (R10).
+    #[test]
+    fn re_weighting_needs_no_reserve() {
+        let result = evaluate(
+            &funded(15_000_100, 0),
+            &plan(vec![tx("tx1", &[1, 2], vec![signer_op(2, 2)])]),
+            &everyone(),
+        );
+        assert_eq!(result.verdict, Verdict::SafeWithinScope);
+    }
+
+    // FX-13.
+    #[test]
+    fn selling_liabilities_can_make_a_signer_unaffordable() {
+        let result = evaluate(&funded(20_000_100, 1), &add_d(), &everyone());
+        assert_eq!(result.verdict, Verdict::Unsafe);
+        assert!(shortfall_of(&result).ends_with("a shortfall of 1"));
+    }
+
+    // FX-14 (R13).
+    #[test]
+    fn a_fee_that_cannot_be_paid_rejects_the_transaction_before_it_is_applied() {
+        let reweight = plan(vec![tx("tx1", &[1, 2], vec![signer_op(2, 2)])]);
+        let result = evaluate(&funded(15_000_099, 0), &reweight, &everyone());
+        assert_eq!(result.verdict, Verdict::Unsafe);
+        assert_eq!(
+            result.steps[0].result,
+            StepResult::Rejected(vec![Failure::FeeUnaffordable {
+                fee: 100,
+                available: 99
+            }])
+        );
+        // Nothing was charged.
+        assert_eq!(result.final_reserve.unwrap().balance(), 15_000_099);
+
+        let exactly = evaluate(&funded(15_000_100, 0), &reweight, &everyone());
+        assert_eq!(exactly.verdict, Verdict::SafeWithinScope);
+    }
+
+    // FX-15.
+    #[test]
+    fn a_signer_added_without_reserve_data_is_inconclusive_not_safe() {
+        let result = evaluate(&snapshot(1, &[(2, 1)], (1, 2, 2)), &add_d(), &everyone());
+        assert_eq!(result.verdict, Verdict::Inconclusive);
+        assert_eq!(result.steps[0].result, StepResult::Accepted);
+        assert_eq!(all_codes(&result), [Code::State01]);
+        assert!(result.final_reserve.is_none());
+        assert!(result.steps[0].fee.is_none());
+    }
+
+    #[test]
+    fn without_reserve_data_a_loss_of_access_is_still_unsafe() {
+        // The signer cannot be checked for affordability, but the same plan
+        // raises HIGH above the total weight, and that is reported.
+        let result = evaluate(
+            &snapshot(1, &[(2, 1)], (1, 2, 2)),
+            &plan(vec![tx(
+                "tx1",
+                &[1, 2],
+                vec![signer_op(4, 1), json!({ "op": "set_options", "high": 9 })],
+            )]),
+            &everyone(),
+        );
+        assert_eq!(result.verdict, Verdict::Unsafe);
+        assert!(all_codes(&result).contains(&Code::State01));
+        assert!(all_codes(&result).contains(&Code::Lock01));
+    }
+
+    #[test]
+    fn without_reserve_data_a_plan_that_adds_no_signer_is_unchanged() {
+        let result = evaluate(
+            &snapshot(1, &[(2, 1)], (1, 2, 2)),
+            &plan(vec![tx("tx1", &[1, 2], vec![signer_op(2, 2)])]),
+            &everyone(),
+        );
+        assert_eq!(result.verdict, Verdict::SafeWithinScope);
+        assert!(all_codes(&result).is_empty());
+    }
+
+    // FX-16.
+    #[test]
+    fn the_sub_entry_limit_is_unsafe_with_the_apply_code() {
+        let result = evaluate(
+            &snapshot_funded(1, &[(2, 1)], (1, 2, 2), (100_000_000_000, 0, 1000)),
+            &add_d(),
+            &everyone(),
+        );
+        assert_eq!(result.verdict, Verdict::Unsafe);
+        assert_eq!(all_codes(&result), [Code::Apply01]);
+    }
+
+    // FX-17 (R12): a transaction that fails when applied still pays its fee.
+    #[test]
+    fn a_failed_transaction_keeps_its_fee_and_can_starve_the_next_one() {
+        let result = evaluate(
+            &funded(15_000_150, 0),
+            &plan(vec![
+                tx("tx1", &[1, 2], vec![signer_op(4, 1)]),
+                tx("tx2", &[1, 2], vec![signer_op(2, 2)]),
+            ]),
+            &everyone(),
+        );
+        assert_eq!(result.verdict, Verdict::Unsafe);
+        assert!(matches!(
+            result.steps[0].result,
+            StepResult::FailedToApply(ApplyFailure::LowReserve { .. })
+        ));
+        assert_eq!(
+            result.steps[1].result,
+            StepResult::Rejected(vec![Failure::FeeUnaffordable {
+                fee: 100,
+                available: 50
+            }])
+        );
+        assert_eq!(result.steps[1].reserve_before.unwrap().available(), 50);
+    }
+
+    #[test]
+    fn a_rejected_transaction_costs_nothing_for_the_next_one() {
+        // tx1 is signed by a key that is not a signer: rejected at submission,
+        // so no fee is taken and tx2 sees the full balance.
+        let result = evaluate(
+            &funded(15_000_100, 0),
+            &plan(vec![
+                tx("tx1", &[3], vec![signer_op(2, 2)]),
+                tx("tx2", &[1, 2], vec![signer_op(2, 2)]),
+            ]),
+            &everyone(),
+        );
+        assert!(matches!(result.steps[0].result, StepResult::Rejected(_)));
+        assert_eq!(result.steps[1].result, StepResult::Accepted);
+        assert!(result.steps[0].fee.is_none());
+    }
+
+    #[test]
+    fn the_assumed_fee_is_100_stroops_for_each_operation() {
+        let result = evaluate(
+            &funded(30_000_000, 0),
+            &plan(vec![tx(
+                "tx1",
+                &[1, 2],
+                vec![signer_op(2, 2), signer_op(2, 3), signer_op(2, 4)],
+            )]),
+            &everyone(),
+        );
+        assert_eq!(
+            result.steps[0].fee,
+            Some(FeeUsed {
+                amount: 300,
+                assumed: true
+            })
+        );
+        assert_eq!(result.final_reserve.unwrap().balance(), 30_000_000 - 300);
     }
 }

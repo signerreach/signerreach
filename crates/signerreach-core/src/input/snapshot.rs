@@ -6,11 +6,12 @@
 use stellar_strkey::Strkey;
 
 use super::{
-    InputIssue, Issues, Json, Obj, as_bool, as_str, as_threshold, as_u32, as_weight, check_schema,
-    item, read_document, required,
+    InputIssue, Issues, Json, Obj, as_amount, as_bool, as_str, as_threshold, as_u32, as_weight,
+    check_schema, item, read_document, required,
 };
 use crate::account::{AccountState, SignerKey, Threshold, Thresholds, Weight};
 use crate::diagnostic::Code;
+use crate::reserve::Reserve;
 
 /// The schema identifier a snapshot must carry.
 pub const SNAPSHOT_SCHEMA: &str = "signerreach.snapshot/1";
@@ -97,6 +98,7 @@ pub struct Snapshot {
     network: Network,
     provenance: Provenance,
     state: AccountState,
+    reserve: Option<Reserve>,
 }
 
 impl Snapshot {
@@ -113,6 +115,11 @@ impl Snapshot {
     /// The account state.
     pub const fn state(&self) -> &AccountState {
         &self.state
+    }
+
+    /// The balance figures, if the snapshot carries them (`reserve`).
+    pub const fn reserve(&self) -> Option<Reserve> {
+        self.reserve
     }
 }
 
@@ -137,6 +144,7 @@ fn read_snapshot(text: &str, issues: &mut Issues) -> Option<Snapshot> {
     let thresholds = read_thresholds(&mut root, issues);
     let signers = read_signers(&mut root, issues);
     read_sponsorship(&mut root, issues);
+    let reserve = read_reserve(&mut root, issues);
     root.finish(issues);
 
     if !issues.is_empty() {
@@ -149,10 +157,21 @@ fn read_snapshot(text: &str, issues: &mut Issues) -> Option<Snapshot> {
             return None;
         }
     };
+    // Every additional signer is a sub-entry, so the count cannot be lower.
+    let mismatch = reserve.as_ref().and_then(|figures| {
+        figures
+            .check_signer_count(state.additional_signer_count())
+            .err()
+    });
+    if let Some(error) = mismatch {
+        issues.input("/reserve/subentry_count", error.to_string());
+        return None;
+    }
     Some(Snapshot {
         network: network?,
         provenance: provenance?,
         state,
+        reserve,
     })
 }
 
@@ -375,11 +394,49 @@ fn read_sponsorship(root: &mut Obj<'_>, issues: &mut Issues) {
         return;
     };
     if as_bool(value, &path, issues) == Some(true) {
-        issues.push(
-            Code::State01,
-            &path,
-            "sponsored signers and reserves are not modelled",
-        );
+        issues.push(Code::State01, &path, "sponsored signers are not modelled");
+    }
+}
+
+/// The optional `reserve` object. Absent gives `None`; present, all six
+/// fields are required.
+fn read_reserve(root: &mut Obj<'_>, issues: &mut Issues) -> Option<Reserve> {
+    let path = root.path_of("reserve");
+    let value = root.field("reserve", issues)?;
+    let mut obj = Obj::open(value, &path, issues)?;
+
+    let mut amount = |name: &str, issues: &mut Issues| -> Option<i64> {
+        let at = obj.path_of(name);
+        let value = required(&mut obj, name, issues)?;
+        as_amount(value, &at, issues)
+    };
+    let balance = amount("balance", issues);
+    let selling_liabilities = amount("selling_liabilities", issues);
+    let base_reserve = amount("base_reserve", issues);
+
+    let mut count = |name: &str, issues: &mut Issues| -> Option<u32> {
+        let at = obj.path_of(name);
+        let value = required(&mut obj, name, issues)?;
+        as_u32(value, &at, issues)
+    };
+    let subentry_count = count("subentry_count", issues);
+    let num_sponsoring = count("num_sponsoring", issues);
+    let num_sponsored = count("num_sponsored", issues);
+    obj.finish(issues);
+
+    match Reserve::new(
+        balance?,
+        selling_liabilities?,
+        subentry_count?,
+        num_sponsoring?,
+        num_sponsored?,
+        base_reserve?,
+    ) {
+        Ok(reserve) => Some(reserve),
+        Err(error) => {
+            issues.input(&path, error.to_string());
+            None
+        }
     }
 }
 
@@ -801,6 +858,141 @@ mod tests {
             "2026-10-14T09:00:00+25:00",
         ] {
             assert!(!is_rfc3339(bad), "{bad}");
+        }
+    }
+
+    fn with_reserve() -> Value {
+        let mut doc = valid();
+        doc["reserve"] = json!({
+            "balance": 20000100,
+            "selling_liabilities": 0,
+            "subentry_count": 2,
+            "num_sponsoring": 0,
+            "num_sponsored": 0,
+            "base_reserve": 5000000
+        });
+        doc
+    }
+
+    #[test]
+    fn reserve_is_optional() {
+        assert!(parse(&valid()).expect("valid").reserve().is_none());
+    }
+
+    #[test]
+    fn a_reserve_object_is_read_in_stroops() {
+        let snapshot = parse(&with_reserve()).expect("valid");
+        let reserve = snapshot.reserve().expect("present");
+        assert_eq!(reserve.balance(), 20_000_100);
+        assert_eq!(reserve.selling_liabilities(), 0);
+        assert_eq!(reserve.subentry_count(), 2);
+        assert_eq!(reserve.base_reserve(), 5_000_000);
+        assert_eq!(reserve.min_balance(), 20_000_000);
+        assert_eq!(reserve.available(), 100);
+    }
+
+    #[test]
+    fn every_reserve_field_is_required() {
+        for field in [
+            "balance",
+            "selling_liabilities",
+            "subentry_count",
+            "num_sponsoring",
+            "num_sponsored",
+            "base_reserve",
+        ] {
+            let mut doc = with_reserve();
+            doc["reserve"].as_object_mut().unwrap().remove(field);
+            let location = format!("/reserve/{field}");
+            assert!(has(&issues(&doc), Code::Input01, &location), "{field}");
+        }
+    }
+
+    #[test]
+    fn reserve_figures_must_be_whole_non_negative_numbers() {
+        for field in ["balance", "selling_liabilities", "base_reserve"] {
+            for bad in [
+                json!(-1),
+                json!(1.5),
+                json!(1e7),
+                json!("5"),
+                json!(null),
+                json!(9_223_372_036_854_775_808u64),
+            ] {
+                let mut doc = with_reserve();
+                doc["reserve"][field] = bad.clone();
+                let location = format!("/reserve/{field}");
+                assert!(
+                    has(&issues(&doc), Code::Input01, &location),
+                    "{field} {bad}"
+                );
+            }
+        }
+        for field in ["subentry_count", "num_sponsoring", "num_sponsored"] {
+            for bad in [json!(-1), json!(1.5), json!("1"), json!(4_294_967_296u64)] {
+                let mut doc = with_reserve();
+                doc["reserve"][field] = bad.clone();
+                let location = format!("/reserve/{field}");
+                assert!(
+                    has(&issues(&doc), Code::Input01, &location),
+                    "{field} {bad}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn the_largest_amount_is_accepted() {
+        let mut doc = with_reserve();
+        doc["reserve"]["balance"] = json!(9_223_372_036_854_775_807u64);
+        assert!(parse(&doc).is_ok());
+    }
+
+    #[test]
+    fn impossible_reserve_figures_are_refused() {
+        let mut doc = with_reserve();
+        doc["reserve"]["base_reserve"] = json!(0);
+        assert!(has(&issues(&doc), Code::Input01, "/reserve"));
+
+        let mut doc = with_reserve();
+        doc["reserve"]["subentry_count"] = json!(1001);
+        assert!(has(&issues(&doc), Code::Input01, "/reserve"));
+
+        let mut doc = with_reserve();
+        doc["reserve"]["subentry_count"] = json!(0);
+        doc["reserve"]["num_sponsored"] = json!(3);
+        assert!(has(&issues(&doc), Code::Input01, "/reserve"));
+    }
+
+    #[test]
+    fn the_sub_entry_count_cannot_be_below_the_number_of_signers() {
+        let mut doc = with_reserve();
+        doc["reserve"]["subentry_count"] = json!(1);
+        assert!(has(&issues(&doc), Code::Input01, "/reserve/subentry_count"));
+        doc["reserve"]["subentry_count"] = json!(2);
+        assert!(parse(&doc).is_ok());
+    }
+
+    #[test]
+    fn an_unknown_reserve_field_and_a_non_object_are_refused() {
+        let mut doc = with_reserve();
+        doc["reserve"]["lumens"] = json!(1);
+        assert!(has(&issues(&doc), Code::Input01, "/reserve"));
+
+        let mut doc = valid();
+        doc["reserve"] = json!(5);
+        assert!(has(&issues(&doc), Code::Input01, "/reserve"));
+    }
+
+    #[test]
+    fn reserve_values_are_never_repeated_in_messages() {
+        let marker = "SECRETMARKER0123456789";
+        let mut doc = with_reserve();
+        doc["reserve"]["balance"] = json!(marker);
+        doc["reserve"]["subentry_count"] = json!(marker);
+        doc["reserve"]["lumens"] = json!(marker);
+        for issue in issues(&doc) {
+            assert!(!issue.to_string().contains(marker), "{issue}");
         }
     }
 }

@@ -40,4 +40,8 @@ pub enum DomainError {
         /// The most an account can hold.
         max: usize,
     },
+
+    /// Balance figures that no account could have.
+    #[error("the reserve figures are not possible: {0}")]
+    InvalidReserve(&'static str),
 }

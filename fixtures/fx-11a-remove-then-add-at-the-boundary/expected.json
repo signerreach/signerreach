@@ -1,0 +1,11 @@
+{
+  "id": "FX-11a",
+  "summary": "[remove C, add D] at the boundary: the removal frees a reserve before the addition needs it.",
+  "source": "synthetic",
+  "verdict": "SAFE WITHIN SCOPE",
+  "exit_code": 0,
+  "codes": [],
+  "transactions": [
+    "accepted"
+  ]
+}

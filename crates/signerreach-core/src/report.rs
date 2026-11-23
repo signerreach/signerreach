@@ -18,9 +18,10 @@ use crate::evaluate::{Evaluation, Finding, Reach, ScenarioResult, Step, StepResu
 use crate::input::availability::{Availability, Intent};
 use crate::input::plan::{Plan, SetOptions};
 use crate::input::snapshot::Snapshot;
+use crate::reserve::{ASSUMED_FEE_PER_OPERATION, Reserve};
 
 /// What the tool models.
-pub(crate) const MODELLED: [&str; 7] = [
+pub(crate) const MODELLED: [&str; 8] = [
     "one classic account (a G address) per run",
     "ed25519 signers, including the account's own key",
     "SetOptions operations",
@@ -28,15 +29,17 @@ pub(crate) const MODELLED: [&str; 7] = [
     "the extra-signature rule, where it can be decided",
     "LOW, MEDIUM and HIGH reachability under the declared availability",
     "up to 20 additional signers, weights and thresholds from 0 to 255",
+    "the fee and the reserve for adding a signer, when the snapshot has reserve data",
 ];
 
 /// What the tool does not model. Some are detected and cause INCONCLUSIVE;
 /// others are external assumptions that cannot be checked from these files.
-pub(crate) const NOT_MODELLED: [&str; 9] = [
+pub(crate) const NOT_MODELLED: [&str; 10] = [
     "whether anyone holds, or can use, any key",
     "fee-bump transactions and transaction preconditions",
     "source accounts other than the analysed account",
-    "sponsorship and reserve requirements",
+    "sponsorship, and reserve effects other than adding or removing a signer",
+    "the network's minimum fee (100 stroops for each operation is assumed)",
     "pre_auth_tx, hash(x) and signed-payload signers",
     "operations other than SetOptions",
     "the order of signatures, where it decides the outcome",
@@ -107,9 +110,21 @@ pub fn text_report(
 
     heading(&mut out, "Starting state");
     state_block(&mut out, snapshot.state());
+    if let Some(reserve) = snapshot.reserve() {
+        reserve_block(&mut out, &reserve, "  ");
+    }
 
     heading(&mut out, "Assumptions");
     assumptions(&mut out, availability);
+    if snapshot.reserve().is_some() && plan.transactions().iter().any(|t| t.fee().is_none()) {
+        put(
+            &mut out,
+            format!(
+                "  fee                      {ASSUMED_FEE_PER_OPERATION} stroops for each operation, for a \
+                 transaction that gives none"
+            ),
+        );
+    }
 
     heading(&mut out, "Plan");
     if plan.transactions().is_empty() {
@@ -133,6 +148,9 @@ pub fn text_report(
         out.push('\n');
         put(&mut out, "  State after the plan");
         state_block_indented(&mut out, &evaluation.final_state, "    ");
+        if let Some(reserve) = &evaluation.final_reserve {
+            reserve_block(&mut out, reserve, "    ");
+        }
     }
 
     heading(&mut out, "Reachability");
@@ -248,6 +266,42 @@ fn state_block_indented(out: &mut String, state: &AccountState, indent: &str) {
     }
 }
 
+/// The balance figures, in stroops, as printed in the text report.
+fn reserve_block(out: &mut String, reserve: &Reserve, indent: &str) {
+    put(
+        out,
+        format!("{indent}balance        {} stroops", reserve.balance()),
+    );
+    put(
+        out,
+        format!(
+            "{indent}selling liabilities {} stroops",
+            reserve.selling_liabilities()
+        ),
+    );
+    put(
+        out,
+        format!(
+            "{indent}sub-entries     {} (sponsoring {}, sponsored {})",
+            reserve.subentry_count(),
+            reserve.num_sponsoring(),
+            reserve.num_sponsored()
+        ),
+    );
+    put(
+        out,
+        format!("{indent}base reserve    {} stroops", reserve.base_reserve()),
+    );
+    put(
+        out,
+        format!("{indent}minimum balance {} stroops", reserve.min_balance()),
+    );
+    put(
+        out,
+        format!("{indent}available       {} stroops", reserve.available()),
+    );
+}
+
 fn assumptions(out: &mut String, availability: &Availability) {
     put(
         out,
@@ -356,6 +410,24 @@ fn step_block(out: &mut String, signed_by: &[SignerKey], step: &Step) {
         put(out, "    state before:");
         state_block_indented(out, before, "      ");
     }
+    if let Some(reserve) = &step.reserve_before {
+        put(out, "    balance before:");
+        reserve_block(out, reserve, "      ");
+    }
+    if let Some(fee) = &step.fee {
+        if fee.assumed {
+            put(
+                out,
+                format!(
+                    "    fee: {} stroops (assumed: the plan gives none, so \
+                     {ASSUMED_FEE_PER_OPERATION} for each operation)",
+                    fee.amount
+                ),
+            );
+        } else {
+            put(out, format!("    fee: {} stroops", fee.amount));
+        }
+    }
     if let Some(trace) = &step.trace {
         trace_block(out, signed_by, trace);
     }
@@ -368,6 +440,11 @@ fn step_block(out: &mut String, signed_by: &[SignerKey], step: &Step) {
                 codes.join(", ")
             )
         }
+        StepResult::FailedToApply(failure) if step.fee.is_some() => format!(
+            "authorized but fails when applied; the account is unchanged but the fee is \
+             paid ({})",
+            failure.code()
+        ),
         StepResult::FailedToApply(failure) => format!(
             "authorized but fails when applied, nothing changes ({})",
             failure.code()
@@ -516,7 +593,9 @@ mod tests {
 
     use super::*;
     use crate::evaluate::evaluate;
-    use crate::testing::{availability, availability_with, k, plan, signer_op, snapshot, tx};
+    use crate::testing::{
+        availability, availability_with, k, plan, signer_op, snapshot, snapshot_funded, tx,
+    };
 
     fn report(snapshot: &Snapshot, plan: &Plan, availability: &Availability) -> String {
         let evaluation = evaluate(snapshot, plan, availability);
@@ -749,5 +828,89 @@ mod tests {
     #[test]
     fn the_same_input_gives_the_same_bytes() {
         assert_eq!(unsafe_report(), unsafe_report());
+    }
+
+    // ---- balance, reserve and fee ----
+
+    fn funded_report(balance: i64) -> String {
+        report(
+            &snapshot_funded(1, &[(2, 1)], (1, 2, 2), (balance, 0, 1)),
+            &plan(vec![tx("tx1", &[1, 2], vec![signer_op(4, 1)])]),
+            &availability(&[(1, "available"), (2, "available"), (4, "available")]),
+        )
+    }
+
+    #[test]
+    fn a_report_without_reserve_data_has_no_balance_lines() {
+        let text = unsafe_report();
+        for absent in [
+            "balance before",
+            "minimum balance",
+            "selling liabilities",
+            "sub-entries",
+            "fee: ",
+            "available       ",
+        ] {
+            assert!(!text.contains(absent), "{absent}");
+        }
+    }
+
+    #[test]
+    fn a_report_with_reserve_data_shows_the_figures_and_the_assumed_fee() {
+        let text = funded_report(20_000_100);
+        assert!(text.contains("VERDICT: SAFE WITHIN SCOPE"));
+        assert!(has_line(&text, "balance        20000100 stroops"));
+        assert!(has_line(&text, "minimum balance 15000000 stroops"));
+        assert!(has_line(&text, "available       5000100 stroops"));
+        assert!(has_line(&text, "base reserve    5000000 stroops"));
+        assert!(has_line(&text, "balance before:"));
+        assert!(contains(
+            &text,
+            "fee: 100 stroops (assumed: the plan gives none, so 100 for each operation)"
+        ));
+        assert!(contains(
+            &text,
+            "fee                      100 stroops for each operation, for a transaction that gives none"
+        ));
+        // After the plan: one more sub-entry and the fee paid.
+        assert!(has_line(&text, "balance        20000000 stroops"));
+        assert!(has_line(
+            &text,
+            "sub-entries     2 (sponsoring 0, sponsored 0)"
+        ));
+    }
+
+    #[test]
+    fn a_failed_signer_addition_names_the_shortfall_and_says_the_fee_is_paid() {
+        let text = funded_report(20_000_099);
+        assert!(text.contains("VERDICT: UNSAFE"));
+        assert!(contains(&text, "a shortfall of 1"));
+        assert!(contains(
+            &text,
+            "authorized but fails when applied; the account is unchanged but the fee is paid (SR-RESERVE-01)"
+        ));
+        assert!(contains(&text, "SR-RESERVE-01 [UNSAFE]"));
+    }
+
+    #[test]
+    fn the_coverage_names_the_fee_and_reserve_check_and_what_is_left_out() {
+        let text = funded_report(20_000_100);
+        assert!(contains(
+            &text,
+            "the fee and the reserve for adding a signer, when the snapshot has reserve data"
+        ));
+        assert!(contains(
+            &text,
+            "sponsorship, and reserve effects other than adding or removing a signer"
+        ));
+        assert!(contains(&text, "the network's minimum fee"));
+        assert!(!text.contains("sponsorship and reserve requirements"));
+    }
+
+    #[test]
+    fn a_report_with_reserve_data_is_plain_ascii_and_repeatable() {
+        let text = funded_report(20_000_099);
+        assert!(text.is_ascii());
+        assert_eq!(text, funded_report(20_000_099));
     }
 }
