@@ -1,0 +1,234 @@
+{
+  "assumptions": {
+    "default": "unknown",
+    "intent": "recoverable",
+    "require_survive_loss_of": 0,
+    "scenarios": [],
+    "signers": []
+  },
+  "coverage": {
+    "modelled": [
+      "one classic account (a G address) per run",
+      "ed25519 signers, including the account's own key",
+      "SetOptions operations",
+      "the authorization rules of protocols 29 and 30, checked against the state before each transaction",
+      "the extra-signature rule, where it can be decided",
+      "LOW, MEDIUM and HIGH reachability under the declared availability",
+      "up to 20 additional signers, weights and thresholds from 0 to 255",
+      "the fee and the reserve for adding a signer, when the snapshot has reserve data"
+    ],
+    "not_modelled": [
+      "whether anyone holds, or can use, any key",
+      "fee-bump transactions and transaction preconditions",
+      "source accounts other than the analysed account",
+      "sponsorship, and reserve effects other than adding or removing a signer",
+      "the network's minimum fee (100 stroops for each operation is assumed)",
+      "pre_auth_tx, hash(x) and signed-payload signers",
+      "operations other than SetOptions",
+      "the order of signatures, where it decides the outcome",
+      "protocol versions other than 29 and 30",
+      "changes to the account after the snapshot was taken"
+    ]
+  },
+  "diagnostics": [
+    {
+      "code": "SR-AVAIL-01",
+      "effect": "inconclusive",
+      "message": "reaching the HIGH threshold 10 needs signers whose availability is unknown",
+      "scope": "baseline"
+    }
+  ],
+  "limitations": [
+    "Availability is declared by the user. This tool does not and cannot verify that anyone holds any key.",
+    "The result applies to the account state at ledger 65636945 on pubnet. Authorization happens at apply time against the live state, which may have changed.",
+    "Only the features listed under \"Coverage\" are modelled. Recognized unsupported input gives INCONCLUSIVE; external conditions may remain unchecked."
+  ],
+  "provenance": {
+    "account": "GBVOL67TMUQBGL4TZYNMY3ZQ5WGQYFPFD5VJRWXR72VA33VFNL225PL5",
+    "as_of_ledger": 65636945,
+    "captured_at": "2026-11-23T21:52:55Z",
+    "network": "pubnet",
+    "protocol_version": 30,
+    "source": "horizon"
+  },
+  "reason": "reaching the HIGH threshold 10 needs signers whose availability is unknown",
+  "reserve_after": {
+    "available": 35155483903,
+    "balance": 35200483903,
+    "base_reserve": 5000000,
+    "minimum_balance": 45000000,
+    "num_sponsored": 0,
+    "num_sponsoring": 0,
+    "selling_liabilities": 0,
+    "subentry_count": 7
+  },
+  "scenarios": [
+    {
+      "name": null,
+      "reachability": [
+        {
+          "available": 0,
+          "class": "LOW",
+          "reach": "depends_on_unknown",
+          "threshold": 0,
+          "total": 17,
+          "unknown": 17
+        },
+        {
+          "available": 0,
+          "class": "MEDIUM",
+          "reach": "depends_on_unknown",
+          "threshold": 0,
+          "total": 17,
+          "unknown": 17
+        },
+        {
+          "available": 0,
+          "class": "HIGH",
+          "reach": "depends_on_unknown",
+          "threshold": 10,
+          "total": 17,
+          "unknown": 17
+        }
+      ],
+      "signers": [
+        {
+          "key": "GBVOL67TMUQBGL4TZYNMY3ZQ5WGQYFPFD5VJRWXR72VA33VFNL225PL5",
+          "status": "unknown",
+          "weight": 1
+        },
+        {
+          "key": "GAQYKUTLL4Q46YQK6CXXJQLM537KEAC5CIQYE2O6SYDGXMLGVN3W7QLH",
+          "status": "unknown",
+          "weight": 1
+        },
+        {
+          "key": "GAYAD5FW2FZSYJIZ3RDQAX3I6HKBPRK24XS4DPAYTUKGVJSWOWEZ77FC",
+          "status": "unknown",
+          "weight": 1
+        },
+        {
+          "key": "GBJJIKULHFPUXIOUI33EH3FP2IZ6QHC6RN2ZCYMSEC2CRPQMFM3ZHDWT",
+          "status": "unknown",
+          "weight": 1
+        },
+        {
+          "key": "GCC72A5OMPHNA2MYMFMROG7Z4DJ72OEFPHRVS36LE5QCCKTN2PHB5KRJ",
+          "status": "unknown",
+          "weight": 1
+        },
+        {
+          "key": "GCTAVATQV7WVU6YGH4JYWWUPQL7UUUR2LT4RHXMVAIDCFPZELUGZQQKG",
+          "status": "unknown",
+          "weight": 10
+        },
+        {
+          "key": "GC3B44KL37F4WYUNOVMWLNPH7KDNWKQ6UEVGDDH2KQZWXEJIPDXIQCXI",
+          "status": "unknown",
+          "weight": 1
+        },
+        {
+          "key": "GDRTM6RN6XUSADPTC4U7FHMH7DIQSO6KO5B2VK2I4TNYAHEAFZYT3VFX",
+          "status": "unknown",
+          "weight": 1
+        }
+      ],
+      "verdict": "INCONCLUSIVE"
+    }
+  ],
+  "schema": "signerreach.report/1",
+  "starting_reserve": {
+    "available": 35155483903,
+    "balance": 35200483903,
+    "base_reserve": 5000000,
+    "minimum_balance": 45000000,
+    "num_sponsored": 0,
+    "num_sponsoring": 0,
+    "selling_liabilities": 0,
+    "subentry_count": 7
+  },
+  "starting_state": {
+    "account": "GBVOL67TMUQBGL4TZYNMY3ZQ5WGQYFPFD5VJRWXR72VA33VFNL225PL5",
+    "master_weight": 1,
+    "signers": [
+      {
+        "key": "GAQYKUTLL4Q46YQK6CXXJQLM537KEAC5CIQYE2O6SYDGXMLGVN3W7QLH",
+        "weight": 1
+      },
+      {
+        "key": "GAYAD5FW2FZSYJIZ3RDQAX3I6HKBPRK24XS4DPAYTUKGVJSWOWEZ77FC",
+        "weight": 1
+      },
+      {
+        "key": "GBJJIKULHFPUXIOUI33EH3FP2IZ6QHC6RN2ZCYMSEC2CRPQMFM3ZHDWT",
+        "weight": 1
+      },
+      {
+        "key": "GCC72A5OMPHNA2MYMFMROG7Z4DJ72OEFPHRVS36LE5QCCKTN2PHB5KRJ",
+        "weight": 1
+      },
+      {
+        "key": "GCTAVATQV7WVU6YGH4JYWWUPQL7UUUR2LT4RHXMVAIDCFPZELUGZQQKG",
+        "weight": 10
+      },
+      {
+        "key": "GC3B44KL37F4WYUNOVMWLNPH7KDNWKQ6UEVGDDH2KQZWXEJIPDXIQCXI",
+        "weight": 1
+      },
+      {
+        "key": "GDRTM6RN6XUSADPTC4U7FHMH7DIQSO6KO5B2VK2I4TNYAHEAFZYT3VFX",
+        "weight": 1
+      }
+    ],
+    "thresholds": {
+      "high": 10,
+      "low": 0,
+      "medium": 0
+    }
+  },
+  "state_after": {
+    "account": "GBVOL67TMUQBGL4TZYNMY3ZQ5WGQYFPFD5VJRWXR72VA33VFNL225PL5",
+    "master_weight": 1,
+    "signers": [
+      {
+        "key": "GAQYKUTLL4Q46YQK6CXXJQLM537KEAC5CIQYE2O6SYDGXMLGVN3W7QLH",
+        "weight": 1
+      },
+      {
+        "key": "GAYAD5FW2FZSYJIZ3RDQAX3I6HKBPRK24XS4DPAYTUKGVJSWOWEZ77FC",
+        "weight": 1
+      },
+      {
+        "key": "GBJJIKULHFPUXIOUI33EH3FP2IZ6QHC6RN2ZCYMSEC2CRPQMFM3ZHDWT",
+        "weight": 1
+      },
+      {
+        "key": "GCC72A5OMPHNA2MYMFMROG7Z4DJ72OEFPHRVS36LE5QCCKTN2PHB5KRJ",
+        "weight": 1
+      },
+      {
+        "key": "GCTAVATQV7WVU6YGH4JYWWUPQL7UUUR2LT4RHXMVAIDCFPZELUGZQQKG",
+        "weight": 10
+      },
+      {
+        "key": "GC3B44KL37F4WYUNOVMWLNPH7KDNWKQ6UEVGDDH2KQZWXEJIPDXIQCXI",
+        "weight": 1
+      },
+      {
+        "key": "GDRTM6RN6XUSADPTC4U7FHMH7DIQSO6KO5B2VK2I4TNYAHEAFZYT3VFX",
+        "weight": 1
+      }
+    ],
+    "thresholds": {
+      "high": 10,
+      "low": 0,
+      "medium": 0
+    }
+  },
+  "tool": {
+    "name": "signerreach",
+    "version": "0.1.1"
+  },
+  "transactions": [],
+  "verdict": "INCONCLUSIVE"
+}

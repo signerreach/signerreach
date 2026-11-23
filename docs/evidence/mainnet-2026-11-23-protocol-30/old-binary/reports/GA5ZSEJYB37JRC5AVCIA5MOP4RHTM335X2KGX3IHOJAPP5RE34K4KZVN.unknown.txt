@@ -1,0 +1,76 @@
+SIGNERREACH CHECK
+=================
+
+Availability is declared by the user. This tool does not and cannot verify that anyone holds any key.
+The result applies to the account state at ledger 65636942 on pubnet. Authorization happens at apply time against the live state, which may have changed.
+Only the features listed under "Coverage" are modelled. Recognized unsupported input gives INCONCLUSIVE; external conditions may remain unchecked.
+
+VERDICT: INCONCLUSIVE
+Reason: reaching the HIGH threshold 2 needs signers whose availability is unknown
+
+Provenance
+----------
+  network       pubnet
+  account       GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+  as of ledger  65636942
+  captured at   2026-11-23T21:52:41Z
+  source        horizon
+  protocol      30
+
+Starting state
+--------------
+  master weight  0
+  thresholds     low 2, medium 2, high 2
+  signer         GAUKFO2NIYEFO773KJZKLPSPYNQ6M7INPEAIQIJCIH7EEVP2KSVQWGH4 weight 1
+  signer         GAXFRO4MH6FSBJMNECVZJ6R3ZXANI7CFCMVN47IDNRQDHII3J5HTOZGB weight 1
+  signer         GB73YPMX5R5673G35HHAXYUNRS4R4QZEUHCRT3OUAMSH2NUM6KT4N3KO weight 1
+  signer         GC6ANHZDMCPKU55BUQIJKI3VOYEMETF7Z46HXQRCNONQXPEXQHCVIAFP weight 1
+
+Assumptions
+-----------
+  default status           unknown
+  declared signers         none
+  scenarios                none
+  survive loss of          0 signer(s)
+  intent                   recoverable
+
+Plan
+----
+  No transactions: this is a check of the snapshot itself.
+
+Reachability
+------------
+
+  Baseline declaration: INCONCLUSIVE
+    signer GAUKFO2NIYEFO773KJZKLPSPYNQ6M7INPEAIQIJCIH7EEVP2KSVQWGH4 weight 1 unknown
+    signer GAXFRO4MH6FSBJMNECVZJ6R3ZXANI7CFCMVN47IDNRQDHII3J5HTOZGB weight 1 unknown
+    signer GB73YPMX5R5673G35HHAXYUNRS4R4QZEUHCRT3OUAMSH2NUM6KT4N3KO weight 1 unknown
+    signer GC6ANHZDMCPKU55BUQIJKI3VOYEMETF7Z46HXQRCNONQXPEXQHCVIAFP weight 1 unknown
+    LOW    threshold   2  total 4  available 0  unknown 4: depends on signers whose availability is unknown
+    MEDIUM threshold   2  total 4  available 0  unknown 4: depends on signers whose availability is unknown
+    HIGH   threshold   2  total 4  available 0  unknown 4: depends on signers whose availability is unknown
+
+Diagnostics
+-----------
+  SR-AVAIL-01 [INCONCLUSIVE] (baseline) reaching the HIGH threshold 2 needs signers whose availability is unknown
+
+Coverage
+--------
+  Modelled:
+    - one classic account (a G address) per run
+    - ed25519 signers, including the account's own key
+    - SetOptions operations
+    - the authorization rules of protocols 29 and 30, checked against the state before each transaction
+    - the extra-signature rule, where it can be decided
+    - LOW, MEDIUM and HIGH reachability under the declared availability
+    - up to 20 additional signers, weights and thresholds from 0 to 255
+  Outside this model (recognized unsupported input gives INCONCLUSIVE):
+    - whether anyone holds, or can use, any key
+    - fee-bump transactions and transaction preconditions
+    - source accounts other than the analysed account
+    - sponsorship and reserve requirements
+    - pre_auth_tx, hash(x) and signed-payload signers
+    - operations other than SetOptions
+    - the order of signatures, where it decides the outcome
+    - protocol versions other than 29 and 30
+    - changes to the account after the snapshot was taken

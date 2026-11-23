@@ -1,0 +1,48 @@
+{
+  "account": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+  "master_weight": 0,
+  "network": "pubnet",
+  "provenance": {
+    "as_of_ledger": 65636944,
+    "captured_at": "2026-11-23T21:52:53Z",
+    "protocol_version": 30,
+    "source": "horizon"
+  },
+  "reserve": {
+    "balance": 321182208225,
+    "base_reserve": 5000000,
+    "num_sponsored": 0,
+    "num_sponsoring": 0,
+    "selling_liabilities": 0,
+    "subentry_count": 6
+  },
+  "schema": "signerreach.snapshot/1",
+  "signers": [
+    {
+      "key": "GAUKFO2NIYEFO773KJZKLPSPYNQ6M7INPEAIQIJCIH7EEVP2KSVQWGH4",
+      "type": "ed25519",
+      "weight": 1
+    },
+    {
+      "key": "GAXFRO4MH6FSBJMNECVZJ6R3ZXANI7CFCMVN47IDNRQDHII3J5HTOZGB",
+      "type": "ed25519",
+      "weight": 1
+    },
+    {
+      "key": "GB73YPMX5R5673G35HHAXYUNRS4R4QZEUHCRT3OUAMSH2NUM6KT4N3KO",
+      "type": "ed25519",
+      "weight": 1
+    },
+    {
+      "key": "GC6ANHZDMCPKU55BUQIJKI3VOYEMETF7Z46HXQRCNONQXPEXQHCVIAFP",
+      "type": "ed25519",
+      "weight": 1
+    }
+  ],
+  "sponsored_signers": false,
+  "thresholds": {
+    "high": 2,
+    "low": 2,
+    "medium": 2
+  }
+}
