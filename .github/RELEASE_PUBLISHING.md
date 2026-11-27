@@ -1,6 +1,6 @@
-# Publishing v0.1.1
+# Publishing v0.1.2
 
-The `Publish v0.1.1` workflow is intentionally manual. It has no `push` or
+The `Publish v0.1.2` workflow is intentionally manual. It has no `push` or
 `pull_request` trigger and does not publish from a branch update.
 
 Before any publication, an authorized maintainer must confirm that the
@@ -16,7 +16,7 @@ v0.1.0), and configure it if it is missing:
 
 The workflow's publish job has `contents: write` only after this environment
 gate. The verification and native build jobs have read-only permissions. The
-`PUBLISH v0.1.1` input records operator intent only; it is not an approval and
+`PUBLISH v0.1.2` input records operator intent only; it is not an approval and
 is never equivalent to a protected-environment review. GitHub does not expose a
 reliable read-only API signal for all of the environment's required-reviewer
 settings to this workflow, so maintainer verification of the configuration is
@@ -27,18 +27,18 @@ run the publication workflow if that protected environment is not configured.
 
 1. Confirm that the current `main` SHA is the intended reviewed commit and
    that the existing CI and documentation checks are green.
-2. Open **Actions → Publish v0.1.1 → Run workflow**.
+2. Open **Actions → Publish v0.1.2 → Run workflow**.
 3. Select the `main` branch.
 4. Enter the full 40-character `main` SHA in **source_commit**.
-5. Select **PUBLISH v0.1.1** in **confirmation**, then click **Run workflow**.
+5. Select **PUBLISH v0.1.2** in **confirmation**, then click **Run workflow**.
 6. When the `Approve, tag and publish release` job pauses, choose **Review
    deployments**, select `signerreach-release`, and click **Approve and deploy**.
 
-The workflow then rechecks that `main` has not moved, the version is `0.1.1`,
+The workflow then rechecks that `main` has not moved, the version is `0.1.2`,
 the tag and release do not already exist, and the required checks are green. It
 builds Linux, macOS and Windows packages from that exact commit, verifies their
 manifests, checksums and contents, renders final release notes, creates an
-annotated `v0.1.1` tag, creates a draft release with nine verified assets, and
+annotated `v0.1.2` tag, creates a draft release with nine verified assets, and
 publishes it only after the asset set is complete.
 
 If a pre-publication step fails after this workflow creates a tag or draft

@@ -1,0 +1,110 @@
+<!-- Rendered only after the protected release environment approves publication. -->
+# SignerReach v0.1.2
+
+SignerReach v0.1.2 is published from verified main commit
+`{{SOURCE_COMMIT}}`.
+
+## What changed since v0.1.1
+
+**A fix for a wrong "safe" answer.** In v0.1.1, a plan that adds a signer could
+be reported `SAFE WITHIN SCOPE` for an account that cannot pay for it. On
+2026-11-20 such a plan was accepted by the checker and then failed on Stellar
+Testnet with `op_low_reserve`, and the account still paid the fee. v0.1.2 checks
+the balance, the reserve and the fee.
+
+- A new signer needs one base reserve of spendable balance. A plan that cannot
+  pay for it gives `UNSAFE` with the new code `SR-RESERVE-01`, and the report
+  shows the shortfall.
+- Each transaction's fee must be payable, and a transaction that fails after it
+  is accepted into a ledger still keeps its fee. The fee defaults to 100 stroops
+  for each operation, is shown as an assumption, and can be set with `fee` on a
+  plan transaction.
+- The limit of 1000 sub-entries is checked, and operations are applied in order,
+  so removing a signer first can make room for adding one.
+- Re-weighting a signer that already exists needs no extra reserve.
+- `signerreach fetch` reads the account's balance, selling liabilities,
+  sub-entry and sponsorship counts and the base reserve, and writes them to the
+  snapshot as an optional `reserve` object. It makes one more read-only request
+  to do this: the ledger record at the snapshot's ledger.
+- **Behaviour change:** a plan that adds a signer, checked against a snapshot
+  with no `reserve` object, now gives `INCONCLUSIVE` (`SR-STATE-01`) where
+  v0.1.1 could give `SAFE WITHIN SCOPE`. Take a new snapshot with `fetch`, or add
+  the `reserve` object. The schema names stay `signerreach.snapshot/1` and
+  `signerreach.plan/1`.
+
+Other changes: a Horizon record that holds a signer the checker would refuse is
+now refused by `fetch` too; the minimum supported Rust version for building from
+source is 1.88; the code that reads outside data is fuzzed, and CodeQL, the
+RustSec advisory check and OpenSSF Scorecard run on the repository.
+
+## Included
+
+- `signerreach check` evaluates an account snapshot, ordered transaction plan
+  and declared signer availability, returning deterministic text or JSON with
+  `SAFE WITHIN SCOPE`, `UNSAFE` or `INCONCLUSIVE`.
+- `signerreach fetch` performs constrained, read-only Horizon requests and emits
+  a provenance-bearing snapshot.
+- The release includes bounded JSON parsing, stable diagnostics and reports,
+  offline checking, fixture coverage and the documentation book.
+- The `tools/replay` program remains a development-only Testnet harness and is
+  not part of the shipped CLI or its release dependencies.
+
+## Protocol 29 and 30 scope
+
+This release supports the verified Stellar **Protocol 29 and Protocol 30** rules
+for one classic G-address account, ed25519 signers and the implemented
+`SetOptions` subset, as v0.1.1 did, and adds the reserve and fee rules above.
+Mainnet moved to Protocol 30 on 2026-11-23.
+
+What was observed on a network, and no more:
+
+- The reserve boundary, the fee rules, re-weighting and the order of operations
+  inside a transaction were run on Testnet at Protocol 30, as seven cases at
+  exact balances. The checker and the network agreed in all seven.
+- The checker read three public Mainnet accounts at Protocol 29 and again at
+  Protocol 30 and gave the same verdicts both times. Nothing was signed or
+  submitted.
+
+These rules come from the stellar-core source only and have not been recorded on
+a network: selling liabilities, the 1000 sub-entry limit, sponsorship, the order
+in which the three signer checks are made, and any base reserve other than
+5,000,000 stroops.
+
+Contract and muxed accounts, fee-bump transactions, unsupported signer types,
+other operation types, additional source accounts and account flags remain
+outside the safe-verdict boundary and are reported or documented as
+`INCONCLUSIVE` where applicable. A plan that adds a signer to a snapshot with no
+reserve data is `INCONCLUSIVE`, as described above.
+
+## Security boundaries and limitations
+
+The shipped CLI never accepts, stores or uses private signing keys, never signs
+transactions and never submits them. `check` is offline. `fetch` uses
+constrained read-only Horizon requests. The replay harness creates temporary
+Testnet keys only for explicitly run development experiments and is not a
+production transaction path. The evidence records below come from that harness.
+
+This project has not received an independent security audit. A snapshot can be
+out of date by the time a transaction is submitted, and the signers an account
+holds are declared by the user, not checked. Results aid human review and do not
+guarantee key custody, current state or successful future submission. Crates.io
+publication remains disabled (`publish = false`).
+
+## Reproducible evidence
+
+- [2026-10-13 Testnet observations](https://github.com/signerreach/signerreach/blob/main/docs/evidence/testnet-2026-10-13/README.md) (Protocol 29)
+- [2026-10-19 seven-fixture replay](https://github.com/signerreach/signerreach/blob/main/docs/evidence/replay-2026-10-19/README.md) (Protocol 29)
+- [2026-11-01 FX-01 follow-up replay](https://github.com/signerreach/signerreach/blob/main/docs/evidence/replay-2026-11-01-fx-01-followup/README.md) (Protocol 29)
+- [2026-11-04 Protocol 30 replay](https://github.com/signerreach/signerreach/blob/main/docs/evidence/replay-2026-11-04-protocol-30/README.md) (Protocol 30)
+- [2026-11-20 Testnet reserve failure](https://github.com/signerreach/signerreach/blob/main/docs/evidence/testnet-2026-11-20-reserve-gap/README.md) (Protocol 30)
+- [2026-11-23 reserve, fee and order boundaries](https://github.com/signerreach/signerreach/blob/main/docs/evidence/testnet-2026-11-23-reserve-boundaries/README.md) (Protocol 30)
+- [2026-11-20 Mainnet state-only checks](https://github.com/signerreach/signerreach/blob/main/docs/evidence/mainnet-2026-11-20-protocol-29/README.md) (Protocol 29) and [2026-11-23](https://github.com/signerreach/signerreach/blob/main/docs/evidence/mainnet-2026-11-23-protocol-30/README.md) (Protocol 30)
+
+The FX-01 follow-up repeated the master-only rejection after raising HIGH to 2,
+at Protocol 29 and again at Protocol 30. The records do not verify every
+historical follow-up case, current account state or behavior beyond the recorded
+evidence.
+
+## Verified native artifacts
+
+{{ARTIFACT_TABLE}}
