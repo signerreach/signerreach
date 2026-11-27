@@ -9,7 +9,7 @@ thresholds. Before you submit a change, it tells you whether the account can
 still be administered afterwards, under the assumptions you state.
 
 [![CI](https://github.com/signerreach/signerreach/actions/workflows/ci.yml/badge.svg)](https://github.com/signerreach/signerreach/actions/workflows/ci.yml)
-[![Release v0.1.1](https://img.shields.io/badge/release-v0.1.1-2ea44f)](https://github.com/signerreach/signerreach/releases/tag/v0.1.1)
+[![Release v0.1.2](https://img.shields.io/badge/release-v0.1.2-2ea44f)](https://github.com/signerreach/signerreach/releases/tag/v0.1.2)
 [![Documentation build](https://github.com/signerreach/signerreach/actions/workflows/docs.yml/badge.svg)](https://signerreach.github.io/signerreach/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-496c8e)](LICENSE)
 [![Rust 1.88+](https://img.shields.io/badge/Rust-1.88%2B-496c8e)](Cargo.toml)
@@ -24,7 +24,7 @@ still be administered afterwards, under the assumptions you state.
 
 </div>
 
-**Latest release:** [SignerReach v0.1.1](https://github.com/signerreach/signerreach/releases/tag/v0.1.1) |
+**Latest release:** [SignerReach v0.1.2](https://github.com/signerreach/signerreach/releases/tag/v0.1.2) |
 [Documentation](https://signerreach.github.io/signerreach/)
 
 SignerReach helps Stellar account administrators check whether planned signer
@@ -32,9 +32,10 @@ and threshold changes could leave an account unmanageable. It evaluates
 changes before submission, without requiring private keys or signing
 transactions.
 
-The current release (v0.1.1) supports the verified Stellar Protocol 29 and 30
+The current release (v0.1.2) supports the verified Stellar Protocol 29 and 30
 rules within its documented scope. Protocol 30 is verified on Testnet as
-described below. The earlier v0.1.0 accepts Protocol 29 only.
+described below. v0.1.2 also checks the balance, the reserve and the fee when a
+plan adds a signer; v0.1.1 does not. The earlier v0.1.0 accepts Protocol 29 only.
 
 ## The problem
 
@@ -111,7 +112,7 @@ network evidence behind it and a corrected plan, is in
 | 2 | `INCONCLUSIVE`, including input that was rejected |
 | 64 | Usage error, or a file that cannot be read |
 
-## Download v0.1.1
+## Download v0.1.2
 
 Published packages are available for these native targets. Each archive
 contains the CLI, license and README. The checksum file and manifest are
@@ -119,12 +120,12 @@ published beside each archive.
 
 | Platform | Target triple | Archive | SHA-256 | Manifest |
 |---|---|---|---|---|
-| Linux x86-64 | `x86_64-unknown-linux-gnu` | [tar.gz](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-x86_64-unknown-linux-gnu.tar.gz) | [checksum](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-x86_64-unknown-linux-gnu.sha256) | [manifest](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-x86_64-unknown-linux-gnu.manifest.json) |
-| macOS Apple Silicon | `aarch64-apple-darwin` | [tar.gz](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-aarch64-apple-darwin.tar.gz) | [checksum](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-aarch64-apple-darwin.sha256) | [manifest](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-aarch64-apple-darwin.manifest.json) |
-| Windows x86-64 | `x86_64-pc-windows-msvc` | [zip](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-x86_64-pc-windows-msvc.zip) | [checksum](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-x86_64-pc-windows-msvc.sha256) | [manifest](https://github.com/signerreach/signerreach/releases/download/v0.1.1/signerreach-v0.1.1-x86_64-pc-windows-msvc.manifest.json) |
+| Linux x86-64 | `x86_64-unknown-linux-gnu` | [tar.gz](https://github.com/signerreach/signerreach/releases/download/v0.1.2/signerreach-v0.1.2-x86_64-unknown-linux-gnu.tar.gz) | [checksum](https://github.com/signerreach/signerreach/releases/download/v0.1.2/signerreach-v0.1.2-x86_64-unknown-linux-gnu.sha256) | [manifest](https://github.com/signerreach/signerreach/releases/download/v0.1.2/signerreach-v0.1.2-x86_64-unknown-linux-gnu.manifest.json) |
+| macOS Apple Silicon | `aarch64-apple-darwin` | [tar.gz](https://github.com/signerreach/signerreach/releases/download/v0.1.2/signerreach-v0.1.2-aarch64-apple-darwin.tar.gz) | [checksum](https://github.com/signerreach/signerreach/releases/download/v0.1.2/signerreach-v0.1.2-aarch64-apple-darwin.sha256) | [manifest](https://github.com/signerreach/signerreach/releases/download/v0.1.2/signerreach-v0.1.2-aarch64-apple-darwin.manifest.json) |
+| Windows x86-64 | `x86_64-pc-windows-msvc` | [zip](https://github.com/signerreach/signerreach/releases/download/v0.1.2/signerreach-v0.1.2-x86_64-pc-windows-msvc.zip) | [checksum](https://github.com/signerreach/signerreach/releases/download/v0.1.2/signerreach-v0.1.2-x86_64-pc-windows-msvc.sha256) | [manifest](https://github.com/signerreach/signerreach/releases/download/v0.1.2/signerreach-v0.1.2-x86_64-pc-windows-msvc.manifest.json) |
 
 These are the published targets; other architectures are not included. See the
-[GitHub Release](https://github.com/signerreach/signerreach/releases/tag/v0.1.1)
+[GitHub Release](https://github.com/signerreach/signerreach/releases/tag/v0.1.2)
 for the complete notes and asset list.
 
 ## Build from source

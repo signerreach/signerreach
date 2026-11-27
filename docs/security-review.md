@@ -52,11 +52,11 @@ dependency advisories; it does not prove the application secure.
 The checker cannot verify key custody, actual signature bytes, reserve
 sufficiency, a fresh live state at submission time, or all possible behavior
 outside its modeled `SetOptions` subset. A signer addition can fail for low
-reserve despite a safe authorization and reachability result. (Update, 2026-11-23:
+reserve despite a safe authorization and reachability result. (Update, 2026-11-27:
 this review describes the checker before the balance, reserve and fee rules R10 to
-R14 were added on `main`. They narrow this limitation for the fee and for adding a
+R14 were added. They narrow this limitation for the fee and for adding a
 signer when the snapshot carries reserve data; see [SPEC.md](SPEC.md). They are
-not in a published release and this review has not been repeated for them.)
+published in v0.1.2, and this review has not been repeated for them.)
 Horizon's
 root/account/root sequence checks network and protocol consistency, but is
 not an atomic ledger snapshot and cannot defeat a stale or dishonest server.
