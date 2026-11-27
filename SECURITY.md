@@ -64,8 +64,10 @@ helps users understand the impact.
 
 ## Supported versions
 
-The latest published version is [v0.1.1](https://github.com/signerreach/signerreach/releases/tag/v0.1.1). The earlier
-[v0.1.0](https://github.com/signerreach/signerreach/releases/tag/v0.1.0) is superseded by it.
+The latest published version is [v0.1.2](https://github.com/signerreach/signerreach/releases/tag/v0.1.2). The earlier
+[v0.1.1](https://github.com/signerreach/signerreach/releases/tag/v0.1.1) and
+[v0.1.0](https://github.com/signerreach/signerreach/releases/tag/v0.1.0) are superseded by it.
+v0.1.1 and v0.1.0 do not check the balance, the reserve or the fee when a plan adds a signer.
 Changes on `main` are development changes and are not published releases.
 
 ## What this policy does not promise

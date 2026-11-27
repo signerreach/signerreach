@@ -1,9 +1,9 @@
 # Architecture and scope
 
 Architecture checked against the repository on 2026-10-31. Publication status
-checked on 2026-11-04. This describes the implemented Rust CLI and the separate
-development replay tool. Version 0.1.1 is published from verified main commit
-[`f950a821044c479c29550e6e003612b2de7b9175`](https://github.com/signerreach/signerreach/releases/tag/v0.1.1).
+checked on 2026-11-27. This describes the implemented Rust CLI and the separate
+development replay tool. Version 0.1.2 is published from verified main commit
+[`9d78409e5d49ca8cd7c974728ff1f8ecb59a5642`](https://github.com/signerreach/signerreach/releases/tag/v0.1.2).
 
 ```mermaid
 flowchart LR
@@ -34,7 +34,7 @@ read-only way to obtain a snapshot. Neither command signs or submits.
 | `tools/replay` | Build throwaway Testnet accounts and replay chain fixtures | Separate Node development tool; live mode signs and submits on Testnet |
 
 The binary has no database, server, contract, cross-repository dependency, or
-hosted state. The published CLI version is `0.1.1`.
+hosted state. The published CLI version is `0.1.2`.
 
 ## Inputs and trust boundaries
 
