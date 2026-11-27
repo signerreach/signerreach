@@ -9,6 +9,7 @@ SignerReach helps review a proposed transaction; it is **not** an account custod
 - Signer availability is declared by the operator. No command can prove that a private key still exists or is accessible.
 - A snapshot describes a point in ledger history, not a guaranteed current account state.
 - Historical Testnet observations are not proof of current network compatibility.
+- Two differences from Testnet are known and not yet fixed. The network charged 100 stroops for each operation, not a higher bid, so after a high bid the model's balance is too low. It also refused a transaction naming the account's own key at submission, with no fee, where the model says it fails in a ledger and keeps the fee. Neither changes a verdict. See ["Known differences from the network"](https://github.com/signerreach/signerreach/blob/main/docs/SPEC.md#4-verified-rules-this-specification-relies-on).
 - Reserve sufficiency (other than the fee and adding a signer, when the snapshot carries reserve data), account flags, fee-bump transactions, other operation sources, supported preconditions outside the model, sponsored signers, contract addresses and other unsupported inputs are not silently assumed safe.
 - The tool has **not** been independently audited or established as suitable for production account-security decisions.
 
