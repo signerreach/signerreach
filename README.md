@@ -243,6 +243,13 @@ scripts**, with a reproducible trace.
   [SPEC.md](docs/SPEC.md) says which boundary cases are not yet recorded on a
   network. Other external conditions cannot always be established from the
   snapshot, even when the verdict is `SAFE WITHIN SCOPE`.
+- Two differences between this tool's model and Testnet are known and not yet
+  fixed, both found by [runs of the TypeScript library](https://github.com/signerreach/reserve/blob/main/docs/evidence/testnet-2026-11-27-run-2/README.md) on
+  2026-11-27. The network charged 100 stroops for each operation, not a higher
+  bid, so after a high bid the model's balance is too low. It also refused a
+  transaction naming the account's own key at submission, with no fee, where the
+  model says it fails in a ledger and keeps the fee. Neither changes a verdict.
+  See "Known differences from the network" in [SPEC.md](docs/SPEC.md).
 - Historical Testnet observations do not establish current network
   compatibility or the current state of an account.
 
