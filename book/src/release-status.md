@@ -69,7 +69,9 @@ and state-only checks on three public Mainnet accounts
 ([2026-11-23](https://github.com/signerreach/signerreach/blob/main/docs/evidence/mainnet-2026-11-23-protocol-30/README.md)).
 Selling liabilities, the 1000 sub-entry limit, sponsorship, the order of the
 three signer checks and any base reserve other than 5,000,000 stroops come from
-the stellar-core source only and have not been recorded on a network. None of them establishes current network compatibility, current account state or key
+the stellar-core source only and had not been recorded on a network when this release was
+published. Later Testnet runs of the TypeScript library have observed several of them; see
+[the specification, section 4](https://github.com/signerreach/signerreach/blob/main/docs/SPEC.md#4-verified-rules-this-specification-relies-on). None of them establishes current network compatibility, current account state or key
 custody. Snapshot freshness, signer availability and reserve sufficiency are
 not guaranteed.
 

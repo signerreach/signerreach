@@ -239,9 +239,9 @@ scripts**, with a reproducible trace.
   fee, in the order the network applies them, when the snapshot carries reserve
   data (`fetch` writes it). Without that data such a plan can never be
   `SAFE WITHIN SCOPE`. The figures are read as of the snapshot's ledger, the
-  rules rest on the stellar-core source and one failure seen on Testnet, and
-  [SPEC.md](docs/SPEC.md) says which boundary cases are not yet recorded on a
-  network. Other external conditions cannot always be established from the
+  rules rest on the stellar-core source and on Testnet records, and
+  [SPEC.md](docs/SPEC.md) says which boundary cases are still from the source
+  only. Other external conditions cannot always be established from the
   snapshot, even when the verdict is `SAFE WITHIN SCOPE`.
 - Two differences between this tool's model and Testnet are known and not yet
   fixed, both found by [runs of the TypeScript library](https://github.com/signerreach/reserve/blob/main/docs/evidence/testnet-2026-11-27-run-2/README.md) on
